@@ -1,0 +1,66 @@
+/* ===== NAVBAR BASE ===== */
+
+.nav {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+
+    display: flex;
+    align-items: center;
+    gap: 30px;
+
+    height: 60px;
+    padding: 0 24px;
+
+    background: rgb(232, 151, 138);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+/* logo */
+.nav-logo {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #111;
+    white-space: nowrap;
+}
+
+/* links container */
+.nav-links {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.nav-links::-webkit-scrollbar {
+    display: none;
+}
+
+/* links */
+.nav-links a {
+    text-decoration: none;
+    color: #111;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    transition: 0.2s;
+}
+
+/* hover */
+.nav-links a:hover {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+/* active click effect */
+.nav-links a:active {
+    transform: scale(0.95);
+}
+
+/* current page highlight */
+.nav-links a.active {
+    background: rgba(0, 0, 0, 0.2);
+    font-weight: 700;
+}

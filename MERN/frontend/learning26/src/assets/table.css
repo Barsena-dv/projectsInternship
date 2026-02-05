@@ -1,0 +1,115 @@
+/* =========================
+   UNIVERSAL TABLE THEME
+   ========================= */
+
+/* Page base */
+.page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 26px 20px;
+    background: #0b0b0b;
+    color: white;
+}
+
+/* Page title */
+.page-title {
+    text-align: center;
+    font-size: 46px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 18px;
+    color: rgb(232, 152, 138);
+}
+
+/* Wrapper for table (for overflow screens) */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    padding: 10px;
+}
+
+/* Main Table */
+.data-table {
+    width: 100%;
+    min-width: 950px;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 14px;
+    overflow: hidden;
+
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Header Row */
+.data-table thead tr {
+    background: rgba(255, 255, 255, 0.10);
+}
+
+.data-table th {
+    padding: 16px 14px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+
+    color: rgb(232, 152, 138);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Body cells */
+.data-table td {
+    padding: 15px 14px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.92);
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Hover effect */
+.data-table tbody tr {
+    transition: 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* remove border bottom for last row */
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* =========================
+   HIGHLIGHT CELLS (Reusable)
+   ========================= */
+
+.cell-success {
+    background: rgba(0, 255, 0, 0.18);
+    color: #00ff66 !important;
+    font-weight: 700;
+    border-radius: 10px;
+}
+
+.cell-danger {
+    background: rgba(255, 69, 0, 0.25);
+    color: #ff6b45 !important;
+    font-weight: 700;
+    border-radius: 10px;
+}
+
+.cell-warning {
+    background: rgba(255, 255, 0, 0.18);
+    color: #ffe86b !important;
+    font-weight: 700;
+    border-radius: 10px;
+}
+
+.cell-muted {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 700;
+    border-radius: 10px;
+}

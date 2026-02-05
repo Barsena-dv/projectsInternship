@@ -1,0 +1,105 @@
+.shows-page {
+    min-height: 100vh;
+    background: #0b0b0b;
+    color: #fff;
+    padding: 30px;
+    font-family: "Segoe UI", sans-serif;
+}
+
+.shows-header {
+    text-align: left;
+    margin-bottom: 25px;
+}
+
+.shows-title {
+    font-size: 46px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 1px;
+    color: #e6a19a;
+    /* same tint like your theme */
+}
+
+.shows-subtitle {
+    margin-top: 8px;
+    font-size: 14px;
+    opacity: 0.7;
+    max-width: 600px;
+}
+
+.shows-controls {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.shows-search {
+    flex: 1 1 320px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    outline: none;
+}
+
+.shows-search::placeholder {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.shows-filter {
+    flex: 0 0 180px;
+    padding: 12px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: white;
+    outline: none;
+    cursor: pointer;
+}
+
+/* List */
+.shows-list {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.shows-row {
+    display: grid;
+    grid-template-columns: 60px 1.6fr 1fr 100px 100px;
+    padding: 14px 16px;
+    font-size: 14px;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transition: 0.2s;
+}
+
+.shows-row:last-child {
+    border-bottom: none;
+}
+
+.shows-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.shows-row-head {
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.rating-chip {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: rgba(230, 161, 154, 0.2);
+    border: 1px solid rgba(230, 161, 154, 0.4);
+    font-weight: 700;
+}
