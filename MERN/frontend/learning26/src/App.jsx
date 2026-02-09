@@ -25,6 +25,9 @@ import { ErrorNotFound } from './components/ErrorNotFound'
 import { Watch } from './components/Watch'
 import { IplTeam } from './components/IplTeam'
 import { Playing } from './components/Playing'
+import { UseState1 } from './components/UseState1'
+import { Alert1 } from './components/Alert1'
+import { UseState2 } from './components/UseState2'
 
 function App() {
   //const [count, setCount] = useState(0)
@@ -45,6 +48,9 @@ function App() {
             <Route path='/mapdemo8' element={<MapDemo8/>}></Route>
             <Route path='/mapdemo9' element={<MapDemo9/>}></Route>
             <Route path='/mapdemo10' element={<MapDemo10/>}></Route>
+            <Route path='/state1' element={<UseState1/>}></Route>
+            <Route path='/state2' element={<UseState2/>}></Route>
+            <Route path='/alert1' element={<Alert1/>}></Route>
             <Route path='/*' element={<ErrorNotFound/>}></Route>
             <Route path='/watch/:name' element={<Watch/>}></Route>
             <Route path='/play/:name' element={<Playing/>}></Route>

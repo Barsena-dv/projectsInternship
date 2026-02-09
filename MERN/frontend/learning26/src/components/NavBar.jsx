@@ -17,6 +17,9 @@ export const NavBar = () => {
                 <Link to="/mapdemo8">Bikes</Link>
                 <Link to="/mapdemo9">Books</Link>
                 <Link to="/mapdemo10">Ships</Link>
+                <Link to="/state1">State1</Link>
+                <Link to="/state2">State2</Link>
+                <Link to="/alert1">Alert1</Link>
             </nav>
         </header>
     )
