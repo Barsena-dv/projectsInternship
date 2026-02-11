@@ -20,6 +20,9 @@ export const NavBar = () => {
                 <Link to="/state1">State1</Link>
                 <Link to="/state2">State2</Link>
                 <Link to="/alert1">Alert1</Link>
+                <Link to="/formtask1">Form1</Link>
+                <Link to="/formtask2">Form2</Link>
+                <Link to="/formtask3">Form3</Link>
             </nav>
         </header>
     )

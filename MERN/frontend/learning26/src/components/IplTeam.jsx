@@ -1,6 +1,7 @@
 import React from 'react'
 import "../assets/moviesCard.css"
 import { Link } from 'react-router-dom'
+import { CardComponent } from './CardComponent';
 
 export const IplTeam = () => {
 
@@ -110,24 +111,23 @@ export const IplTeam = () => {
     return (
         <div style={{ textAlign: "center" }}>
             <h1 style={{ textAlign: "left", padding: "12px 0px 0px 12px" }}>IPL Teams</h1>
-            <div className='movie-row'>
+            <div className="movie-row">
                 {
-                    iplTeams.map((iplTeam) => {
-                        return <li>
-                            <Link to={`/play/${iplTeam.teamName}`}>
-                                <div className='card' style={{ backgroundImage: `url(${iplTeam.posterImage})` }}>
-                                    <p className='rating'>{iplTeam.rating}</p>
-                                    <div className='specs'>
-                                        {/* <p>{iplTeam.year} • {iplTeam.genre}</p> */}
-                                        <p className='specs description'>{iplTeam.description}</p>
-                                    </div>
-                                    {/* <p className='duration'>{iplTeam.duration}</p> */}
-                                </div>
-                            </Link>
-                        </li>
-                    })
+                    iplTeams.map((team) => (
+                        <CardComponent
+                            key={team.id}
+                            // title={team.teamName}
+                            image={team.posterImage}
+                            rating={team.rating}
+                            year={team.year}
+                            subtitle={"IPL Team"}
+                            description={team.description}
+                            link={`/play/${team.teamName}`}
+                        />
+                    ))
                 }
             </div>
+
         </div>
     )
 }

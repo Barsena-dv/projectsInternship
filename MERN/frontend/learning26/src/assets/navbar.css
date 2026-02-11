@@ -21,26 +21,52 @@
     font-size: 20px;
     font-weight: 700;
     letter-spacing: 0.5px;
-    color: #111;
+    color: #630505;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* links container */
+/* links container */
 .nav-links {
     display: flex;
+    align-items: center;
     gap: 18px;
+
+    flex: 1;              /* take remaining navbar width */
+    min-width: 0;         /* VERY important for flex scrolling */
+
+    flex-wrap: nowrap;    /* never wrap */
+    white-space: nowrap;
+
     overflow-x: auto;
-    scrollbar-width: none;
+    overflow-y: hidden;
+
+    scrollbar-width: thin;
 }
 
 .nav-links::-webkit-scrollbar {
-    display: none;
+    height: 6px;
 }
+
+.nav-links::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.nav-links::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.35);
+    border-radius: 10px;
+}
+
+.nav-links::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.55);
+}
+
 
 /* links */
 .nav-links a {
     text-decoration: none;
-    color: #111;
+    color: #540404;
     font-size: 15px;
     font-weight: 500;
     padding: 6px 10px;
@@ -64,3 +90,4 @@
     background: rgba(0, 0, 0, 0.2);
     font-weight: 700;
 }
+

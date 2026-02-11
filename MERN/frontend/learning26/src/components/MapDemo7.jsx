@@ -1,4 +1,5 @@
 import React from 'react'
+import { TableComponent } from './TableComponent';
 
 export const MapDemo7 = () => {
 
@@ -82,49 +83,63 @@ export const MapDemo7 = () => {
         }
     ];
 
+    const columns = [
+        { key: "id", label: "Id" },
+        { key: "brand", label: "Brand" },
+        { key: "modname", label: "Model" },
+        { key: "movement", label: "Movement" },
+        { key: "waterRes", label: "Water Resistance" },
+        { key: "price", label: "Price" }
+    ];
 
-    return (
-        <div className='page'>
-            <h1 className='page-title'>Watches</h1>
+    const rules = {
+        movement: (v) => v !== "Automatic" ? "cell-danger" : "",
+        waterRes: (v) => parseInt(v) > 100 ? "cell-success" : ""
+    };
 
-            <div className="table-wrapper">
-                <table className='data-table'>
-                <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Brand</th>
-                        <th>Model Name</th>
-                        <th>Type</th>
-                        <th>Movement</th>
-                        <th>Case Size</th>
-                        <th>Material</th>
-                        <th>Water Resistance</th>
-                        <th>Price (₹)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {
-                        watches.map((watch) => {
+    return <TableComponent title="Watches" columns={columns} data={watches} rules={rules} />;
+    // return (
+    //     <div className='page'>
+    //         <h1 className='page-title'>Watches</h1>
 
-                            const m = parseInt(watch.waterRes);
-                            const movement = watch.movement;
+    //         <div className="table-wrapper">
+    //             <table className='data-table'>
+    //             <thead>
+    //                 <tr>
+    //                     <th>Id</th>
+    //                     <th>Brand</th>
+    //                     <th>Model Name</th>
+    //                     <th>Type</th>
+    //                     <th>Movement</th>
+    //                     <th>Case Size</th>
+    //                     <th>Material</th>
+    //                     <th>Water Resistance</th>
+    //                     <th>Price (₹)</th>
+    //                 </tr>
+    //             </thead>
+    //             <tbody>
+    //                 {
+    //                     watches.map((watch) => {
 
-                            return <tr>
-                                <td>{watch.id}</td>
-                                <td>{watch.brand}</td>
-                                <td>{watch.modname}</td>
-                                <td>{watch.type}</td>
-                                <td className={`${movement !== "Automatic" ? "cell-danger" : ""}`}>{watch.movement}</td>
-                                <td>{watch.caseSize}</td>
-                                <td>{watch.material}</td>
-                                <td className= {`${ m > 100 ? "cell-success" : "" }`}>{watch.waterRes}</td>
-                                <td>{watch.price}</td>
-                            </tr>
-                        })
-                    }
-                </tbody>
-            </table>
-            </div>
-        </div>
-    )
+    //                         const m = parseInt(watch.waterRes);
+    //                         const movement = watch.movement;
+
+    //                         return <tr>
+    //                             <td>{watch.id}</td>
+    //                             <td>{watch.brand}</td>
+    //                             <td>{watch.modname}</td>
+    //                             <td>{watch.type}</td>
+    //                             <td className={`${movement !== "Automatic" ? "cell-danger" : ""}`}>{watch.movement}</td>
+    //                             <td>{watch.caseSize}</td>
+    //                             <td>{watch.material}</td>
+    //                             <td className= {`${ m > 100 ? "cell-success" : "" }`}>{watch.waterRes}</td>
+    //                             <td>{watch.price}</td>
+    //                         </tr>
+    //                     })
+    //                 }
+    //             </tbody>
+    //         </table>
+    //         </div>
+    //     </div>
+    // )
 }

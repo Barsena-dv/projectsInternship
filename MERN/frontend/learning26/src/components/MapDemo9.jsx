@@ -1,4 +1,5 @@
 import React from 'react'
+import { TableComponent } from './TableComponent';
 
 export const MapDemo9 = () => {
 
@@ -93,56 +94,71 @@ export const MapDemo9 = () => {
         }
     ];
 
+    const columns = [
+        { key: "id", label: "Id" },
+        { key: "title", label: "Title" },
+        { key: "author", label: "Author" },
+        { key: "published", label: "Published" },
+        { key: "rating", label: "Rating" },
+        {
+            key: "img",
+            label: "Best Seller",
+            render: (v, row) => <img src={v} alt={row.title} style={{ width: "70px", height: "90px", objectFit: "cover" }} />
+        }
+    ];
+    const rules = {
+        published: (v) => v < 1980 ? "cell-success" : "cell-danger"
+    };
 
+    return <TableComponent title="Books" columns={columns} data={books} rules={rules} />;
+    // return (
+    //     <div className='page'>
+    //         <h1 className='page-title'>Books</h1>
 
-    return (
-        <div className='page'>
-            <h1 className='page-title'>Books</h1>
+    //         <div className="table-wrapper">
+    //             <table className='data-table'>
+    //                 <thead>
+    //                     <tr style={{ backgroundColor: "gray" }}>
+    //                         <th>Id</th>
+    //                         <th>Title</th>
+    //                         <th>Author</th>
+    //                         <th>Genre</th>
+    //                         <th>Published</th>
+    //                         <th>Language</th>
+    //                         <th>Pages</th>
+    //                         <th>Rating</th>
+    //                         <th>Best Seller</th>
+    //                     </tr>
+    //                 </thead>
+    //                 <tbody>
+    //                     {
+    //                         books.map((book) => {
 
-            <div className="table-wrapper">
-                <table className='data-table'>
-                    <thead>
-                        <tr style={{ backgroundColor: "gray" }}>
-                            <th>Id</th>
-                            <th>Title</th>
-                            <th>Author</th>
-                            <th>Genre</th>
-                            <th>Published</th>
-                            <th>Language</th>
-                            <th>Pages</th>
-                            <th>Rating</th>
-                            <th>Best Seller</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            books.map((book) => {
+    //                             const pub = book.published;
 
-                                const pub = book.published;
+    //                             return <tr>
+    //                                 <td>{book.id}</td>
+    //                                 <td>{book.title}</td>
+    //                                 <td>{book.author}</td>
+    //                                 <td>{book.genre}</td>
+    //                                 <td className={`${pub < 1980 ? "cell-success" : "cell-danger"}`}>{book.published}</td>
+    //                                 <td>{book.language}</td>
+    //                                 <td>{book.pages}</td>
+    //                                 <td>{book.rating}</td>
+    //                                 <td>
+    //                                     <img
+    //                                         src={book.img}
+    //                                         alt={book.title}
+    //                                         style={{ width: "70px", height: "90px", objectFit: "cover" }}
+    //                                     />
+    //                                 </td>
 
-                                return <tr>
-                                    <td>{book.id}</td>
-                                    <td>{book.title}</td>
-                                    <td>{book.author}</td>
-                                    <td>{book.genre}</td>
-                                    <td className={`${pub < 1980 ? "cell-success" : "cell-danger"}`}>{book.published}</td>
-                                    <td>{book.language}</td>
-                                    <td>{book.pages}</td>
-                                    <td>{book.rating}</td>
-                                    <td>
-                                        <img
-                                            src={book.img}
-                                            alt={book.title}
-                                            style={{ width: "70px", height: "90px", objectFit: "cover" }}
-                                        />
-                                    </td>
-
-                                </tr>
-                            })
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    )
+    //                             </tr>
+    //                         })
+    //                     }
+    //                 </tbody>
+    //             </table>
+    //         </div>
+    //     </div>
+    // )
 }

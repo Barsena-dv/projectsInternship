@@ -1,4 +1,5 @@
 import React from 'react'
+import { TableComponent } from './TableComponent';
 
 export const MapDemo10 = () => {
 
@@ -93,51 +94,64 @@ export const MapDemo10 = () => {
         }
     ];
 
+    const columns = [
+        { key: "id", label: "Id" },
+        { key: "brand", label: "Company" },
+        { key: "shipname", label: "Ship Name" },
+        { key: "capacity", label: "Capacity" },
+        { key: "length", label: "Length" },
+        { key: "decks", label: "Decks" },
+        { key: "shipPrice", label: "Price" }
+    ];
 
+    const rules = {
+        capacity: (v) => parseInt(v) < 6000 ? "cell-warning" : "",
+        length: (v) => parseInt(v) < 300 ? "cell-danger" : "",
+        decks: (v) => parseInt(v) >= 20 ? "cell-success" : ""
+    };
 
+    return <TableComponent title="Ships" columns={columns} data={ships} rules={rules} />;
+    // return (
+    //     <div className='page'>
+    //         <h1 className='page-title'>Ships</h1>
+    //         <div className="table-wrapper">
+    //             <table className='data-table'>
+    //                 <thead>
+    //                     <tr style={{ backgroundColor: "gray" }}>
+    //                         <th>Id</th>
+    //                         <th>Company Name</th>
+    //                         <th>Ship Name</th>
+    //                         <th>Type</th>
+    //                         <th>Capacity</th>
+    //                         <th>Length</th>
+    //                         <th>Decks</th>
+    //                         <th>High Lights</th>
+    //                         <th>Price (₹)</th>
+    //                     </tr>
+    //                 </thead>
+    //                 <tbody>
+    //                     {
+    //                         ships.map((ship) => {
+    //                             const cap = parseInt(ship.capacity);
+    //                             const length = parseInt(ship.length);
+    //                             const decks = parseInt(ship.decks);
 
-
-    return (
-        <div className='page'>
-            <h1 className='page-title'>Ships</h1>
-            <div className="table-wrapper">
-                <table className='data-table'>
-                    <thead>
-                        <tr style={{ backgroundColor: "gray" }}>
-                            <th>Id</th>
-                            <th>Company Name</th>
-                            <th>Ship Name</th>
-                            <th>Type</th>
-                            <th>Capacity</th>
-                            <th>Length</th>
-                            <th>Decks</th>
-                            <th>High Lights</th>
-                            <th>Price (₹)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            ships.map((ship) => {
-                                const cap = parseInt(ship.capacity);
-                                const length = parseInt(ship.length);
-                                const decks = parseInt(ship.decks);
-
-                                return <tr>
-                                    <td>{ship.id}</td>
-                                    <td>{ship.brand}</td>
-                                    <td>{ship.shipname}</td>
-                                    <td>{ship.type}</td>
-                                    <td className={`${cap < 6000 ? "cell-warning" : ""}`}>{ship.capacity}</td>
-                                    <td className={`${length < 300 ? "cell-danger" : ""}`}>{ship.length}</td>
-                                    <td className={`${decks >= 20 ? "cell-success" : ""}`}>{ship.decks}</td>
-                                    <td>{ship.highlights}</td>
-                                    <td>{ship.shipPrice}</td>
-                                </tr>
-                            })
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    )
+    //                             return <tr>
+    //                                 <td>{ship.id}</td>
+    //                                 <td>{ship.brand}</td>
+    //                                 <td>{ship.shipname}</td>
+    //                                 <td>{ship.type}</td>
+    //                                 <td className={`${cap < 6000 ? "cell-warning" : ""}`}>{ship.capacity}</td>
+    //                                 <td className={`${length < 300 ? "cell-danger" : ""}`}>{ship.length}</td>
+    //                                 <td className={`${decks >= 20 ? "cell-success" : ""}`}>{ship.decks}</td>
+    //                                 <td>{ship.highlights}</td>
+    //                                 <td>{ship.shipPrice}</td>
+    //                             </tr>
+    //                         })
+    //                     }
+    //                 </tbody>
+    //             </table>
+    //         </div>
+    //     </div>
+    // )
 }

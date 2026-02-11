@@ -1,5 +1,6 @@
 import React from 'react'
 import "../assets/table.css"
+import { TableComponent } from './TableComponent';
 
 export const MapDemo6 = () => {
 
@@ -60,51 +61,66 @@ export const MapDemo6 = () => {
         }
     ]
 
-    return (
-        <div className="page">
-            <h1 className="page-title">Cars</h1>
+    const columns = [
+        { key:"id", label:"Id" },
+        { key:"brand", label:"Brand" },
+        { key:"modname", label:"Model Name" },
+        { key:"type", label:"Type" },
+        { key:"power", label:"Power" },
+        { key:"tspeed", label:"Top Speed" },
+        { key:"price", label:"Price (₹)" }
+    ];
+    const rules = {
+        power: (val) => parseInt(val) < 600 ? "cell-success" : "",
+        tspeed: (val) => parseInt(val) > 400 ? "cell-danger" : ""
+    };
 
-            <div className="table-wrapper">
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>Id</th>
-                            <th>Brand</th>
-                            <th>Model Name</th>
-                            <th>Type</th>
-                            <th>Power</th>
-                            <th>Top Speed</th>
-                            <th>Price (₹)</th>
-                        </tr>
-                    </thead>
+    return <TableComponent title="Cars" columns={columns} data={cars} rules={rules} />;
+    // return (
+    //     <div className="page">
+    //         <h1 className="page-title">Cars</h1>
 
-                    <tbody>
-                        {cars.map((car) => {
-                            const hp = parseInt(car.power);
-                            const speed = parseInt(car.tspeed);
+    //         <div className="table-wrapper">
+    //             <table className="data-table">
+    //                 <thead>
+    //                     <tr>
+    //                         <th>Id</th>
+    //                         <th>Brand</th>
+    //                         <th>Model Name</th>
+    //                         <th>Type</th>
+    //                         <th>Power</th>
+    //                         <th>Top Speed</th>
+    //                         <th>Price (₹)</th>
+    //                     </tr>
+    //                 </thead>
 
-                            return (
-                                <tr key={car.id}>
-                                    <td>{car.id}</td>
-                                    <td>{car.brand}</td>
-                                    <td>{car.modname}</td>
-                                    <td>{car.type}</td>
+    //                 <tbody>
+    //                     {cars.map((car) => {
+    //                         const hp = parseInt(car.power);
+    //                         const speed = parseInt(car.tspeed);
 
-                                    <td className={`${hp < 600 ? "cell-success" : ""}`}>
-                                        {car.power}
-                                    </td>
+    //                         return (
+    //                             <tr key={car.id}>
+    //                                 <td>{car.id}</td>
+    //                                 <td>{car.brand}</td>
+    //                                 <td>{car.modname}</td>
+    //                                 <td>{car.type}</td>
 
-                                    <td className={speed > 400 && "cell-danger"}>
-                                        {car.tspeed}
-                                    </td>
+    //                                 <td className={`${hp < 600 ? "cell-success" : ""}`}>
+    //                                     {car.power}
+    //                                 </td>
 
-                                    <td>{car.price}</td>
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    )
+    //                                 <td className={speed > 400 && "cell-danger"}>
+    //                                     {car.tspeed}
+    //                                 </td>
+
+    //                                 <td>{car.price}</td>
+    //                             </tr>
+    //                         )
+    //                     })}
+    //                 </tbody>
+    //             </table>
+    //         </div>
+    //     </div>
+    // )
 }

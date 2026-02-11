@@ -1,4 +1,5 @@
 import React from 'react'
+import { TableComponent } from './TableComponent';
 
 export const MapDemo8 = () => {
 
@@ -82,49 +83,64 @@ export const MapDemo8 = () => {
         }
     ];
 
+    const columns = [
+        { key: "id", label: "Id" },
+        { key: "brand", label: "Brand" },
+        { key: "modname", label: "Model" },
+        { key: "type", label: "Type" },
+        { key: "power", label: "Power" },
+        { key: "tspeed", label: "Top Speed" },
+        { key: "price", label: "Price" }
+    ];
 
-    return (
-        <div className='page'>
-            <h1 className='page-title'>Bikes</h1>
+    const rules = {
+        power: (v) => parseInt(v) < 200 ? "cell-success" : "",
+        tspeed: (v) => parseInt(v) > 300 ? "cell-danger" : ""
+    };
 
-            <div className="table-wrapper">
-                <table className='data-table'>
-                    <thead>
-                        <tr style={{ backgroundColor: "gray" }}>
-                            <th>Id</th>
-                            <th>Brand</th>
-                            <th>Model Name</th>
-                            <th>Type</th>
-                            <th>Engine</th>
-                            <th>Power</th>
-                            <th>Torque</th>
-                            <th>Top Speed</th>
-                            <th>Price (₹)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            bikes.map((bike) => {
+    return <TableComponent title="Bikes" columns={columns} data={bikes} rules={rules} />;
+    // return (
+    //     <div className='page'>
+    //         <h1 className='page-title'>Bikes</h1>
 
-                                const power = parseInt(bike.power);
-                                const speed = parseInt(bike.tspeed);
+    //         <div className="table-wrapper">
+    //             <table className='data-table'>
+    //                 <thead>
+    //                     <tr style={{ backgroundColor: "gray" }}>
+    //                         <th>Id</th>
+    //                         <th>Brand</th>
+    //                         <th>Model Name</th>
+    //                         <th>Type</th>
+    //                         <th>Engine</th>
+    //                         <th>Power</th>
+    //                         <th>Torque</th>
+    //                         <th>Top Speed</th>
+    //                         <th>Price (₹)</th>
+    //                     </tr>
+    //                 </thead>
+    //                 <tbody>
+    //                     {
+    //                         bikes.map((bike) => {
 
-                                return <tr>
-                                    <td>{bike.id}</td>
-                                    <td>{bike.brand}</td>
-                                    <td>{bike.modname}</td>
-                                    <td>{bike.type}</td>
-                                    <td>{bike.engine}</td>
-                                    <td className= {`${power < 200 ? "cell-success" : ""}`}>{bike.power}</td>
-                                    <td>{bike.torque}</td>
-                                    <td className= {`${speed > 300 ? "cell-danger" : ""}`}>{bike.tspeed}</td>
-                                    <td>{bike.price}</td>
-                                </tr>
-                            })
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    )
+    //                             const power = parseInt(bike.power);
+    //                             const speed = parseInt(bike.tspeed);
+
+    //                             return <tr>
+    //                                 <td>{bike.id}</td>
+    //                                 <td>{bike.brand}</td>
+    //                                 <td>{bike.modname}</td>
+    //                                 <td>{bike.type}</td>
+    //                                 <td>{bike.engine}</td>
+    //                                 <td className= {`${power < 200 ? "cell-success" : ""}`}>{bike.power}</td>
+    //                                 <td>{bike.torque}</td>
+    //                                 <td className= {`${speed > 300 ? "cell-danger" : ""}`}>{bike.tspeed}</td>
+    //                                 <td>{bike.price}</td>
+    //                             </tr>
+    //                         })
+    //                     }
+    //                 </tbody>
+    //             </table>
+    //         </div>
+    //     </div>
+    // )
 }
