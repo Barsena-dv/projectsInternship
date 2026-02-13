@@ -26,6 +26,7 @@ export const NavBar = () => {
                 <Link to="/inputtask1">Input1</Link>
                 <Link to="/validationtask1">Validate1</Link>
                 <Link to="/validationtask2">Validate2 </Link>
+                <Link to="/validationtask3">Validate3 </Link>
             </nav>
         </header>
     )

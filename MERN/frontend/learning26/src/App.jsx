@@ -34,6 +34,7 @@ import { FormTask3 } from './components/Form/FormTask3'
 import { InputTask1 } from './components/Input/InputTask1'
 import { Validation1 } from './components/Form/Validation1'
 import { Validation2 } from './components/Form/Validation2'
+import { Validation3 } from './components/Form/Validation3'
 
 function App() {
   //const [count, setCount] = useState(0)
@@ -63,6 +64,7 @@ function App() {
             <Route path='/inputtask1' element={<InputTask1/>}></Route>
             <Route path='/validationtask1' element={<Validation1/>}></Route>
             <Route path='/validationtask2' element={<Validation2/>}></Route>
+            <Route path='/validationtask3' element={<Validation3/>}></Route>
             <Route path='/*' element={<ErrorNotFound/>}></Route>
             <Route path='/watch/:name' element={<Watch/>}></Route>
             <Route path='/play/:name' element={<Playing/>}></Route>
