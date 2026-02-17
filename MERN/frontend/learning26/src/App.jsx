@@ -37,6 +37,8 @@ import { Validation2 } from './components/Form/Validation2'
 import { Validation3 } from './components/Form/Validation3'
 import { InputTask2 } from './components/Input/InputTask2'
 import { Api1 } from './components/API/Api1'
+import { Api2 } from './components/API/Api2'
+import { Api3 } from './components/API/Api3'
 
 function App() {
   //const [count, setCount] = useState(0)
@@ -69,6 +71,8 @@ function App() {
             <Route path='/validationtask2' element={<Validation2/>}></Route>
             <Route path='/validationtask3' element={<Validation3/>}></Route>
             <Route path='/api1' element={<Api1/>}></Route>
+            <Route path='/api2' element={<Api2/>}></Route>
+            <Route path='/api3' element={<Api3/>}></Route>
             <Route path='/*' element={<ErrorNotFound/>}></Route>
             <Route path='/watch/:name' element={<Watch/>}></Route>
             <Route path='/play/:name' element={<Playing/>}></Route>

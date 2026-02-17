@@ -2,6 +2,9 @@ import React from "react";
 import "../assets/table.css";
 
 export const TableComponent = ({ title, columns, data, rules = {} }) => {
+    const getValue = (obj, path) =>
+  path.split('.').reduce((acc, part) => acc?.[part], obj);
+
 
     return (
         <div className="page">
