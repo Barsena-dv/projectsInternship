@@ -35,6 +35,7 @@ import { InputTask1 } from './components/Input/InputTask1'
 import { Validation1 } from './components/Form/Validation1'
 import { Validation2 } from './components/Form/Validation2'
 import { Validation3 } from './components/Form/Validation3'
+import { InputTask2 } from './components/Input/InputTask2'
 
 function App() {
   //const [count, setCount] = useState(0)
@@ -62,6 +63,7 @@ function App() {
             <Route path='/formtask2' element={<FormTask2/>}></Route>
             <Route path='/formtask3' element={<FormTask3/>}></Route>
             <Route path='/inputtask1' element={<InputTask1/>}></Route>
+            <Route path='/inputtask2' element={<InputTask2/>}></Route>
             <Route path='/validationtask1' element={<Validation1/>}></Route>
             <Route path='/validationtask2' element={<Validation2/>}></Route>
             <Route path='/validationtask3' element={<Validation3/>}></Route>

@@ -24,6 +24,7 @@ export const NavBar = () => {
                 <Link to="/formtask2">Form2</Link>
                 <Link to="/formtask3">Form3</Link>
                 <Link to="/inputtask1">Input1</Link>
+                <Link to="/inputtask2">Input2</Link>
                 <Link to="/validationtask1">Validate1</Link>
                 <Link to="/validationtask2">Validate2 </Link>
                 <Link to="/validationtask3">Validate3 </Link>
