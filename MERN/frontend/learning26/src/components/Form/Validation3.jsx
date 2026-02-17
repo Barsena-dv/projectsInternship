@@ -63,7 +63,6 @@ export const Validation3 = () => {
                 return confirmPassword === password || "Confirm Password is not matched"
             }
         },
-
     }
 
     const checks = {
@@ -75,7 +74,8 @@ export const Validation3 = () => {
         noSpace : /^\S*$/.test(password),
     }
     const submitHandler = (data)=>{
-        console.log(data)
+        console.log(data);
+        alert("form submitted");
     }
     
     return (
