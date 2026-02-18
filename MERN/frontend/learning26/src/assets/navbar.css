@@ -33,24 +33,49 @@
     align-items: center;
     gap: 18px;
 
-    flex: 1;              /* take remaining navbar width */
-    min-width: 0;         /* VERY important for flex scrolling */
+    flex: 1;
+    min-width: 0;
 
-    flex-wrap: nowrap;    /* never wrap */
+    flex-wrap: nowrap;
     white-space: nowrap;
 
     overflow-x: auto;
     overflow-y: hidden;
 
+    scroll-behavior: smooth;
+
+    /* Firefox hide */
+    scrollbar-width: none;
+}
+
+/* Chrome / Edge / Safari — hidden by default */
+.nav-links::-webkit-scrollbar {
+    height: 0px;
+}
+
+/* ---------- SHOW ON HOVER ---------- */
+
+/* Firefox */
+.nav-links:hover {
     scrollbar-width: thin;
 }
 
-.nav-links::-webkit-scrollbar {
+/* Chrome / Edge / Safari */
+.nav-links:hover::-webkit-scrollbar {
     height: 6px;
 }
 
-.nav-links::-webkit-scrollbar-track {
+.nav-links:hover::-webkit-scrollbar-track {
     background: transparent;
+}
+
+.nav-links:hover::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.35);
+    border-radius: 10px;
+}
+
+.nav-links:hover::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.55);
 }
 
 .nav-links::-webkit-scrollbar-thumb {

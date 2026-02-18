@@ -8,7 +8,6 @@ export const Api3 = () => {
         const response = await axios.get("https://dummyjson.com/comments");
         console.log(response.data.comments);
         setcomments(response.data.comments);
-        
     }
     return (
         <div>
