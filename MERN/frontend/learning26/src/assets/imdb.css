@@ -1,0 +1,134 @@
+.page {
+    background: #141414;
+    color: #fff;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 40px 60px;
+}
+
+.top {
+    display: flex;
+    gap: 40px;
+}
+
+.poster {
+    width: 260px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.title {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.meta {
+    color: #c7c7c7;
+    margin-bottom: 15px;
+}
+
+.rating {
+    background: #f5c518;
+    color: #000;
+    font-weight: bold;
+    padding: 8px 14px;
+    border-radius: 8px;
+    display: inline-block;
+    margin: 10px 0;
+}
+
+.section {
+    margin-top: 30px;
+    max-width: 900px;
+    line-height: 1.6;
+    color: #ddd;
+}
+
+.label {
+    color: #f5c518;
+    font-weight: bold;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 150px auto;
+    gap: 8px 20px;
+    margin-top: 25px;
+}
+
+.page {
+    background: #141414;
+    color: #fff;
+    min-height: 100vh;
+    font-family: Arial;
+    padding: 40px 60px
+}
+
+.top {
+    display: flex;
+    gap: 40px
+}
+
+.poster {
+    width: 260px;
+    aspect-ratio: 2 / 3;   /* official poster ratio */
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.title {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 10px
+}
+
+.meta {
+    color: #c7c7c7;
+    margin-bottom: 10px
+}
+
+.rating {
+    background: #f5c518;
+    color: #000;
+    font-weight: bold;
+    padding: 8px 14px;
+    border-radius: 8px;
+    display: inline-block;
+    margin: 10px 0
+}
+
+.ratingsBox {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0
+}
+
+.chip {
+    background: #222;
+    padding: 8px 12px;
+    border-radius: 8px
+}
+
+.label {
+    color: #f5c518;
+    font-weight: bold
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 170px auto;
+    gap: 8px 20px;
+    margin-top: 25px
+}
+
+.section {
+    margin-top: 35px;
+    max-width: 900px;
+    line-height: 1.6;
+    color: #ddd
+}
+
+h2 {
+    margin-bottom: 10px
+}

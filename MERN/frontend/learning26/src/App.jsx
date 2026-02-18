@@ -39,6 +39,8 @@ import { InputTask2 } from './components/Input/InputTask2'
 import { Api1 } from './components/API/Api1'
 import { Api2 } from './components/API/Api2'
 import { Api3 } from './components/API/Api3'
+import { MoviesGrid } from './components/MoviesTask/MoviesGrid'
+import { Imdb } from './components/MoviesTask/Imdb'
 
 function App() {
   //const [count, setCount] = useState(0)
@@ -73,8 +75,10 @@ function App() {
             <Route path='/api1' element={<Api1/>}></Route>
             <Route path='/api2' element={<Api2/>}></Route>
             <Route path='/api3' element={<Api3/>}></Route>
+            <Route path='/moviesGrid' element={<MoviesGrid/>}></Route>
             <Route path='/*' element={<ErrorNotFound/>}></Route>
             <Route path='/watch/:name' element={<Watch/>}></Route>
+            <Route path='/imdb/:id' element={<Imdb/>}></Route>
             <Route path='/play/:name' element={<Playing/>}></Route>
           </Routes>
       </div>

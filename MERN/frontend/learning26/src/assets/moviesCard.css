@@ -6,11 +6,11 @@
 .movie-row {
     display: flex;
     flex-direction: row;
-    /* flex-wrap: wrap; */
+    flex-wrap: wrap;
     gap: 16px;
 
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: auto;
 
     padding: 12px;
 }

@@ -112,3 +112,10 @@ Virtual DOM Approach:
 ## 8. Conclusion
 
 Virtual DOM ek lightweight abstraction layer hai jo real DOM ke upar kaam karta hai. Ye UI changes ko efficiently detect karta hai aur sirf necessary elements update karta hai. Is wajah se modern frameworks jaise React fast aur scalable user interfaces bana pate hain.
+
+
+
+
+
+
+2c2edd99
