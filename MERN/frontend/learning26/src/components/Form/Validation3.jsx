@@ -80,26 +80,26 @@ export const Validation3 = () => {
     
     return (
 
-        <div>
-            <div>
-                <h1></h1>
+        <div className="page">
+            <div className="form-card">
+                <h1 className="title">Verificaiton Form</h1>
                 <form onSubmit={handleSubmit(submitHandler)}>
-                    <div>
+                    <div className="form-group">
                         <label>Name:</label>
                         <input type="text" {...register("name",validationSchema.nameValidator)} />
                         {errors.name?.message}
                     </div>
-                    <div>
+                    <div className="form-group">
                         <label>Age:</label>
                         <input type="number" {...register("age",validationSchema.ageValidator)} />
                         {errors.age?.message}
                     </div>
-                    <div>
+                    <div className="form-group">
                         <label>Contact Number:</label>
                         <input type="text" {...register("contact",validationSchema.contactValidator)} />
                         {errors.contact?.message}
                     </div>
-                    <div>
+                    <div className="form-group">
                         <label>Password:</label>
                         <input type="password" {...register("password",validationSchema.passwordValidator)} />
                         <p className={checks.uppercase ? "success":"danger"}>Password must consist atleat one Capital</p>
@@ -110,7 +110,7 @@ export const Validation3 = () => {
                         <p className={checks.noSpace ? "success":"danger"}>Password must not have any spaces</p>
                         {errors.password?.message}
                     </div>
-                    <input type="submit" />
+                    <input type="submit" className="submit-btn" />
                 </form>
             </div>
         </div>

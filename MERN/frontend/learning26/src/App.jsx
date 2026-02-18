@@ -41,6 +41,9 @@ import { Api2 } from './components/API/Api2'
 import { Api3 } from './components/API/Api3'
 import { MoviesGrid } from './components/MoviesTask/MoviesGrid'
 import { Imdb } from './components/MoviesTask/Imdb'
+import { Api4 } from './components/API/Api4'
+import { CountryDetails } from './components/Countries/CountryDetails'
+import { CountriesGrid } from './components/Countries/CountriesGrid'
 
 function App() {
   //const [count, setCount] = useState(0)
@@ -75,10 +78,13 @@ function App() {
             <Route path='/api1' element={<Api1/>}></Route>
             <Route path='/api2' element={<Api2/>}></Route>
             <Route path='/api3' element={<Api3/>}></Route>
+            <Route path='/api4' element={<Api4/>}></Route>
             <Route path='/moviesGrid' element={<MoviesGrid/>}></Route>
+            <Route path='/country' element={<CountriesGrid/>}></Route>
             <Route path='/*' element={<ErrorNotFound/>}></Route>
             <Route path='/watch/:name' element={<Watch/>}></Route>
             <Route path='/imdb/:id' element={<Imdb/>}></Route>
+            <Route path='/country/:name' element={<CountryDetails/>}></Route>
             <Route path='/play/:name' element={<Playing/>}></Route>
           </Routes>
       </div>

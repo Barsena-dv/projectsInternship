@@ -31,7 +31,9 @@ export const NavBar = () => {
                 <Link to="/api1">Api 1</Link>
                 <Link to="/api2">Api 2</Link>
                 <Link to="/api3">Api 3</Link>
+                <Link to="/api4">Api 4</Link>
                 <Link to="/moviesGrid">Movies</Link>
+                <Link to="/country">Country</Link>
             </nav>
         </header>
     )

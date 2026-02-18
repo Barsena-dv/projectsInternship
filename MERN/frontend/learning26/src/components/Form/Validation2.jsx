@@ -77,7 +77,7 @@ export const Validation2 = () => {
     return (
         <div className="page">
             <div className="form-card">
-                <h1 className="title">Student Registration</h1>
+                <h1 className="title">LogIn</h1>
                 <form onSubmit={handleSubmit(submitHandler)}>
                     <div className="form-group">
                         <label>User Name: </label>

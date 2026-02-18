@@ -4,7 +4,7 @@ import { data } from 'react-router-dom';
 import "../../assets/Form.css"
 
 export const Validation1 = () => {
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const { register, handleSubmit, formState: { errors } } = useForm({mode:"onChange"});
 
     const validationSchema = {
 
