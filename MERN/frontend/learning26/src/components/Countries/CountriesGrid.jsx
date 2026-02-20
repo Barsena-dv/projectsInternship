@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { CardComponent } from '../CardComponent'
+import "../../assets/search.css"
+import "../../assets/page.css"
 import axios from 'axios'
 
 export const CountriesGrid = () => {
@@ -22,37 +24,44 @@ export const CountriesGrid = () => {
     };
 
     return (
-        <div>
-            <div style={{ textAlign: "center" }}>
-                <h1>Countries Explorer</h1>
+        <div className="page-container">
 
-                <input
-                    type="text"
-                    value={param}
-                    placeholder="Search country..."
-                    onChange={(e) => setParam(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            searchCountry();
-                        }
-                    }}
-                />
+            <div className="search-section">
+                <h1 className="page-heading">Countries Explorer</h1>
 
-                <button onClick={searchCountry}>Search</button>
-
-                <div className="movie-row">
-                    {countries.map((country) => (
-                        <CardComponent
-                            key={country.cca3}
-                            title={country.name.common}
-                            image={country.flags?.png}
-                            subtitle={country.region}
-                            year={`Pop: ${country.population.toLocaleString()}`}
-                            link={`/country/${country.name.common}`}
-                        />
-                    ))}
+                <div className="search-bar">
+                    <input
+                        type="text"
+                        value={param}
+                        placeholder="Search country..."
+                        onChange={(e) => setParam(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") searchCountry();
+                        }}
+                    />
+                    <button onClick={searchCountry}>Search</button>
                 </div>
             </div>
+
+            <div className="results-section">
+                <div className="movie-row">
+                    {countries.length === 0 && (
+                        <p className="empty-state">Search a country to see results</p>
+                    )}
+                    {
+                        countries.map((country) => (
+                            <CardComponent
+                                key={country.cca3}
+                                title={country.name.common}
+                                image={country.flags?.png}
+                                subtitle={country.region}
+                                year={`Pop: ${country.population.toLocaleString()}`}
+                                link={`/country/${country.name.common}`}
+                            />
+                        ))}
+                </div>
+            </div>
+
         </div>
     )
 }

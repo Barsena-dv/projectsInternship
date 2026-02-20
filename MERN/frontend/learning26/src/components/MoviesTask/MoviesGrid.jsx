@@ -14,28 +14,31 @@ export const MoviesGrid = () => {
     }
 
     return (
-        <div>
-            <div style={{ textAlign: "center" }}>
-                <h1>Movies</h1>
-                <input type="text" value={param} 
-                onChange={(e) => setparam(e.target.value)}  
-                onKeyDown={(e) => { if (e.key === "Enter") {moviesSearch();} }} />
-                <button onClick={() => { moviesSearch() }}>Search</button>
-                <div className="movie-row">
-                    {
-                        movies.map((movie) => (
-                            <CardComponent
-                                key={movie.imdbID}
-                                title={movie.Title}
-                                image={movie.Poster}
-                                year={movie.Year}
-                                link={`/imdb/${movie.imdbID}`}
-                            />
-                        ))
-                    }
+            <div className='page-container'>
+                <div className="search-section">
+                    <h1 className="page-heading">Movies</h1>
+                    <div className="search-bar">
+                        <input type="text" value={param}
+                            onChange={(e) => setparam(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") { moviesSearch(); } }} />
+                        <button onClick={() => { moviesSearch() }}>Search</button>
+                    </div>
+                </div>
+                <div className="results-section">
+                    <div className="movie-row">
+                        {
+                            movies.map((movie) => (
+                                <CardComponent
+                                    key={movie.imdbID}
+                                    title={movie.Title}
+                                    image={movie.Poster}
+                                    year={movie.Year}
+                                    link={`/imdb/${movie.imdbID}`}
+                                />
+                            ))
+                        }
+                    </div>
                 </div>
             </div>
-            {/* <CardComponent /> */}
-        </div>
     )
 }
