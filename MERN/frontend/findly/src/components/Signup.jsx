@@ -4,15 +4,80 @@ import { Link } from "react-router-dom";
 
 export const Signup = () => {
     const [loading, setLoading] = useState(false);
-
+    
     const {
         register,
         handleSubmit,
         watch,
         formState: { errors },
-    } = useForm();
-
+    } = useForm({mode:"all"});
+    
     const password = watch("password");
+
+    const validation = {
+        name : {
+            required:{
+                value:true,
+                message:"Full Name is Required",
+            },
+            minLength:{
+                value: 2,
+                message:"Minnimum 2 characters are required"
+            }
+        },
+        email:{
+            required:{
+                value:true,
+                message:"Email is required",
+            },
+            pattern:{
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message:"Invalid Email",
+            }
+        },
+        phone:{
+            required:{
+                value: true,
+                message:"Number is required",
+            },
+            pattern:{
+                value:/^[6-9]{1}[0-9]{9}$/,
+                message:"Invalid Number"
+            },
+        },
+        accountType:{
+            required:{
+                value: true,
+                message: "Select account type",
+            }
+        },
+        password:{
+            required:{
+                value: true,
+                message: "Please set passaword",
+            },
+            pattern:{
+                value: /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])\S{8,30}$/,
+                message: "Password should contain a Capital letter, a special character, a number should be of minimum 8 Characters of length",
+            }
+        },
+        confirmPassword:{
+            required:{
+                value: true,
+                message: "Please confirm your password",
+            },
+            validate:(confirmPassword)=>{
+                return confirmPassword === password || "Confirm Password is not matched"
+            },
+        },
+        agreement:{
+            required:{
+                value: true,
+                message: "Please agree to the terms and conditions for creating the account"
+            }
+        }
+    }
+
 
     const onSubmit = (data) => {
         setLoading(true);
@@ -75,7 +140,7 @@ export const Signup = () => {
                             </label>
                             <input
                                 type="text"
-                                {...register("name", { required: "Full name is required" })}
+                                {...register("name", validation.name)}
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5
                 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
@@ -93,10 +158,15 @@ export const Signup = () => {
                             </label>
                             <input
                                 type="email"
-                                {...register("email", { required: "Email is required" })}
+                                {...register("email", validation.email)}
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5
                 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
+                            {errors.email && (
+                                <p className="text-[#DC2626] text-xs mt-1">
+                                    {errors.email.message}
+                                </p>
+                            )}
                         </div>
 
                         {/* Phone */}
@@ -106,10 +176,15 @@ export const Signup = () => {
                             </label>
                             <input
                                 type="tel"
-                                {...register("phone", { required: "Phone is required" })}
+                                {...register("phone", validation.phone)}
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5
                 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
+                            {errors.phone && (
+                                <p className="text-[#DC2626] text-xs mt-1">
+                                    {errors.phone.message}
+                                </p>
+                            )}
                         </div>
 
                         {/* Account Type */}
@@ -118,7 +193,7 @@ export const Signup = () => {
                                 Account Type
                             </label>
                             <select
-                                {...register("accountType", { required: "Select account type" })}
+                                {...register("accountType", validation.accountType)}
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5
                 focus:ring-2 focus:ring-[#2563EB] focus:outline-none text-sm"
                             >
@@ -140,10 +215,15 @@ export const Signup = () => {
                             </label>
                             <input
                                 type="password"
-                                {...register("password", { required: "Password is required" })}
+                                {...register("password", validation.password)}
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5
                 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
+                            {errors.password && (
+                                <p className="text-[#DC2626] text-xs mt-1">
+                                    {errors.password.message}
+                                </p>
+                            )}
                         </div>
 
                         {/* Confirm Password */}
@@ -153,11 +233,7 @@ export const Signup = () => {
                             </label>
                             <input
                                 type="password"
-                                {...register("confirmPassword", {
-                                    required: "Confirm your password",
-                                    validate: (value) =>
-                                        value === password || "Passwords do not match",
-                                })}
+                                {...register("confirmPassword", validation.confirmPassword)}
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5
                 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
@@ -172,7 +248,7 @@ export const Signup = () => {
                         <div className="flex items-start gap-2 text-xs text-gray-600">
                             <input
                                 type="checkbox"
-                                {...register("agreement", { required: true })}
+                                {...register("agreement",validation.agreement)}
                                 className="mt-1 accent-[#2563EB]"
                             />
                             <span>
@@ -181,7 +257,7 @@ export const Signup = () => {
                         </div>
                         {errors.agreement && (
                             <p className="text-[#DC2626] text-xs">
-                                You must accept the agreement.
+                                {errors.agreement.message}
                             </p>
                         )}
 
@@ -190,7 +266,7 @@ export const Signup = () => {
                             type="submit"
                             disabled={loading}
                             className="w-full bg-[#2563EB] hover:bg-[#1E40AF]
-              text-white py-2.5 rounded-lg font-medium transition"
+                text-white py-2.5 rounded-lg font-medium transition"
                         >
                             {loading ? "Creating..." : "Create Account"}
                         </button>
