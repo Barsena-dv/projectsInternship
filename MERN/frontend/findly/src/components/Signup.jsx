@@ -141,8 +141,7 @@ export const Signup = () => {
                             <input
                                 type="text"
                                 {...register("name", validation.name)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5
-                focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
                             {errors.name && (
                                 <p className="text-[#DC2626] text-xs mt-1">
@@ -159,8 +158,7 @@ export const Signup = () => {
                             <input
                                 type="email"
                                 {...register("email", validation.email)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5
-                focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
                             {errors.email && (
                                 <p className="text-[#DC2626] text-xs mt-1">
@@ -177,8 +175,7 @@ export const Signup = () => {
                             <input
                                 type="tel"
                                 {...register("phone", validation.phone)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5
-                focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
                             {errors.phone && (
                                 <p className="text-[#DC2626] text-xs mt-1">
@@ -194,8 +191,7 @@ export const Signup = () => {
                             </label>
                             <select
                                 {...register("accountType", validation.accountType)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5
-                focus:ring-2 focus:ring-[#2563EB] focus:outline-none text-sm"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-[#2563EB] focus:outline-none text-sm"
                             >
                                 <option value="">Select account type</option>
                                 <option value="owner">Lost Item Owner</option>
@@ -216,8 +212,7 @@ export const Signup = () => {
                             <input
                                 type="password"
                                 {...register("password", validation.password)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5
-                focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
                             {errors.password && (
                                 <p className="text-[#DC2626] text-xs mt-1">
@@ -234,8 +229,7 @@ export const Signup = () => {
                             <input
                                 type="password"
                                 {...register("confirmPassword", validation.confirmPassword)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5
-                focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
                             {errors.confirmPassword && (
                                 <p className="text-[#DC2626] text-xs mt-1">
@@ -249,7 +243,7 @@ export const Signup = () => {
                             <input
                                 type="checkbox"
                                 {...register("agreement",validation.agreement)}
-                                className="mt-1 accent-[#2563EB]"
+                                className="mt-1 accent-[#2563EB] cursor-pointer"
                             />
                             <span>
                                 I agree to the Escrow Terms & Platform Agreement.
@@ -265,8 +259,7 @@ export const Signup = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#2563EB] hover:bg-[#1E40AF]
-                text-white py-2.5 rounded-lg font-medium transition"
+                            className="w-full bg-[#2563EB] hover:bg-[#1E40AF] text-white py-2.5 rounded-lg font-medium transition cursor-pointer"
                         >
                             {loading ? "Creating..." : "Create Account"}
                         </button>
@@ -283,7 +276,7 @@ export const Signup = () => {
                     </div>
 
                     {/* Google */}
-                    <button className="w-full border border-gray-300 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50 transition">
+                    <button className="w-full border border-gray-300 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50 transition cursor-pointer">
                         Continue with Google
                     </button>
 

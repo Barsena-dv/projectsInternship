@@ -23,14 +23,14 @@ export const UserNavbar = () => {
                         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
 
                             <NavLink
-                                to="/user/dashboard"
+                                to="/user/userlist"
                                 className={({ isActive }) =>
                                     isActive
                                         ? "text-[#2563EB] border-b-2 border-[#2563EB] pb-1"
                                         : "text-gray-600 hover:text-[#2563EB] transition"
                                 }
                             >
-                                Dashboard
+                                Users
                             </NavLink>
 
                             <NavLink

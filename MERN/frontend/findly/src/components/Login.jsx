@@ -1,20 +1,34 @@
+import axios from "axios";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export const Login = () => {
     const [loading, setLoading] = useState(false);
-
+    const navigate = useNavigate();
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm();
 
-    const onSubmit = (data) => {
-        setLoading(true);
-        console.log(data);
-        setTimeout(() => setLoading(false), 1200);
+    const onSubmit = async (data) => {
+        try{
+            const response = await axios.post("https://node5.onrender.com/user/login",data);
+            console.log("response...",response);
+            console.log("response...",response.data);
+            if(response.status === 200){
+                toast.success("login success");
+                navigate("/user");
+            }
+        }catch{
+            // toast.error("login failed");
+        }
+        
+        // setLoading(true);
+        // console.log(data);
+        // setTimeout(() => setLoading(false), 1200);
     };
 
     return (
@@ -84,9 +98,7 @@ export const Login = () => {
                             <input
                                 type="email"
                                 {...register("email", { required: "Email is required" })}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 
-                           focus:outline-none focus:ring-2 focus:ring-[#2563EB] 
-                           focus:border-[#2563EB] transition"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB] transition"
                                 placeholder="you@example.com"
                             />
                             {errors.email && (
@@ -104,9 +116,7 @@ export const Login = () => {
                             <input
                                 type="password"
                                 {...register("password", { required: "Password is required" })}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 
-                           focus:outline-none focus:ring-2 focus:ring-[#2563EB] 
-                           focus:border-[#2563EB] transition"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB] transition"
                                 placeholder="Enter your password"
                             />
                             {errors.password && (
@@ -135,9 +145,7 @@ export const Login = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#2563EB] hover:bg-[#1E40AF] 
-                         text-white py-3 rounded-lg font-medium 
-                         transition disabled:opacity-60"
+                            className="w-full bg-[#2563EB] hover:bg-[#1E40AF] text-white py-3 rounded-lg font-medium transition disabled:opacity-60 cursor-pointer"
                         >
                             {loading ? "Authenticating..." : "Login"}
                         </button>
