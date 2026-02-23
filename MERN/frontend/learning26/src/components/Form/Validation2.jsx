@@ -1,16 +1,16 @@
-import React, { useState } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form';
+import "../../assets/Form.css";
 
 export const Validation2 = () => {
 
-    const{register,handleSubmit,control,formState:{errors}} = useForm();
+    const { register, handleSubmit, control, formState: { errors } } = useForm();
 
     // const pass = watch("pass");
     const pass = useWatch({
         control,
         name: "pass"
     });
-    
+
     const validationSchema = {
         nameValidator: {
             required: {
@@ -53,7 +53,7 @@ export const Validation2 = () => {
                 value: 16,
                 message: "password should be atleast of 16 character for registration***",
             },
-            patter:{
+            patter: {
                 value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/,
                 message: "Password must be 8+ chars and include uppercase, lowercase, number & special character"
 
@@ -64,7 +64,7 @@ export const Validation2 = () => {
                 value: true,
                 message: "Please enter the password"
             },
-            validate:{
+            validate: {
                 match: value => value === pass || "password doesnot match"
             }
         }
@@ -99,7 +99,7 @@ export const Validation2 = () => {
                         <input type="pasword" {...register("confpass", validationSchema.confPassValidator)} />
                         {errors.confpass?.message}
                     </div>
-                    
+
                     <input type="submit" className='submit-btn' />
                 </form>
             </div>

@@ -1,0 +1,69 @@
+
+.site-footer {
+    width: 100%;
+    height: 64px;
+    background-color: var(--navy);
+    border-top: 3px solid var(--teal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer-text {
+    font-family: "Georgia", serif;
+    font-size: 14px;
+    letter-spacing: 0.8px;
+    color: var(--text-on-navy);
+    opacity: 0.85;
+}
+
+/* ===== HOME WELCOME ===== */
+.home-welcome {
+    min-height: calc(100vh - 62px - 64px);
+    background-color: var(--beige);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+}
+
+.home-welcome-inner {
+    text-align: center;
+    max-width: 640px;
+}
+
+.home-welcome-sub {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 14px;
+}
+
+.home-welcome-title {
+    font-family: "Georgia", "Palatino Linotype", serif;
+    font-size: 58px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin: 0 0 4px;
+}
+
+.home-welcome-divider {
+    width: 72px;
+    height: 4px;
+    background-color: var(--teal);
+    margin: 18px auto 22px;
+    border-radius: 2px;
+}
+
+.home-welcome-desc {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 520px;
+    margin: 0 auto;
+}

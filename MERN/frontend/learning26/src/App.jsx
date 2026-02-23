@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { HeaderComponent } from './components/HeaderComponent'
 import { ContentComponent } from './components/ContentComponent'
 import { FooterComponent } from './components/FooterComponent'
@@ -51,8 +50,9 @@ function App() {
 
 
   return (
-      <div style={{backgroundColor: "rgb(0,0,0)", color: "rgb(232,152,138)"}}>
+      <div className="app-shell">
         <NavBar></NavBar>
+        <main className="app-content">
           <Routes>
             <Route path='/' element={<HomeComponent/>}></Route>
             <Route path='/netflixhome' element={<NetflixHome/>}></Route>
@@ -87,6 +87,7 @@ function App() {
             <Route path='/country/:name' element={<CountryDetails/>}></Route>
             <Route path='/play/:name' element={<Playing/>}></Route>
           </Routes>
+        </main>
       </div>
   )
 }

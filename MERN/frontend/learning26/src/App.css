@@ -1,42 +1,98 @@
-#root {
-  /* max-width: 1280px; */
-  margin: 0;
-  /* padding: 2rem; */
-  /* text-align: center; */
+/* ================================================
+   OLD MONEY CLASSIC THEME — Design Tokens
+   Palette: Navy · Beige · Teal  (solid, no gradients)
+   ================================================ */
+
+:root {
+  /* Navy */
+  --navy: #1B2A4A;
+  --navy-light: #243660;
+  --navy-muted: #3a507a;
+
+  /* Beige */
+  --beige: #F5ECD7;
+  --beige-dark: #EAD9C0;
+  --beige-border: #D4C3A3;
+  --beige-card: #F0E4CC;
+
+  /* Teal */
+  --teal: #2A7F7F;
+  --teal-dark: #1F6060;
+  --teal-light: #D9EFEF;
+
+  /* Text */
+  --text-primary: #1A1A1A;
+  --text-secondary: #4A4A4A;
+  --text-muted: #7A7A7A;
+  --text-on-navy: #F5ECD7;
+  --text-on-teal: #FFFFFF;
+
+  /* Status */
+  --danger: #8B1A1A;
+  --danger-bg: #FDEAEA;
+  --success: #1A5C2A;
+  --success-bg: #E6F4EA;
+
+  /* Shadows */
+  --shadow-soft: 0 4px 18px rgba(27, 42, 74, 0.10);
+  --shadow-card: 0 8px 32px rgba(27, 42, 74, 0.16);
+
+  /* Borders */
+  --border: 1px solid var(--beige-border);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
 }
 
-/* .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* ================================================
+   BASE
+   ================================================ */
+
+body {
+  font-family: "Georgia", "Times New Roman", "Palatino Linotype", serif;
+  color: var(--text-primary);
+  background-color: var(--beige);
+  line-height: 1.6;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+input,
+select,
+button,
+textarea {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
 }
 
-.card {
-  padding: 2em;
+button {
+  cursor: pointer;
 }
 
-.read-the-docs {
-  color: #888;
-} */
+input:focus,
+select:focus,
+button:focus-visible,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(42, 127, 127, 0.30);
+}
+
+/* ================================================
+   APP SHELL
+   ================================================ */
+
+.app-shell {
+  min-height: 100vh;
+  color: var(--text-primary);
+  background-color: var(--beige);
+}
+
+/* Sidebar is a fixed overlay — content takes full width.
+   padding-top pushes content below the fixed 62px topbar. */
+.app-content {
+  min-height: 100vh;
+  padding-top: 62px;
+}

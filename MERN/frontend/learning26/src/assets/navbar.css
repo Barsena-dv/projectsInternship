@@ -1,118 +1,200 @@
-/* ===== NAVBAR BASE ===== */
+/* ================================================
+   TOPBAR + SIDEBAR — Old Money Classic Theme
+   ================================================ */
 
-.nav {
-    position: sticky;
+/* ── Fixed top bar ── */
+.topbar {
+    position: fixed;
     top: 0;
-    z-index: 999;
-
+    left: 0;
+    right: 0;
+    z-index: 1100;
+    height: 62px;
+    background-color: var(--navy);
+    border-bottom: 3px solid var(--teal);
+    box-shadow: var(--shadow-card);
     display: flex;
     align-items: center;
-    gap: 30px;
-
-    height: 60px;
-    padding: 0 24px;
-
-    background: rgb(232, 151, 138);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+    gap: 0;
+    padding: 0 20px;
 }
 
-/* logo */
-.nav-logo {
+/* ── Hamburger toggle (lives INSIDE the topbar) ── */
+.topbar-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: transparent;
+    border: 1px solid rgba(42, 127, 127, 0.45);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background-color 0.18s, border-color 0.18s;
+}
+
+.topbar-toggle:hover {
+    background-color: var(--navy-light);
+    border-color: var(--teal);
+}
+
+/* Three bars */
+.topbar-toggle span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background-color: var(--beige);
+    border-radius: 2px;
+    transition: transform 0.24s ease, opacity 0.24s ease, width 0.24s ease;
+    transform-origin: center;
+}
+
+.topbar-toggle--open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.topbar-toggle--open span:nth-child(2) {
+    opacity: 0;
+    width: 0;
+}
+
+.topbar-toggle--open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ── Logo ── */
+.topbar-logo {
+    font-family: "Georgia", "Palatino Linotype", serif;
     font-size: 20px;
     font-weight: 700;
-    letter-spacing: 0.5px;
-    color: #630505;
-    white-space: nowrap;
-    flex-shrink: 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--beige);
+    text-decoration: none;
+    margin-left: 16px;
 }
 
-/* links container */
-/* links container */
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-
-    flex: 1;
-    min-width: 0;
-
-    flex-wrap: nowrap;
-    white-space: nowrap;
-
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    scroll-behavior: smooth;
-
-    /* Firefox hide */
-    scrollbar-width: none;
+.topbar-logo span {
+    color: var(--teal);
 }
 
-/* Chrome / Edge / Safari — hidden by default */
-.nav-links::-webkit-scrollbar {
-    height: 0px;
+/* ── Backdrop overlay ── */
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    top: 62px;
+    /* starts BELOW the topbar */
+    z-index: 900;
+    background-color: rgba(27, 42, 74, 0.35);
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease;
 }
 
-/* ---------- SHOW ON HOVER ---------- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
 
-/* Firefox */
-.nav-links:hover {
+    to {
+        opacity: 1;
+    }
+}
+
+/* ── Sidebar panel ── */
+.sidebar {
+    position: fixed;
+    top: 62px;
+    /* flush under the topbar */
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: 268px;
+    background-color: var(--navy);
+    border-right: 3px solid var(--teal);
+    box-shadow: 4px 0 28px rgba(27, 42, 74, 0.28);
+    overflow: hidden;
+
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar--open {
+    transform: translateX(0);
+}
+
+/* ── Nav list (scrollable) ── */
+.sidebar-nav {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px 12px 28px;
     scrollbar-width: thin;
+    scrollbar-color: var(--teal) transparent;
 }
 
-/* Chrome / Edge / Safari */
-.nav-links:hover::-webkit-scrollbar {
-    height: 6px;
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
 }
 
-.nav-links:hover::-webkit-scrollbar-track {
+.sidebar-nav::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.nav-links:hover::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.35);
-    border-radius: 10px;
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background-color: var(--teal);
+    border-radius: 999px;
 }
 
-.nav-links:hover::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,0.55);
-}
-
-.nav-links::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.35);
-    border-radius: 10px;
-}
-
-.nav-links::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,0.55);
-}
-
-
-/* links */
-.nav-links a {
-    text-decoration: none;
-    color: #540404;
-    font-size: 15px;
-    font-weight: 500;
-    padding: 6px 10px;
-    border-radius: 6px;
-    white-space: nowrap;
-    transition: 0.2s;
-}
-
-/* hover */
-.nav-links a:hover {
-    background: rgba(0, 0, 0, 0.12);
-}
-
-/* active click effect */
-.nav-links a:active {
-    transform: scale(0.95);
-}
-
-/* current page highlight */
-.nav-links a.active {
-    background: rgba(0, 0, 0, 0.2);
+/* ── Section labels ── */
+.sidebar-section-label {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 10px;
     font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: rgba(245, 236, 215, 0.42);
+    padding: 14px 12px 4px;
+    margin: 0;
+    user-select: none;
 }
 
+/* ── Divider ── */
+.sidebar-divider {
+    height: 1px;
+    background-color: rgba(245, 236, 215, 0.10);
+    margin: 6px 12px;
+}
+
+/* ── Links ── */
+.sidebar-nav a {
+    display: block;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(245, 236, 215, 0.78);
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: background-color 0.16s, color 0.16s, border-color 0.16s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-nav a:hover {
+    background-color: var(--navy-light);
+    color: #FFFFFF;
+    border-color: rgba(42, 127, 127, 0.28);
+}
+
+.sidebar-nav a.active {
+    background-color: var(--teal);
+    color: #FFFFFF;
+    font-weight: 700;
+    border-color: var(--teal-dark);
+}
