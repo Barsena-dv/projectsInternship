@@ -23,7 +23,7 @@ export const Login = () => {
                 navigate("/user");
             }
         }catch{
-            // toast.error("login failed");
+            toast.error("login failed");
         }
         
         // setLoading(true);
