@@ -4,7 +4,7 @@ const { getDisputes } = require('../controllers/dispute.controller');
 
 /**
  * Dispute Routes
- * Mounted at /api/disputes
+ * Mounted at /api/dispute
  */
 router.get('/', getDisputes);
 

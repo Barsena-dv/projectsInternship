@@ -1,9 +1,14 @@
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
+import ProtectedRoute from "../components/navigation/ProtectedRoute";
 import PlaceholderPage from "../components/ui/PlaceholderPage";
 import MainLayout from "../layouts/MainLayout";
 import { Login } from "../pages/auth/Login";
 import { Signup } from "../pages/auth/Signup";
-import ProtectedRoute from "../components/navigation/ProtectedRoute";
+import CreateRequest from "../pages/user/CreateRequest";
+import Dashboard from "../pages/user/Dashboard";
+import EditRequest from "../pages/user/EditRequest";
+import MyRequests from "../pages/user/MyRequests";
+import RequestDetail from "../pages/user/RequestDetail";
 
 const router = createBrowserRouter([
     // Auth Routes
@@ -20,9 +25,11 @@ const router = createBrowserRouter([
         ),
         children: [
             { path: "", element: <Navigate to="dashboard" replace /> },
-            { path: "dashboard", element: <PlaceholderPage title="User Dashboard" /> },
-            { path: "create", element: <PlaceholderPage title="Create Lost Item Request" /> },
-            { path: "requests", element: <PlaceholderPage title="My Requests" /> },
+            { path: "dashboard", element: <Dashboard /> },
+            { path: "create", element: <CreateRequest /> },
+            { path: "requests", element: <MyRequests /> },
+            { path: "requests/:id", element: <RequestDetail /> },
+            { path: "requests/edit/:id", element: <EditRequest /> },
             { path: "messages", element: <PlaceholderPage title="Messages & Chat" /> },
             { path: "profile", element: <PlaceholderPage title="User Profile" /> },
         ]
@@ -70,8 +77,6 @@ const router = createBrowserRouter([
     { path: "*", element: <Navigate to="/" replace /> }
 ]);
 
-const AppRoutes = () => {
-    return <RouterProvider router={router} />;
-};
+const AppRoutes = () => <RouterProvider router={router} />;
 
 export default AppRoutes;

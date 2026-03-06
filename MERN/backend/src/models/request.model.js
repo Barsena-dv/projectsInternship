@@ -27,6 +27,21 @@ const requestSchema = new mongoose.Schema(
             required: [true, 'Description is required'],
             trim: true,
         },
+        lostDate: {
+            type: Date,
+            required: true
+        },
+        location: {
+            type: {
+                type: String,
+                enum: ['Point'],
+                default: 'Point'
+            },
+            coordinates: {
+                type: [Number], // [longitude, latitude]
+                required: true
+            }
+        },
         generalLocation: {
             type: String,
             required: [true, 'General location is required'],
@@ -38,6 +53,11 @@ const requestSchema = new mongoose.Schema(
             trim: true,
             select: false, // Hidden by default, manually selected in controllers when needed
         },
+        images: [
+            {
+                type: String
+            }
+        ],
         rewardAmount: {
             type: Number,
             required: [true, 'Reward amount is required'],
@@ -73,6 +93,7 @@ const requestSchema = new mongoose.Schema(
 // Indexes
 requestSchema.index({ status: 1 });
 requestSchema.index({ category: 1 });
+requestSchema.index({ location: "2dsphere" });
 requestSchema.index({ createdAt: -1 });
 
 const Request = mongoose.model('Request', requestSchema);
