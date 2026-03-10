@@ -3,12 +3,16 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import AppRoutes from './router/AppRoutes'
 import { ToastContainer,Slide } from 'react-toastify'
+import axios from 'axios'
 // import './App.css'
 
 function App() {
 
+  axios.defaults.baseURL = "http://localhost:3000"
+
   return (
     <>
+    
       <AppRoutes />
       <ToastContainer
 position="bottom-right"

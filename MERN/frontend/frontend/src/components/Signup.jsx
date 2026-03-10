@@ -1,6 +1,8 @@
+import axios from "axios";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export const Signup = () => {
     const [loading, setLoading] = useState(false);
@@ -13,9 +15,9 @@ export const Signup = () => {
     } = useForm({mode:"all"});
     
     const password = watch("password");
-
+    const navigate = useNavigate();
     const validation = {
-        name : {
+        fullName : {
             required:{
                 value:true,
                 message:"Full Name is Required",
@@ -45,12 +47,12 @@ export const Signup = () => {
                 message:"Invalid Number"
             },
         },
-        accountType:{
-            required:{
-                value: true,
-                message: "Select account type",
-            }
-        },
+        // accountType:{
+        //     required:{
+        //         value: true,
+        //         message: "Select account type",
+        //     }
+        // },
         password:{
             required:{
                 value: true,
@@ -79,10 +81,16 @@ export const Signup = () => {
     }
 
 
-    const onSubmit = (data) => {
-        setLoading(true);
-        console.log(data);
-        setTimeout(() => setLoading(false), 1200);
+    const onSubmit = async (data) => {
+        try{
+            const response = await axios.post("/api/users/register", data);
+            if(response.status==201){
+                toast.success(response.data.message);
+            navigate("/");
+            }
+        }catch(error){
+            toast.error(error.response.data.message);
+        }
     };
 
     return (
@@ -140,12 +148,12 @@ export const Signup = () => {
                             </label>
                             <input
                                 type="text"
-                                {...register("name", validation.name)}
+                                {...register("fullName", validation.fullName)}
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-[#2563EB] focus:outline-none"
                             />
-                            {errors.name && (
+                            {errors.fullName && (
                                 <p className="text-[#DC2626] text-xs mt-1">
-                                    {errors.name.message}
+                                    {errors.fullName.message}
                                 </p>
                             )}
                         </div>
@@ -185,7 +193,7 @@ export const Signup = () => {
                         </div>
 
                         {/* Account Type */}
-                        <div>
+                        {/* <div>
                             <label className="block text-sm font-medium text-[#111827] mb-1">
                                 Account Type
                             </label>
@@ -202,7 +210,7 @@ export const Signup = () => {
                                     {errors.accountType.message}
                                 </p>
                             )}
-                        </div>
+                        </div>*/}
 
                         {/* Password */}
                         <div>
