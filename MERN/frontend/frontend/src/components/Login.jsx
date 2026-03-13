@@ -15,13 +15,22 @@ export const Login = () => {
 
     const onSubmit = async (data) => {
         try{
-            const response = await axios.post("https://node5.onrender.com/user/login",data);
-            console.log("response...",response);
-            console.log("response...",response.data);
-            if(response.status === 200){
-                toast.success("login success");
-                navigate("/user");
+            const response = await axios.post("/api/users/login",data);
+            console.log(response.data);
+            if(response.status==200){
+                toast.success("Login success");
+                if(response.data.role=="owner" || response.data.role == "OWNER"){
+                    navigate("/owner");
+                }else if(response.data.role=="finder" || response.data.role == "FINDER"){
+                    navigate("/finder");
+                }else if(response.data.role == "admin" || response.data.role == "ADMIN"){
+                    navigate("/admin");
+                }else{
+                    toast.error("Invalid role");
+                    navigate("/");
+                }
             }
+            
         }catch{
             toast.error("login failed");
         }

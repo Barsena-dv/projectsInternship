@@ -58,42 +58,5 @@ const userSchema = new mongoose.Schema(
     }
 );
 
-// --- Instance Methods ---
-
-// userSchema.methods.updateProfile = async function (updates = {}) {
-//     const allowedUpdates = ["fullName", "phone"];
-//     allowedUpdates.forEach((field) => {
-//         if (updates[field] !== undefined) {
-//             this[field] = updates[field];
-//         }
-//     });
-//     return this.save();
-// };
-
-// userSchema.methods.updateProfileImage = async function (imagePath) {
-//     this.profile_image = imagePath;
-//     return this.save();
-// };
-
-// userSchema.methods.updateRating = async function (newRating) {
-//     // Update running average
-//     const currentTotal = this.rating_avg * this.rating_count;
-//     this.rating_count += 1;
-//     this.rating_avg = (currentTotal + newRating) / this.rating_count;
-
-//     return this.save();
-// };
-
-// // --- Static Methods ---
-
-// userSchema.statics.findUserByEmail = function (email) {
-//     return this.findOne({ email: email.toLowerCase() });
-// };
-
-// userSchema.statics.findUserById = function (userId) {
-//     return this.findById(userId);
-// };
-
 // --- Export ---
-
 module.exports = mongoose.model("User", userSchema);

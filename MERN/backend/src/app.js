@@ -10,11 +10,11 @@ app.use(express.json());
 app.use(cors());
 
 // Connect to MongoDB
-const connectDB = require('./src/utils/db.connections');
+const connectDB = require('./utils/db');
 connectDB();
 
 // Routes
-const userRoutes = require('./src/routes/user.routes');
+const userRoutes = require('./modules/users/user.routes');
 app.use('/api/users', userRoutes);
 
 const PORT = process.env.PORT;

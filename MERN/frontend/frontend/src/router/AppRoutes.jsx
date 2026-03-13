@@ -10,7 +10,7 @@ import { UseEffectList } from "../components/user/UseEffectList";
 const router = createBrowserRouter([
     {path:"/",element:<Login/>},
     {path:"/signup",element:<Signup/>},
-    {path:"/user",element:<UserNavbar/>,
+    {path:"/owner",element:<UserNavbar/>,
         children:[
             {path:"products",element:<ProductList/>},
             {path:"userlist",element:<UseEffectList/>},
