@@ -33,9 +33,11 @@ const conversationSchema = new mongoose.Schema(
         },
         activatedAt: {
             type: Date,
+            default: null,
         },
         closedAt: {
             type: Date,
+            default: null,
         },
     },
     {
@@ -43,5 +45,12 @@ const conversationSchema = new mongoose.Schema(
         versionKey: false,
     }
 );
+
+// --- Indexes ---
+conversationSchema.index({ requestId: 1 });
+conversationSchema.index({ assignmentId: 1 });
+conversationSchema.index({ ownerId: 1 });
+conversationSchema.index({ finderId: 1 });
+conversationSchema.index({ conversationStatus: 1 });
 
 module.exports = mongoose.model("Conversation", conversationSchema);

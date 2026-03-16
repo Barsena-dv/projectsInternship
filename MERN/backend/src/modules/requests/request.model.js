@@ -12,18 +12,20 @@ const requestSchema = new mongoose.Schema(
             ref: "ServicePlan",
             required: true,
         },
+        categoryId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Category",
+            required: true,
+        },
         itemName: {
             type: String,
             required: true,
             trim: true,
         },
-        itemCategory: {
+        description: {
             type: String,
             required: true,
-        },
-        itemDescription: {
-            type: String,
-            required: true,
+            trim: true,
         },
         brand: {
             type: String,
@@ -37,25 +39,32 @@ const requestSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        serialNumber: {
+            type: String,
+            trim: true,
+        },
         uniqueIdentifiers: {
             type: String,
             trim: true,
         },
-        serialNumber: {
-            type: String,
-            trim: true,
+        rewardAmount: {
+            type: Number,
+            default: 0,
         },
         lastSeenLocation: {
             type: String,
             required: true,
         },
-        lastSeenLat: {
-            type: Number,
-            required: true,
-        },
-        lastSeenLng: {
-            type: Number,
-            required: true,
+        location: {
+            type: {
+                type: String,
+                enum: ["Point"],
+                default: "Point",
+            },
+            coordinates: {
+                type: [Number], // [longitude, latitude]
+                required: true,
+            },
         },
         lastSeenDatetime: {
             type: Date,
@@ -65,18 +74,20 @@ const requestSchema = new mongoose.Schema(
             type: Date,
             required: true,
         },
+        images: {
+            type: [String],
+            default: [],
+        },
         requestStatus: {
             type: String,
             enum: [
-                "pending_payment",
                 "open",
                 "assigned",
-                "evidence_uploaded",
-                "awaiting_confirmation",
+                "found",
+                "failed",
                 "completed",
-                "expired",
             ],
-            default: "pending_payment",
+            default: "open",
         },
     },
     {
@@ -84,5 +95,11 @@ const requestSchema = new mongoose.Schema(
         versionKey: false,
     }
 );
+
+// --- Indexes ---
+requestSchema.index({ ownerId: 1 });
+requestSchema.index({ categoryId: 1 });
+requestSchema.index({ requestStatus: 1 });
+requestSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("LostItemRequest", requestSchema);

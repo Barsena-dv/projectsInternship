@@ -71,7 +71,139 @@ const userLogin = async (req, res) => {
     }
 }
 
+//For creating the user from the backend side(only for the admin to access)
+const createUser = async (req, res) => {
+    try {
+        const createUserObj = await userSchema.create(req.body);
+        if(createUserObj){
+            return res.status(201).json({
+                success: true,
+                message: "User created successfully",
+                data: createUserObj,
+            });
+        }else{
+            return res.status(400).json({
+                success: false,
+                message: "User creation failed",
+            });
+        }      
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error,
+        });
+    }
+}
+
+//For fetching all the users(only for the admin to access)
+const getAllUsers = async (req, res) => {
+    try {
+        const getAllUsersObj = await userSchema.find();
+        if(getAllUsersObj){
+            return res.status(200).json({
+                success: true,
+                message: "Users fetched successfully",
+                data: getAllUsersObj,
+            });
+        }else{
+            return res.status(404).json({
+                success: false,
+                message: "Users not found",
+            });
+        }      
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error,
+        });
+    }
+}
+
+//For fetching a user by id(only for the admin to access)
+const getUserById = async (req, res) => {
+    try {
+        const getUserByIdObj = await userSchema.findById(req.params.id);
+        if(getUserByIdObj){
+            return res.status(200).json({
+                success: true,
+                message: "User fetched successfully",
+                data: getUserByIdObj,
+            });
+        }else{
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }      
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error,
+        });
+    }
+}
+
+//For updating a user by id(the user can only update their own profile except the admin)
+const updateUserById = async (req, res) => {
+    try {
+        const updateUserByIdObj = await userSchema
+        .findByIdAndUpdate(req.params.id, req.body, {new: true});
+        if(updateUserByIdObj){
+            return res.status(200).json({
+                success: true,
+                message: "User updated successfully",
+                data: updateUserByIdObj,
+            });
+        }else{
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }      
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error,
+        });
+    }
+}
+
+//For deleting a user by id(only for the admin to access)
+const deleteUserById = async (req, res) => {
+    try {
+        const deleteUserByIdObj = await userSchema
+        .findByIdAndDelete(req.params.id);
+        if(deleteUserByIdObj){
+            return res.status(200).json({
+                success: true,
+                message: "User deleted successfully",
+                data: deleteUserByIdObj,
+            });
+        }else{
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }      
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error,
+        });
+    }
+}
+
 module.exports = {
     registerUser,
     userLogin,
+    createUser,
+    getAllUsers,
+    getUserById,
+    updateUserById,
+    deleteUserById,
 }

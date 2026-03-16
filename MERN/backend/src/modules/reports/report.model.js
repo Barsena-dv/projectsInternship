@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const disputeSchema = new mongoose.Schema(
+const reportSchema = new mongoose.Schema(
     {
         requestId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -24,27 +24,32 @@ const disputeSchema = new mongoose.Schema(
         },
         reportType: {
             type: String,
+            enum: ["fraud", "misconduct", "spam", "other"],
             required: true,
         },
-        reportDescription: {
+        description: {
             type: String,
             required: true,
+            trim: true,
         },
         evidencePath: {
             type: String,
             trim: true,
+            default: null,
         },
         reportStatus: {
             type: String,
-            enum: ["open", "under_review", "resolved"],
+            enum: ["open", "reviewing", "resolved"],
             default: "open",
         },
         handledByAdmin: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
+            default: null,
         },
         resolvedAt: {
             type: Date,
+            default: null,
         },
     },
     {
@@ -53,4 +58,10 @@ const disputeSchema = new mongoose.Schema(
     }
 );
 
-module.exports = mongoose.model("Dispute", disputeSchema);
+// --- Indexes ---
+reportSchema.index({ reportedBy: 1 });
+reportSchema.index({ reportedUser: 1 });
+reportSchema.index({ requestId: 1 });
+reportSchema.index({ reportStatus: 1 });
+
+module.exports = mongoose.model("Report", reportSchema);

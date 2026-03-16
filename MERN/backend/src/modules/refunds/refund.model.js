@@ -29,15 +29,17 @@ const refundSchema = new mongoose.Schema(
         refundReason: {
             type: String,
             required: true,
+            trim: true,
         },
         refundStatus: {
             type: String,
-            enum: ["initiated", "processing", "completed"],
+            enum: ["initiated", "processed", "failed"],
             default: "initiated",
         },
-        refundRef: {
+        refundReference: {
             type: String,
             trim: true,
+            default: null,
         },
         initiatedAt: {
             type: Date,
@@ -45,6 +47,7 @@ const refundSchema = new mongoose.Schema(
         },
         refundedAt: {
             type: Date,
+            default: null,
         },
     },
     {
@@ -52,5 +55,11 @@ const refundSchema = new mongoose.Schema(
         versionKey: false,
     }
 );
+
+// --- Indexes ---
+refundSchema.index({ paymentId: 1 });
+refundSchema.index({ requestId: 1 });
+refundSchema.index({ ownerId: 1 });
+refundSchema.index({ refundStatus: 1 });
 
 module.exports = mongoose.model("Refund", refundSchema);

@@ -14,16 +14,21 @@ const evidenceSchema = new mongoose.Schema(
         },
         fileType: {
             type: String,
-            enum: ["image", "video"],
+            enum: ["photo", "video"],
             required: true,
         },
         filePath: {
             type: String,
             required: true,
         },
-        fileCaption: {
+        caption: {
             type: String,
             trim: true,
+        },
+        verificationStatus: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending",
         },
         uploadedAt: {
             type: Date,
@@ -35,5 +40,9 @@ const evidenceSchema = new mongoose.Schema(
         versionKey: false,
     }
 );
+
+// --- Indexes ---
+evidenceSchema.index({ assignmentId: 1 });
+evidenceSchema.index({ verificationStatus: 1 });
 
 module.exports = mongoose.model("EvidenceFile", evidenceSchema);

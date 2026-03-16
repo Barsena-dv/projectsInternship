@@ -4,6 +4,7 @@ const servicePlanSchema = new mongoose.Schema(
     {
         planName: {
             type: String,
+            enum: ["basic", "premium"],
             required: true,
             trim: true,
         },
@@ -23,13 +24,10 @@ const servicePlanSchema = new mongoose.Schema(
             type: Number,
             required: true,
         },
-        maxTrackingUpdates: {
-            type: Number,
-            required: true,
-        },
         description: {
             type: String,
             required: true,
+            trim: true,
         },
         isActive: {
             type: Boolean,
@@ -41,5 +39,9 @@ const servicePlanSchema = new mongoose.Schema(
         versionKey: false,
     }
 );
+
+// --- Indexes ---
+servicePlanSchema.index({ planName: 1 });
+servicePlanSchema.index({ isActive: 1 });
 
 module.exports = mongoose.model("ServicePlan", servicePlanSchema);

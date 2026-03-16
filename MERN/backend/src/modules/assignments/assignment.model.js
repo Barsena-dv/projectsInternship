@@ -14,28 +14,30 @@ const assignmentSchema = new mongoose.Schema(
         },
         assignedBy: {
             type: String,
+            enum: ["system", "admin"],
             required: true,
         },
-        assignedAt: {
-            type: Date,
-            default: Date.now,
+        assignmentStatus: {
+            type: String,
+            enum: ["accepted", "searching", "found", "failed", "completed"],
+            default: "accepted",
         },
         evidenceSubmitted: {
             type: Boolean,
             default: false,
         },
-        userConfirmation: {
+        ownerConfirmation: {
             type: String,
-            enum: ["pending", "approved", "rejected"],
+            enum: ["pending", "confirmed", "rejected"],
             default: "pending",
         },
-        completionStatus: {
-            type: String,
-            enum: ["in_progress", "item_found", "search_failed", "cancelled"],
-            default: "in_progress",
+        acceptedAt: {
+            type: Date,
+            default: Date.now,
         },
         completedAt: {
             type: Date,
+            default: null,
         },
     },
     {
@@ -43,5 +45,10 @@ const assignmentSchema = new mongoose.Schema(
         versionKey: false,
     }
 );
+
+// --- Indexes ---
+assignmentSchema.index({ finderId: 1 });
+assignmentSchema.index({ requestId: 1 });
+assignmentSchema.index({ assignmentStatus: 1 });
 
 module.exports = mongoose.model("FinderAssignment", assignmentSchema);

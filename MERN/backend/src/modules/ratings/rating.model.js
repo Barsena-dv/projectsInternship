@@ -34,4 +34,9 @@ const ratingSchema = new mongoose.Schema(
     }
 );
 
+// --- Indexes ---
+ratingSchema.index({ requestId: 1 });
+ratingSchema.index({ toUserId: 1 });
+ratingSchema.index({ fromUserId: 1 });
+
 module.exports = mongoose.model("Rating", ratingSchema);

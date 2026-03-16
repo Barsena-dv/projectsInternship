@@ -27,8 +27,12 @@ const userSchema = new mongoose.Schema(
         role: {
             type: String,
             enum: ["owner", "finder", "admin"],
-            default: "owner",
             required: true,
+        },
+        accountStatus: {
+            type: String,
+            enum: ["active", "suspended", "banned"],
+            default: "active",
         },
         profileImage: {
             type: String,
@@ -37,8 +41,10 @@ const userSchema = new mongoose.Schema(
         ratingAvg: {
             type: Number,
             default: 0,
+            min: 0,
+            max: 5,
         },
-        ratingCount: {
+        totalReviews: {
             type: Number,
             default: 0,
         },
@@ -46,10 +52,9 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-        accountStatus: {
-            type: String,
-            enum: ["active", "suspended", "blocked", "deleted"],
-            default: "active",
+        walletBalance: {
+            type: Number,
+            default: 0,
         },
     },
     {
@@ -58,5 +63,7 @@ const userSchema = new mongoose.Schema(
     }
 );
 
-// --- Export ---
+// --- Indexes ---
+userSchema.index({ role: 1 });
+
 module.exports = mongoose.model("User", userSchema);

@@ -17,7 +17,7 @@ const messageSchema = new mongoose.Schema(
             enum: ["text", "image", "file"],
             default: "text",
         },
-        messageContent: {
+        content: {
             type: String,
             required: true,
         },
@@ -35,5 +35,9 @@ const messageSchema = new mongoose.Schema(
         versionKey: false,
     }
 );
+
+// --- Indexes ---
+messageSchema.index({ conversationId: 1 });
+messageSchema.index({ senderId: 1 });
 
 module.exports = mongoose.model("Message", messageSchema);

@@ -26,12 +26,14 @@ const payoutSchema = new mongoose.Schema(
             enum: ["pending", "processed", "failed"],
             default: "pending",
         },
-        payoutRef: {
+        payoutReference: {
             type: String,
             trim: true,
+            default: null,
         },
         processedAt: {
             type: Date,
+            default: null,
         },
     },
     {
@@ -39,5 +41,11 @@ const payoutSchema = new mongoose.Schema(
         versionKey: false,
     }
 );
+
+// --- Indexes ---
+payoutSchema.index({ finderId: 1 });
+payoutSchema.index({ paymentId: 1 });
+payoutSchema.index({ assignmentId: 1 });
+payoutSchema.index({ payoutStatus: 1 });
 
 module.exports = mongoose.model("Payout", payoutSchema);

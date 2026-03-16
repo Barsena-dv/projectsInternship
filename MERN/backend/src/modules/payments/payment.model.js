@@ -12,38 +12,33 @@ const paymentSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
-        paymentAmount: {
-            type: Number,
+        planId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "ServicePlan",
             required: true,
         },
-        currency: {
-            type: String,
+        amount: {
+            type: Number,
             required: true,
         },
         paymentStatus: {
             type: String,
-            enum: [
-                "pending",
-                "locked",
-                "released",
-                "partially_refunded",
-                "fully_refunded",
-            ],
-            default: "pending",
+            enum: ["locked", "released", "refunded"],
+            default: "locked",
         },
-        gatewayProvider: {
+        transactionId: {
             type: String,
             trim: true,
+            default: null,
         },
-        gatewayPaymentRef: {
+        gateway: {
             type: String,
             trim: true,
+            default: null,
         },
-        escrowLockedAt: {
+        paidAt: {
             type: Date,
-        },
-        releasedAt: {
-            type: Date,
+            default: null,
         },
     },
     {
@@ -51,5 +46,10 @@ const paymentSchema = new mongoose.Schema(
         versionKey: false,
     }
 );
+
+// --- Indexes ---
+paymentSchema.index({ requestId: 1 });
+paymentSchema.index({ ownerId: 1 });
+paymentSchema.index({ paymentStatus: 1 });
 
 module.exports = mongoose.model("Payment", paymentSchema);

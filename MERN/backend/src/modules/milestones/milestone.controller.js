@@ -1,19 +1,19 @@
-const ServicePlan = require("./servicePlan.model");
+const Milestone = require("./milestone.model");
 
-//For creating the service plan
-const createServicePlan = async (req, res) => {
+//For creating the milestone
+const createMilestone = async (req, res) => {
     try {
-        const createServicePlanObj = await ServicePlan.create(req.body);
-        if(createServicePlanObj){
+        const createMilestoneObj = await Milestone.create(req.body);
+        if(createMilestoneObj){
             return res.status(201).json({
                 success: true,
-                message: "Service plan created successfully",
-                data: createServicePlanObj,
+                message: "Milestone created successfully",
+                data: createMilestoneObj,
             });
         }else{
             return res.status(400).json({
                 success: false,
-                message: "Service plan creation failed",
+                message: "Milestone creation failed",
             });
         }      
     } catch (error) {
@@ -25,20 +25,23 @@ const createServicePlan = async (req, res) => {
     }
 }
 
-//For fetching all the service plans
-const getAllServicePlans = async (req, res) => {
+//For fetching all the milestones
+const getAllMilestones = async (req, res) => {
     try {
-        const getAllServicePlansObj = await ServicePlan.find();
-        if(getAllServicePlansObj){
+        const getAllMilestonesObj = await Milestone
+        .find()
+        .populate("assignmentId")
+        .populate("finderId", "fullName email role");
+        if(getAllMilestonesObj){
             return res.status(200).json({
                 success: true,
-                message: "Service plans fetched successfully",
-                data: getAllServicePlansObj,
+                message: "Milestones fetched successfully",
+                data: getAllMilestonesObj,
             });
         }else{
             return res.status(404).json({
                 success: false,
-                message: "Service plans not found",
+                message: "Milestones not found",
             });
         }      
     } catch (error) {
@@ -50,21 +53,23 @@ const getAllServicePlans = async (req, res) => {
     }
 }
 
-//For fetching a service plan by id
-const getServicePlanById = async (req, res) => {
+//For fetching a milestone by id
+const getMilestoneById = async (req, res) => {
     try {
-        const getServicePlanByIdObj = await ServicePlan
-        .findById(req.params.id);
-        if(getServicePlanByIdObj){
+        const getMilestoneByIdObj = await Milestone
+        .findById(req.params.id)
+        .populate("assignmentId")
+        .populate("finderId", "fullName email role");
+        if(getMilestoneByIdObj){
             return res.status(200).json({
                 success: true,
-                message: "Service plan fetched successfully",
-                data: getServicePlanByIdObj,
+                message: "Milestone fetched successfully",
+                data: getMilestoneByIdObj,
             });
         }else{
             return res.status(404).json({
                 success: false,
-                message: "Service plan not found",
+                message: "Milestone not found",
             });
         }      
     } catch (error) {
@@ -76,21 +81,21 @@ const getServicePlanById = async (req, res) => {
     }
 }
 
-//For updating a service plan by id
-const updateServicePlanById = async (req, res) => {
+//For updating a milestone by id
+const updateMilestoneById = async (req, res) => {
     try {
-        const updateServicePlanByIdObj = await ServicePlan
+        const updateMilestoneByIdObj = await Milestone
         .findByIdAndUpdate(req.params.id, req.body, {new: true});
-        if(updateServicePlanByIdObj){
+        if(updateMilestoneByIdObj){
             return res.status(200).json({
                 success: true,
-                message: "Service plan updated successfully",
-                data: updateServicePlanByIdObj,
+                message: "Milestone updated successfully",
+                data: updateMilestoneByIdObj,
             });
         }else{
             return res.status(404).json({
                 success: false,
-                message: "Service plan not found",
+                message: "Milestone not found",
             });
         }      
     } catch (error) {
@@ -102,21 +107,20 @@ const updateServicePlanById = async (req, res) => {
     }
 }
 
-//For deleting a service plan by id
-const deleteServicePlanById = async (req, res) => {
+//For deleting a milestone by id
+const deleteMilestoneById = async (req, res) => {
     try {
-        const deleteServicePlanByIdObj = await ServicePlan
-        .findByIdAndDelete(req.params.id);
-        if(deleteServicePlanByIdObj){
+        const deleteMilestoneByIdObj = await Milestone.findByIdAndDelete(req.params.id);
+        if(deleteMilestoneByIdObj){
             return res.status(200).json({
                 success: true,
-                message: "Service plan deleted successfully",
-                data: deleteServicePlanByIdObj,
+                message: "Milestone deleted successfully",
+                data: deleteMilestoneByIdObj,
             });
         }else{
             return res.status(404).json({
                 success: false,
-                message: "Service plan not found",
+                message: "Milestone not found",
             });
         }      
     } catch (error) {
@@ -129,9 +133,9 @@ const deleteServicePlanById = async (req, res) => {
 }
 
 module.exports = {
-    createServicePlan,
-    getAllServicePlans,
-    getServicePlanById,
-    updateServicePlanById,
-    deleteServicePlanById,
+    createMilestone,
+    getAllMilestones,
+    getMilestoneById,
+    updateMilestoneById,
+    deleteMilestoneById,
 }
