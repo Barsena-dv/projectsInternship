@@ -27,6 +27,9 @@ app.use('/api/verification', finderVerificationRoutes);
 const userRoutes = require('./modules/users/user.routes');
 app.use('/api/users', userRoutes);
 
+const authRoutes = require('./modules/auth/auth.routes');
+app.use('/api/auth', authRoutes);
+
 const requestRoutes = require('./modules/requests/request.routes');
 app.use('/api/requests', requestRoutes);
 

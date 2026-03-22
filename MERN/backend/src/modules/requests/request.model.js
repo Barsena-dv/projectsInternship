@@ -17,6 +17,11 @@ const requestSchema = new mongoose.Schema(
             ref: "Category",
             required: true,
         },
+        assignmentId: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: "FinderAssignment",
+                        default: null,
+                },
         itemName: {
             type: String,
             required: true,
@@ -81,13 +86,14 @@ const requestSchema = new mongoose.Schema(
         requestStatus: {
             type: String,
             enum: [
+                "draft",
                 "open",
                 "assigned",
                 "found",
-                "failed",
                 "completed",
+                "failed",
             ],
-            default: "open",
+            default: "draft",
         },
     },
     {
@@ -99,6 +105,7 @@ const requestSchema = new mongoose.Schema(
 // --- Indexes ---
 requestSchema.index({ ownerId: 1 });
 requestSchema.index({ categoryId: 1 });
+requestSchema.index({ assignmentId: 1 });
 requestSchema.index({ requestStatus: 1 });
 requestSchema.index({ location: "2dsphere" });
 

@@ -23,8 +23,8 @@ const paymentSchema = new mongoose.Schema(
         },
         paymentStatus: {
             type: String,
-            enum: ["locked", "released", "refunded"],
-            default: "locked",
+            enum: ["unpaid", "locked", "released", "refunded"],
+            default: "unpaid",
         },
         transactionId: {
             type: String,

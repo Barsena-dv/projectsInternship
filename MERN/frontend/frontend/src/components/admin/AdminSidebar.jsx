@@ -1,127 +1,59 @@
-import React from "react";
+import { FiClock, FiShield, FiUsers } from "react-icons/fi";
 import { NavLink, Outlet } from "react-router-dom";
 
 export const AdminSidebar = () => {
-    const baseStyle =
-        "flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition";
+    const baseStyle = "flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition";
 
-    const activeStyle =
-        "bg-[#2563EB]/10 text-[#2563EB]";
+    const activeStyle = "bg-blue-600 text-white";
 
-    const inactiveStyle =
-        "text-gray-600 hover:bg-gray-100 hover:text-[#1E40AF]";
+    const inactiveStyle = "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
 
     return (
-        <div className="flex min-h-screen bg-[#F8FAFC]">
+        <div className="mesh-backdrop flex min-h-dvh">
 
-            {/* SIDEBAR */}
-            <aside className="w-64 bg-white border-r border-gray-200 shadow-sm flex flex-col">
+            <aside className="w-72 border-r border-slate-200/80 bg-white/85 backdrop-blur-sm">
+                <div className="flex h-20 items-center justify-between border-b border-slate-200 px-5">
+                    <div>
+                        <h1 className="text-xl font-bold text-slate-900">PostNFind</h1>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Admin Console</p>
+                    </div>
 
-                {/* Header */}
-                <div className="h-16 flex items-center px-6 border-b border-gray-200">
-                    <h1 className="text-lg font-semibold text-[#1E40AF]">
-                        PostNFind Admin
-                    </h1>
+                    <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                        Admin
+                    </span>
                 </div>
 
-                {/* Navigation */}
-                <nav className="flex-1 px-4 py-6 space-y-2">
-
-                    <NavLink
-                        to="/admin/dashboard"
-                        className={({ isActive }) =>
-                            `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`
-                        }
-                    >
-                        Dashboard
-                    </NavLink>
-
+                <nav className="p-4">
                     <NavLink
                         to="/admin/users"
-                        className={({ isActive }) =>
-                            `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`
-                        }
+                        className={({ isActive }) => `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`}
                     >
+                        <FiUsers className="h-4 w-4" />
                         Users
                     </NavLink>
-
-                    <NavLink
-                        to="/admin/agents"
-                        className={({ isActive }) =>
-                            `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`
-                        }
-                    >
-                        Recovery Agents
-                    </NavLink>
-
-                    <NavLink
-                        to="/admin/requests"
-                        className={({ isActive }) =>
-                            `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`
-                        }
-                    >
-                        Requests
-                    </NavLink>
-
-                    <NavLink
-                        to="/admin/payments"
-                        className={({ isActive }) =>
-                            `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`
-                        }
-                    >
-                        Payments & Escrow
-                    </NavLink>
-
-                    <NavLink
-                        to="/admin/disputes"
-                        className={({ isActive }) =>
-                            `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`
-                        }
-                    >
-                        Disputes
-                    </NavLink>
-
-                    <NavLink
-                        to="/admin/refunds"
-                        className={({ isActive }) =>
-                            `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`
-                        }
-                    >
-                        Refund Logs
-                    </NavLink>
-
-                    <NavLink
-                        to="/admin/audit"
-                        className={({ isActive }) =>
-                            `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`
-                        }
-                    >
-                        Audit Logs
-                    </NavLink>
-
-                    <NavLink
-                        to="/admin/settings"
-                        className={({ isActive }) =>
-                            `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`
-                        }
-                    >
-                        Settings
-                    </NavLink>
-
                 </nav>
 
-                {/* Footer */}
-                <div className="px-4 py-4 border-t border-gray-200 text-xs text-gray-500">
-                    Admin Control Panel
-                </div>
+                <div className="space-y-2 px-4 pb-4">
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                            <FiClock className="h-3.5 w-3.5" />
+                            Coming Soon
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600">Payments, disputes, and audit modules.</p>
+                    </div>
 
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        <p className="inline-flex items-center gap-2 font-semibold">
+                            <FiShield className="h-4 w-4" />
+                            Protected admin access
+                        </p>
+                    </div>
+                </div>
             </aside>
 
-            {/* MAIN CONTENT */}
-            <main className="flex-1 p-8">
+            <main className="flex-1 p-4 sm:p-6 md:p-8">
                 <Outlet />
             </main>
-
         </div>
     );
 };

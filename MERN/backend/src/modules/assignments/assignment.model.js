@@ -19,21 +19,25 @@ const assignmentSchema = new mongoose.Schema(
         },
         assignmentStatus: {
             type: String,
-            enum: ["accepted", "searching", "found", "failed", "completed"],
+            enum: ["accepted", "evidence_submitted", "completed", "rejected"],
             default: "accepted",
+        },
+        assignedAt: {
+            type: Date,
+            default: Date.now,
         },
         evidenceSubmitted: {
             type: Boolean,
             default: false,
         },
+        evidenceSubmittedAt: {
+            type: Date,
+            default: null,
+        },
         ownerConfirmation: {
             type: String,
             enum: ["pending", "confirmed", "rejected"],
             default: "pending",
-        },
-        acceptedAt: {
-            type: Date,
-            default: Date.now,
         },
         completedAt: {
             type: Date,

@@ -1,4 +1,79 @@
 const Payment = require("./payment.model");
+const mongoose = require("mongoose");
+const LostItemRequest = require("../requests/request.model");
+
+const lockPayment = async (req, res) => {
+    try {
+        const { requestId, amount } = req.body;
+
+        if (!requestId || !mongoose.Types.ObjectId.isValid(requestId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Valid requestId is required",
+            });
+        }
+
+        const parsedAmount = Number(amount);
+        if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Amount must be a positive number",
+            });
+        }
+
+        const request = await LostItemRequest.findById(requestId).select("ownerId planId");
+        if (!request) {
+            return res.status(404).json({
+                success: false,
+                message: "Request not found",
+            });
+        }
+
+        if (request.ownerId.toString() !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: "Only request owner can lock payment",
+            });
+        }
+
+        const existingPayment = await Payment
+            .findOne({
+                requestId,
+                ownerId: req.user.id,
+                paymentStatus: { $in: ["unpaid", "locked", "released"] },
+            })
+            .sort({ createdAt: -1 });
+
+        if (existingPayment) {
+            return res.status(409).json({
+                success: false,
+                message: "Payment already exists for this request",
+                data: existingPayment,
+            });
+        }
+
+        const payment = await Payment.create({
+            requestId,
+            ownerId: req.user.id,
+            planId: request.planId,
+            amount: parsedAmount,
+            paymentStatus: "locked",
+            paidAt: new Date(),
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Payment locked successfully",
+            data: payment,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+            error,
+        });
+    }
+};
 
 
 // CREATE PAYMENT
@@ -156,6 +231,7 @@ const deletePayment = async (req, res) => {
 };
 
 module.exports = {
+    lockPayment,
     createPayment,
     getAllPayments,
     getPaymentById,

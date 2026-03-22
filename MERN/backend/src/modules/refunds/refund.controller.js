@@ -1,4 +1,83 @@
 const Refund = require("./refund.model");
+const mongoose = require("mongoose");
+const Payment = require("../payments/payment.model");
+
+const processRefund = async (req, res) => {
+    try {
+        const { paymentId, requestId, refundReason } = req.body;
+
+        if (!paymentId && !requestId) {
+            return res.status(400).json({
+                success: false,
+                message: "paymentId or requestId is required",
+            });
+        }
+
+        if (paymentId && !mongoose.Types.ObjectId.isValid(paymentId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid paymentId",
+            });
+        }
+
+        if (requestId && !mongoose.Types.ObjectId.isValid(requestId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid requestId",
+            });
+        }
+
+        const paymentQuery = paymentId ? { _id: paymentId } : { requestId };
+        const payment = await Payment.findOne(paymentQuery).sort({ createdAt: -1 });
+
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                message: "Payment not found",
+            });
+        }
+
+        if (payment.paymentStatus === "refunded") {
+            return res.status(409).json({
+                success: false,
+                message: "Payment is already refunded",
+            });
+        }
+
+        const refundAmount = Number((payment.amount * 0.7).toFixed(2));
+        const now = new Date();
+
+        const refund = await Refund.create({
+            paymentId: payment._id,
+            requestId: payment.requestId,
+            ownerId: payment.ownerId,
+            refundAmount,
+            refundType: refundAmount >= payment.amount ? "full" : "partial",
+            refundReason: refundReason || "Request failed or assignment unsuccessful",
+            refundStatus: "processed",
+            initiatedAt: now,
+            refundedAt: now,
+        });
+
+        payment.paymentStatus = "refunded";
+        await payment.save();
+
+        return res.status(201).json({
+            success: true,
+            message: "Refund processed successfully",
+            data: {
+                refund,
+                payment,
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+            error,
+        });
+    }
+};
 
 //For creating the Refund
 const createRefund = async (req, res) => {
@@ -130,6 +209,7 @@ const deleteRefund = async (req, res) => {
 }
 
 module.exports = {
+    processRefund,
     createRefund,
     getAllRefunds,
     getRefundById,

@@ -1,177 +1,157 @@
 import axios from "axios";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { FiArrowRight, FiCheckCircle, FiSearch, FiShield } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
+const roleRouteMap = {
+    owner: "/owner",
+    finder: "/finder",
+    admin: "/admin",
+};
+
 export const Login = () => {
-    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+
     const {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm();
+    } = useForm({
+        mode: "onTouched",
+    });
 
-    const onSubmit = async (data) => {
-        try{
-            const response = await axios.post("/api/users/login",data);
-            console.log(response.data);
-            if(response.status==200){
-                toast.success("Login success");
-                if(response.data.role=="owner" || response.data.role == "OWNER"){
-                    navigate("/owner");
-                }else if(response.data.role=="finder" || response.data.role == "FINDER"){
-                    navigate("/finder");
-                }else if(response.data.role == "admin" || response.data.role == "ADMIN"){
-                    navigate("/admin");
-                }else{
-                    toast.error("Invalid role");
-                    navigate("/");
-                }
+    const onSubmit = async (formValues) => {
+        try {
+            setLoading(true);
+            const response = await axios.post("/api/auth/login", formValues);
+
+            localStorage.setItem("token", response.data.token);
+            localStorage.setItem("role", response.data.data.role);
+            localStorage.setItem(
+                "pnf-profile",
+                JSON.stringify({
+                    fullName: response.data?.data?.fullName ?? "",
+                    email: response.data?.data?.email ?? formValues.email ?? "",
+                    phone: response.data?.data?.phone ?? "",
+                    avatar: response.data?.data?.profileImage ?? response.data?.data?.avatar ?? "",
+                }),
+            );
+
+            const normalizedRole = String(response.data.data.role ?? "").toLowerCase();
+            const redirectPath = roleRouteMap[normalizedRole];
+
+            if (!redirectPath) {
+                toast.error("Invalid account role");
+                return;
             }
-            
-        }catch{
-            toast.error("login failed");
+
+            toast.success("Welcome back");
+            navigate(redirectPath);
+        } catch (error) {
+            const message = error.response?.data?.message ?? "Login failed";
+            toast.error(message);
+        } finally {
+            setLoading(false);
         }
-        
-        // setLoading(true);
-        // console.log(data);
-        // setTimeout(() => setLoading(false), 1200);
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-6">
+        <section className="mesh-backdrop flex min-h-dvh items-center justify-center px-4 py-10 sm:px-6">
+            <div className="surface-panel reveal-in w-full max-w-6xl overflow-hidden rounded-3xl">
+                <div className="grid min-h-170 md:grid-cols-[1.08fr_0.92fr]">
+                    <div className="relative hidden bg-[linear-gradient(135deg,#0f1f3a_0%,#123e9d_55%,#0f766e_100%)] p-10 text-white md:flex md:flex-col md:justify-between">
+                        <div>
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100">
+                                <FiShield className="h-4 w-4" />
+                                PostNFind Secure Access
+                            </div>
 
-            <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
+                            <h1 className="mt-8 max-w-md text-4xl font-bold leading-tight">
+                                Recover smarter,
+                                <br />
+                                verify faster.
+                            </h1>
 
-                {/* LEFT PANEL */}
-                <div className="bg-gradient-to-br from-[#1E40AF] to-[#2563EB] text-white p-12 flex flex-col justify-center relative">
-
-                    <h1 className="text-4xl font-semibold leading-tight">
-                        Welcome back.
-                    </h1>
-
-                    <p className="mt-6 text-blue-100 max-w-md">
-                        Access your secure recovery dashboard.
-                        Track assignments, manage escrow payments,
-                        and communicate through verified workflows.
-                    </p>
-
-                    {/* Trust Features */}
-                    <div className="mt-10 space-y-4">
-
-                        <div className="flex items-center gap-3">
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A]"></span>
-                            <span className="text-sm text-blue-100">
-                                Escrow protected transactions
-                            </span>
+                            <p className="mt-5 max-w-md text-sm text-blue-100/90">
+                                Continue your recovery journey with protected payments, tracked assignments, and
+                                evidence-first verification.
+                            </p>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span>
-                            <span className="text-sm text-blue-100">
-                                Evidence-first verification
-                            </span>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-4 py-3">
+                                <FiCheckCircle className="h-4 w-4 text-emerald-300" />
+                                <span className="text-sm text-blue-50">Escrow-backed trust and payout handling</span>
+                            </div>
+                            <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-4 py-3">
+                                <FiSearch className="h-4 w-4 text-cyan-300" />
+                                <span className="text-sm text-blue-50">Finder-owner workflows with full visibility</span>
+                            </div>
                         </div>
-
-                        <div className="flex items-center gap-3">
-                            <span className="w-2.5 h-2.5 rounded-full bg-white"></span>
-                            <span className="text-sm text-blue-100">
-                                Verified recovery agents
-                            </span>
-                        </div>
-
                     </div>
 
+                    <div className="flex items-center bg-white p-6 sm:p-10">
+                        <div className="w-full max-w-md">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">Welcome Back</p>
+                            <h2 className="mt-3 text-3xl font-bold text-slate-900">Sign in to your account</h2>
+                            <p className="mt-2 text-sm text-slate-600">
+                                Enter your credentials to open your owner, finder, or admin workspace.
+                            </p>
+
+                            <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5" noValidate>
+                                <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+                                    Email Address
+                                    <input
+                                        type="email"
+                                        autoComplete="email"
+                                        placeholder="you@example.com"
+                                        {...register("email", {
+                                            required: "Email is required",
+                                        })}
+                                        className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-blue-500 focus:bg-white"
+                                    />
+                                    {errors.email ? <span className="text-xs text-red-600">{errors.email.message}</span> : null}
+                                </label>
+
+                                <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+                                    Password
+                                    <input
+                                        type="password"
+                                        autoComplete="current-password"
+                                        placeholder="Enter your password"
+                                        {...register("password", {
+                                            required: "Password is required",
+                                        })}
+                                        className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-blue-500 focus:bg-white"
+                                    />
+                                    {errors.password ? (
+                                        <span className="text-xs text-red-600">{errors.password.message}</span>
+                                    ) : null}
+                                </label>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+                                >
+                                    {loading ? "Authenticating..." : "Sign In"}
+                                    {!loading ? <FiArrowRight className="h-4 w-4" /> : null}
+                                </button>
+                            </form>
+
+                            <p className="mt-6 text-sm text-slate-600">
+                                New to PostNFind?{" "}
+                                <Link to="/signup" className="font-semibold text-blue-700 hover:text-blue-800 hover:underline">
+                                    Create your account
+                                </Link>
+                            </p>
+                        </div>
+                    </div>
                 </div>
-
-                {/* RIGHT PANEL */}
-                <div className="p-12 flex flex-col justify-center">
-
-                    <h2 className="text-2xl font-semibold text-[#111827]">
-                        Login to PostNFind
-                    </h2>
-
-                    <p className="text-gray-600 text-sm mt-2 mb-8">
-                        Secure access to your account
-                    </p>
-
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
-                        {/* Email */}
-                        <div>
-                            <label className="block text-sm font-medium text-[#111827] mb-2">
-                                Email Address
-                            </label>
-                            <input
-                                type="email"
-                                {...register("email", { required: "Email is required" })}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB] transition"
-                                placeholder="you@example.com"
-                            />
-                            {errors.email && (
-                                <p className="text-[#DC2626] text-sm mt-1">
-                                    {errors.email.message}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Password */}
-                        <div>
-                            <label className="block text-sm font-medium text-[#111827] mb-2">
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                {...register("password", { required: "Password is required" })}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB] transition"
-                                placeholder="Enter your password"
-                            />
-                            {errors.password && (
-                                <p className="text-[#DC2626] text-sm mt-1">
-                                    {errors.password.message}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Remember + Forgot */}
-                        <div className="flex items-center justify-between text-sm">
-                            <label className="flex items-center gap-2 text-gray-600">
-                                <input type="checkbox" className="accent-[#2563EB]" />
-                                Remember me
-                            </label>
-
-                            <button
-                                type="button"
-                                className="text-[#2563EB] hover:underline"
-                            >
-                                Forgot password?
-                            </button>
-                        </div>
-
-                        {/* Login Button */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-[#2563EB] hover:bg-[#1E40AF] text-white py-3 rounded-lg font-medium transition disabled:opacity-60 cursor-pointer"
-                        >
-                            {loading ? "Authenticating..." : "Login"}
-                        </button>
-
-                    </form>
-
-                    {/* Footer */}
-                    <p className="text-sm text-gray-600 mt-8 text-center">
-                        Not registered yet?{" "}
-                        <span className="text-[#2563EB] font-medium cursor-pointer hover:underline">
-                            <Link to={"/signup"}>Create an account</Link>
-                        </span>
-                    </p>
-
-                </div>
-
             </div>
-        </div>
+        </section>
     );
 };
