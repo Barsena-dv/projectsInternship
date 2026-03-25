@@ -1,16 +1,20 @@
-const router = require("express").Router();
-const chatController = require("./chat.controller");
+const express = require('express');
+const chatController = require('./chat.controller');
+const { verifyToken } = require('../../middleware/auth.middleware');
+const { uploadSingle } = require('../../middleware/upload.middleware');
 
+const router = express.Router();
 
-router.post("/conversation/create", chatController.createConversation);
-router.get("/conversations", chatController.getAllConversations);
-router.get("/conversation/:id", chatController.getConversationById);
-router.delete("/conversation/:id", chatController.deleteConversation);
+router.post('/conversation', verifyToken, chatController.getOrCreateConversation);
+router.get('/conversations', verifyToken, chatController.listConversations);
 
-router.post("/message/send", chatController.sendMessage);
-router.get("/messages/:conversationId", chatController.getMessagesByConversation);
-router.put("/message/:id", chatController.updateMessage);
-router.delete("/message/:id", chatController.deleteMessage);
+router.post(
+  '/:conversationId/send',
+  verifyToken,
+  uploadSingle,
+  chatController.sendMessage
+);
 
+router.get('/:conversationId/messages', verifyToken, chatController.getMessages);
 
 module.exports = router;

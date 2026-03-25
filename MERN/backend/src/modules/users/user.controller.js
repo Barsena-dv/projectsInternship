@@ -1,207 +1,139 @@
-const userSchema = require('./user.model');
-const bcrypt = require('bcrypt');
-require('dotenv').config();
-const sendMail = require('../../utils/mail.utils')
-const path = require("path")
+const userService = require('./user.service');
 
+/**
+ * Self-service: Get my profile
+ */
+const getMe = async (req, res) => {
+  try {
+    const user = await userService.getUserProfile(req.user.userId);
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    res.status(404).json({ success: false, message: error.message });
+  }
+};
 
-// const registerUser = async (req, res) => {
-//     try {
-//         console.log("REGISTER API HIT");
+/**
+ * Self-service: Update my profile
+ */
+const updateMe = async (req, res) => {
+  try {
+    const user = await userService.updateUserProfile(req.user.userId, req.body);
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: user,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 
-//         const hashedPassword = await bcrypt.hash(req.body.password, 10);
+/**
+ * Self-service: Update profile image
+ */
+const updateProfileImage = async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url) throw new Error('Image URL is required');
 
-//         const registerUserObj = await userSchema.create({ ...req.body, password: hashedPassword });
+    const user = await userService.updateProfileImage(req.user.userId, url);
+    res.status(200).json({
+      success: true,
+      message: 'Profile image updated successfully',
+      data: { profileImage: user.profileImage },
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 
-//         console.log("USER CREATED:", registerUserObj.email);
+/**
+ * Self-service: Update current location (Finder only)
+ */
+const updateLocation = async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    const userId = req.user.userId;
 
-//         await sendMail(
-//             registerUserObj.email,
-//             "Welcome to PostNFind",
-//             registerUserObj.fullName,
-//             "Thank you for registering with PostNFind.",
-//             `${process.env.FRONTEND_URI}/`
-//         );
-
-//         console.log("MAIL FUNCTION CALLED");
-
-//         res.status(201).json({
-//             success: true,
-//             message: "User registered successfully",
-//             data: registerUserObj,
-//         })
-//     } catch (err) {
-//         res.status(500).json({
-//             message: "Error registering user",
-//             err: err
-//         })
-//     }
-// }
-
-// const userLogin = async (req, res) => {
-//     try {
-//         const { email, password } = req.body;
-//         const foundUserFromEmail = await userSchema.findOne({ email: email });
-//         if (foundUserFromEmail) {
-//             const isPasswordValid = await bcrypt.compare(password, foundUserFromEmail.password);
-//             if (isPasswordValid) {
-//                 res.status(200).json({
-//                     success: true,
-//                     message: "User logged in successfully",
-//                     data: foundUserFromEmail,
-//                     role: foundUserFromEmail.role,
-//                 })
-//             } else {
-//                 res.status(401).json({
-//                     success: false,
-//                     message: "Invalid password",
-//                 })
-//             }
-//         } else {
-//             res.status(404).json({
-//                 success: false,
-//                 message: "User not found",
-//             })
-//         }
-//     } catch (err) {
-//         res.status(500).json({
-//             message: "Error logging in user",
-//             err: err
-//         })
-//     }
-// }
-
-//For creating the user from the backend side(only for the admin to access)
-const createUser = async (req, res) => {
-    try {
-        const createUserObj = await userSchema.create(req.body);
-        if(createUserObj){
-            return res.status(201).json({
-                success: true,
-                message: "User created successfully",
-                data: createUserObj,
-            });
-        }else{
-            return res.status(400).json({
-                success: false,
-                message: "User creation failed",
-            });
-        }      
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error,
-        });
+    if (lat === undefined || lng === undefined) {
+      throw new Error('Latitude and Longitude are required');
     }
-}
 
-//For fetching all the users(only for the admin to access)
-const getAllUsers = async (req, res) => {
-    try {
-        const getAllUsersObj = await userSchema.find();
-        if(getAllUsersObj){
-            return res.status(200).json({
-                success: true,
-                message: "Users fetched successfully",
-                data: getAllUsersObj,
-            });
-        }else{
-            return res.status(404).json({
-                success: false,
-                message: "Users not found",
-            });
-        }      
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error,
-        });
-    }
-}
+    const user = await userService.updateLocation(userId, lat, lng);
+    res.status(200).json({
+      success: true,
+      message: 'Location updated successfully',
+      data: { currentLocation: user.currentLocation },
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 
-//For fetching a user by id(only for the admin to access)
-const getUserById = async (req, res) => {
-    try {
-        const getUserByIdObj = await userSchema.findById(req.params.id);
-        if(getUserByIdObj){
-            return res.status(200).json({
-                success: true,
-                message: "User fetched successfully",
-                data: getUserByIdObj,
-            });
-        }else{
-            return res.status(404).json({
-                success: false,
-                message: "User not found",
-            });
-        }      
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error,
-        });
-    }
-}
+/**
+ * ADMIN: Get all users
+ */
+const adminGetAllUsers = async (req, res) => {
+  try {
+    const users = await userService.getAllUsers(req.query);
+    res.status(200).json({ success: true, data: users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
-//For updating a user by id(the user can only update their own profile except the admin)
-const updateUserById = async (req, res) => {
-    try {
-        const updateUserByIdObj = await userSchema
-        .findByIdAndUpdate(req.params.id, req.body, {new: true});
-        if(updateUserByIdObj){
-            return res.status(200).json({
-                success: true,
-                message: "User updated successfully",
-                data: updateUserByIdObj,
-            });
-        }else{
-            return res.status(404).json({
-                success: false,
-                message: "User not found",
-            });
-        }      
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error,
-        });
-    }
-}
+/**
+ * ADMIN: Get user details
+ */
+const adminGetUserById = async (req, res) => {
+  try {
+    const user = await userService.getUserById(req.params.id);
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    res.status(404).json({ success: false, message: error.message });
+  }
+};
 
-//For deleting a user by id(only for the admin to access)
-const deleteUserById = async (req, res) => {
-    try {
-        const deleteUserByIdObj = await userSchema
-        .findByIdAndDelete(req.params.id);
-        if(deleteUserByIdObj){
-            return res.status(200).json({
-                success: true,
-                message: "User deleted successfully",
-                data: deleteUserByIdObj,
-            });
-        }else{
-            return res.status(404).json({
-                success: false,
-                message: "User not found",
-            });
-        }      
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error,
-        });
-    }
-}
+/**
+ * ADMIN: Update account status
+ */
+const adminUpdateStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const user = await userService.updateUserStatus(req.params.id, status);
+    res.status(200).json({
+      success: true,
+      message: 'User status updated successfully',
+      data: { accountStatus: user.accountStatus },
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * ADMIN: Manually verify finder
+ */
+const adminVerifyFinder = async (req, res) => {
+  try {
+    const user = await userService.verifyFinder(req.params.id);
+    res.status(200).json({
+      success: true,
+      message: 'Finder verified successfully',
+      data: { isVerified: user.isVerified },
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 
 module.exports = {
-    createUser,
-    getAllUsers,
-    getUserById,
-    updateUserById,
-    deleteUserById,
-}
+  getMe,
+  updateMe,
+  updateProfileImage,
+  updateLocation,
+  adminGetAllUsers,
+  adminGetUserById,
+  adminUpdateStatus,
+  adminVerifyFinder,
+};

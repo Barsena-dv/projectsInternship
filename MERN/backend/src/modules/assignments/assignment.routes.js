@@ -1,26 +1,30 @@
-const router = require("express").Router();
-const assignmentController = require("./assignment.controller");
-const authMiddleware = require("../../middlewares/auth.middleware");
-const roleMiddleware = require("../../middlewares/role.middleware");
+const express = require('express');
+const assignmentController = require('./assignment.controller');
+const { verifyToken } = require('../../middleware/auth.middleware');
 
-router.post(
-	"/:requestId/accept",
-	authMiddleware,
-	roleMiddleware("finder"),
-	assignmentController.acceptAssignment
-);
+const router = express.Router();
 
-router.patch(
-	"/:id/confirm",
-	authMiddleware,
-	roleMiddleware("owner"),
-	assignmentController.ownerReviewEvidence
-);
+/**
+ * Finder Side: Accept and Manage Tasks
+ */
+router.post('/accept', verifyToken, assignmentController.acceptAssignment);
+router.get('/my', verifyToken, assignmentController.getMyAssignments);
 
-router.post("/assignment/create", assignmentController.createFinderAssignment);
-router.get("/assignments", assignmentController.getAllFinderAssignments);
-router.get("/assignment/:id", assignmentController.getFinderAssignmentById);
-router.put("/assignment/:id", assignmentController.updateFinderAssignmentById);
-router.delete("/assignment/:id", assignmentController.deleteFinderAssignmentById);
+/**
+ * Owner Side: Monitor Request Assignment
+ */
+router.get('/request/:requestId', verifyToken, assignmentController.getAssignmentByRequest);
+router.get('/request/:requestId/applications', verifyToken, assignmentController.getRequestApplications);
+router.post('/request/:requestId/applications/:applicationId/decision', verifyToken, assignmentController.decideApplication);
+
+/**
+ * Owner Side: Confirm item received and complete assignment
+ */
+router.post('/:id/complete', verifyToken, assignmentController.completeAssignmentByOwner);
+
+/**
+ * General: Detail view (Protected access)
+ */
+router.get('/:id', verifyToken, assignmentController.getAssignmentById);
 
 module.exports = router;

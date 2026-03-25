@@ -1,68 +1,110 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+require('dotenv').config();
+
+// Middleware imports
+const { errorHandler } = require('./middleware/error.middleware');
+
+// Routes imports
+const authRoutes = require('./modules/auth/auth.routes');
+const requestRoutes = require('./modules/requests/request.routes');
+const assignmentRoutes = require('./modules/assignments/assignment.routes');
+const trackingRoutes = require('./modules/tracking/tracking.routes');
+const disputeRoutes = require('./modules/disputes/dispute.routes');
+const adminRoutes = require('./modules/admin/admin.routes');
+const refundRoutes = require('./modules/refunds/refund.routes');
+const payoutRoutes = require('./modules/payouts/payout.routes');
+const ratingRoutes = require('./modules/ratings/rating.routes');
+const evidenceRoutes = require('./modules/evidence/evidence.routes');
+const paymentRoutes = require('./modules/payments/payment.routes');
+const chatRoutes = require('./modules/chat/chat.routes');
+const notificationRoutes = require('./modules/notifications/notification.routes');
+const servicePlanRoutes = require('./modules/servicePlans/servicePlan.routes');
+
+// Import security middlewares
+const { globalLimiter, transactionalLimiter } = require('./middleware/rateLimit.middleware');
+const auditLogRoutes = require('./modules/auditLogs/auditLog.routes');
 
 const app = express();
 
-require("dotenv").config();
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:5175',
+  'http://127.0.0.1:5176',
+].filter(Boolean);
 
-// Middleware
-app.use(express.json());
-app.use(cors());
+const corsOptions = {
+  origin(origin, callback) {
+    // Allow non-browser clients/tools and configured frontend origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-// Connect to MongoDB
-const connectDB = require('./utils/db');
-connectDB();
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-// Routes
+// ================= MIDDLEWARE =================
 
-const categoryRoutes = require('./modules/categories/category.routes');
-app.use('/api/categories', categoryRoutes);
+// CORS should run before any middleware that may short-circuit responses
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
-const servicePlanRoutes = require('./modules/servicePlans/servicePlan.routes');
-app.use('/api/servicePlans', servicePlanRoutes);
+// Global rate limiter
+app.use(globalLimiter);
 
-const finderVerificationRoutes = require('./modules/finderVerification/verification.routes');
-app.use('/api/verification', finderVerificationRoutes);
+// Security middleware
+app.use(helmet());
 
-const userRoutes = require('./modules/users/user.routes');
-app.use('/api/users', userRoutes);
+// Body parsers
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-const authRoutes = require('./modules/auth/auth.routes');
-app.use('/api/auth', authRoutes);
+// ================= ROUTES =================
 
-const requestRoutes = require('./modules/requests/request.routes');
-app.use('/api/requests', requestRoutes);
-
-const assignmentRoutes = require('./modules/assignments/assignment.routes');
-app.use('/api/assignments', assignmentRoutes);
-
-const milestoneRoutes = require('./modules/milestones/milestone.routes');
-app.use('/api/milestones', milestoneRoutes);
-
-const evidenceRoutes = require('./modules/evidence/evidence.routes');
-app.use('/api/evidence', evidenceRoutes);
-
-const chatRoutes = require('./modules/chat/chat.routes');
-app.use('/api/chats', chatRoutes);
-
-const paymentRoutes = require('./modules/payments/payment.routes');
-app.use('/api/payments', paymentRoutes);
-
-const payoutRoutes = require('./modules/payouts/payout.routes');
-app.use('/api/payouts', payoutRoutes);
-
-const ratingRoutes = require('./modules/ratings/rating.routes');
-app.use('/api/ratings', ratingRoutes);
-
-const refundRoutes = require('./modules/refunds/refund.routes');
-app.use('/api/refunds', refundRoutes);
-
-const reportRoutes = require("./modules/reports/report.routes");
-app.use('/api/reports', reportRoutes)
-
-
-
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ success: true, message: 'Server is running' });
 });
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/requests', requestRoutes);
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/tracking', trackingRoutes);
+app.use('/api/evidence', evidenceRoutes);
+app.use('/api/disputes', transactionalLimiter, disputeRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/refunds', refundRoutes);
+app.use('/api/payouts', payoutRoutes);
+app.use('/api/ratings', ratingRoutes);
+app.use('/api/payments', transactionalLimiter, paymentRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/plans', servicePlanRoutes);
+app.use('/api/audit-logs', auditLogRoutes);
+
+// ================= 404 Handler =================
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+  });
+});
+
+// ================= Error Handling =================
+
+app.use(errorHandler);
+
+module.exports = app;

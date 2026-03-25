@@ -1,20 +1,58 @@
-const Joi = require("joi");
+/**
+ * Validate registration data
+ */
+const validateRegister = (data) => {
+  const errors = {};
 
-const registerSchema = Joi.object({
-	fullName: Joi.string().trim().required(),
-	email: Joi.string().email().trim().lowercase().required(),
-	phone: Joi.string().trim().required(),
-	password: Joi.string().min(6).required(),
-	role: Joi.string().valid("owner", "finder", "admin").required(),
-	profileImage: Joi.string().allow(null, ""),
-});
+  if (!data.full_name || data.full_name.trim() === '') {
+    errors.full_name = 'Full name is required';
+  }
 
-const loginSchema = Joi.object({
-	email: Joi.string().email().trim().lowercase().required(),
-	password: Joi.string().required(),
-});
+  if (!data.email || data.email.trim() === '') {
+    errors.email = 'Email is required';
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    errors.email = 'Invalid email format';
+  }
+
+  if (!data.password || data.password.length < 6) {
+    errors.password = 'Password must be at least 6 characters';
+  }
+
+  if (!data.phone || data.phone.trim() === '') {
+    errors.phone = 'Phone number is required';
+  }
+
+  if (data.role && !['owner', 'finder', 'both'].includes(data.role)) {
+    errors.role = 'Role must be owner, finder, or both';
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};
+
+/**
+ * Validate login data
+ */
+const validateLogin = (data) => {
+  const errors = {};
+
+  if (!data.email || data.email.trim() === '') {
+    errors.email = 'Email is required';
+  }
+
+  if (!data.password || data.password.trim() === '') {
+    errors.password = 'Password is required';
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};
 
 module.exports = {
-	registerSchema,
-	loginSchema,
+  validateRegister,
+  validateLogin,
 };

@@ -1,0 +1,86 @@
+@import 'tailwindcss';
+
+:root {
+  --pnf-bg: #f7f8fb;
+  --pnf-surface: #ffffff;
+  --pnf-primary: #0b5cff;
+  --pnf-text: #1f2937;
+  --pnf-muted: #6b7280;
+  --pnf-border: #e5e7eb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: radial-gradient(circle at top left, #eef3ff 0%, var(--pnf-bg) 45%, #f3f5fa 100%);
+  color: var(--pnf-text);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.pnf-card {
+  background: var(--pnf-surface);
+  border: 1px solid var(--pnf-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.04);
+}
+
+.pnf-glass-soft {
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px);
+}
+
+.pnf-btn-primary {
+  background: var(--pnf-primary);
+  color: #fff;
+  border: 1px solid var(--pnf-primary);
+}
+
+.pnf-btn-primary:hover {
+  filter: brightness(0.95);
+}
+
+.pnf-btn-outline {
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  background: #fff;
+}
+
+.pnf-input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+  outline: none;
+  background: #fff;
+}
+
+.pnf-input:focus {
+  border-color: var(--pnf-primary);
+  box-shadow: 0 0 0 3px rgba(11, 92, 255, 0.12);
+}
+
+.pnf-page-enter {
+  animation: pnfFadeIn 220ms ease;
+}
+
+@keyframes pnfFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

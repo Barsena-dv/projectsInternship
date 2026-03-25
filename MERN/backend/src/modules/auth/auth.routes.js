@@ -1,9 +1,17 @@
-const router = require("express").Router();
-const authController = require("./auth.controller");
-const validate = require("../../middlewares/validate.middleware");
-const { registerSchema, loginSchema } = require("./auth.validation");
+const express = require('express');
+const authController = require('./auth.controller');
+const { verifyToken } = require('../../middleware/auth.middleware');
+const { authLimiter } = require('../../middleware/rateLimit.middleware');
 
-router.post("/register", validate(registerSchema), authController.register);
-router.post("/login", validate(loginSchema), authController.login);
+const router = express.Router();
+
+// Public routes
+router.post('/register', authLimiter, authController.register);
+router.post('/login', authLimiter, authController.login);
+
+// Private routes
+router.get('/me', verifyToken, authController.getMe);
+router.patch('/update-profile', verifyToken, authController.updateProfile);
+router.patch('/change-password', verifyToken, authController.changePassword);
 
 module.exports = router;

@@ -1,42 +1,42 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const ratingSchema = new mongoose.Schema(
-    {
-        requestId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "LostItemRequest",
-            required: true,
-        },
-        fromUserId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-        toUserId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-        ratingValue: {
-            type: Number,
-            required: true,
-            min: 1,
-            max: 5,
-        },
-        reviewText: {
-            type: String,
-            trim: true,
-        },
+  {
+    request: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LostItemRequest',
+      required: true,
     },
-    {
-        timestamps: true,
-        versionKey: false,
-    }
+    assignment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'FinderAssignment',
+      required: true,
+    },
+    fromUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    toUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    ratingValue: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
+    },
+    reviewText: {
+      type: String,
+      trim: true,
+    },
+  },
+  { timestamps: true, versionKey: false }
 );
 
-// --- Indexes ---
-ratingSchema.index({ requestId: 1 });
-ratingSchema.index({ toUserId: 1 });
-ratingSchema.index({ fromUserId: 1 });
+// Ensure one rating per assignment/request
+ratingSchema.index({ assignment: 1 }, { unique: true });
 
-module.exports = mongoose.model("Rating", ratingSchema);
+module.exports = mongoose.model('Rating', ratingSchema);

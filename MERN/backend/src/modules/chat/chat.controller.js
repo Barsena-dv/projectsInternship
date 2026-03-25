@@ -1,223 +1,74 @@
-const Conversation = require("./conversation.model");
-const Message = require("./message.model");
+const chatService = require('./chat.service');
 
+const getOrCreateConversation = async (req, res) => {
+  try {
+    const { assignmentId } = req.body;
+    const userId = req.user.userId;
 
-
-// CREATE CONVERSATION
-const createConversation = async (req, res) => {
-    try {
-
-        const conversation = await Conversation.create(req.body);
-
-        res.status(201).json({
-            success: true,
-            data: conversation
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-            error:error
-        });
-
+    if (!assignmentId) {
+      return res.status(400).json({ success: false, message: 'Assignment ID is required' });
     }
+
+    const conversation = await chatService.getOrCreateConversationForUser(assignmentId, userId);
+
+    res.status(200).json({ success: true, data: conversation });
+  } catch (error) {
+    const status = String(error.message || '').includes('Unauthorized') ? 403 : 400;
+    res.status(status).json({ success: false, message: error.message });
+  }
 };
 
-
-// GET ALL CONVERSATIONS
-const getAllConversations = async (req, res) => {
-    try {
-
-        const getAllConversationsObj = await Conversation
-            .find()
-            .populate("ownerId", "fullName email")
-            .populate("finderId", "fullName email");
-
-        res.status(200).json({
-            success: true,
-            data: getAllConversationsObj
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-            error:error
-        });
-
-    }
+const listConversations = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const conversations = await chatService.listConversationsForUser(userId);
+    res.status(200).json({ success: true, data: conversations });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
-
-// GET CONVERSATION BY ID
-const getConversationById = async (req, res) => {
-    try {
-
-        const getConversationByIdObj = await Conversation
-            .findById(req.params.id)
-            .populate("ownerId finderId");
-
-        if (getConversationByIdObj) {
-            res.status(200).json({
-                success: true,
-                data: getConversationByIdObj
-            });
-        }else{
-            return res.status(404).json({
-                success: false,
-                message: "Conversation not found"
-            });
-        }
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-            error:error
-        });
-
-    }
-};
-
-
-// DELETE CONVERSATION
-const deleteConversation = async (req, res) => {
-    try {
-
-        const deleteConversationObj = await Conversation.findByIdAndDelete(req.params.id);
-
-        res.status(200).json({
-            success: true,
-            message: "Conversation deleted"
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-            error:error
-        });
-
-    }
-};
-
-
-
-// ===============================
-// MESSAGE CRUD
-// ===============================
-
-
-// SEND MESSAGE
 const sendMessage = async (req, res) => {
-    try {
+  try {
+    const { conversationId } = req.params;
+    const { text, attachment } = req.body;
+    const senderId = req.user.userId;
 
-        const message = await Message.create(req.body);
-
-        res.status(201).json({
-            success: true,
-            data: message
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-            error:error
-        });
-
+    if (!text && !attachment) {
+      return res.status(400).json({ success: false, message: 'Message text or attachment is required' });
     }
+
+    const message = await chatService.sendMessage(conversationId, senderId, text, attachment);
+
+    res.status(201).json({ success: true, data: message });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
 };
 
+const getMessages = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const { page, limit } = req.query;
+    const userId = req.user.userId;
 
-// GET MESSAGES BY CONVERSATION
-const getMessagesByConversation = async (req, res) => {
-    try {
+    const result = await chatService.getMessages(
+      conversationId,
+      userId,
+      parseInt(page) || 1,
+      parseInt(limit) || 50
+    );
 
-        const getMessagesByConversationObj = await Message
-            .find({ conversationId: req.params.conversationId })
-            .populate("senderId", "fullName role")
-            .sort({ sentAt: 1 });
-
-        res.status(200).json({
-            success: true,
-            data: getMessagesByConversationObj
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-            error:error
-        });
-
-    }
-};
-
-
-// UPDATE MESSAGE
-const updateMessage = async (req, res) => {
-    try {
-
-        const updateMessageObj = await Message.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true }
-        );
-
-        res.status(200).json({
-            success: true,
-            data: updateMessageObj
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-            error:error
-        });
-
-    }
-};
-
-
-// DELETE MESSAGE
-const deleteMessage = async (req, res) => {
-    try {
-
-        await Message.findByIdAndDelete(req.params.id);
-
-        res.status(200).json({
-            success: true,
-            message: "Message deleted"
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-            error:error
-        });
-
-    }
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    const status = String(error.message || '').includes('Unauthorized') ? 403 : 500;
+    res.status(status).json({ success: false, message: error.message });
+  }
 };
 
 module.exports = {
-    createConversation,
-    getAllConversations,
-    getConversationById,
-    deleteConversation,
-    sendMessage,
-    getMessagesByConversation,
-    updateMessage,
-    deleteMessage,
-}
+  getOrCreateConversation,
+  listConversations,
+  sendMessage,
+  getMessages,
+};

@@ -1,43 +1,36 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema(
-    {
-        conversationId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Conversation",
-            required: true,
-        },
-        senderId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-        messageType: {
-            type: String,
-            enum: ["text", "image", "file"],
-            default: "text",
-        },
-        content: {
-            type: String,
-            required: true,
-        },
-        isRead: {
-            type: Boolean,
-            default: false,
-        },
-        sentAt: {
-            type: Date,
-            default: Date.now,
-        },
+  {
+    conversation: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Conversation',
+      required: true,
     },
-    {
-        timestamps: true,
-        versionKey: false,
-    }
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    text: {
+      type: String,
+      required: true,
+    },
+    attachment: {
+      url: String,
+      cloudinaryId: String,
+      type: String,
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
+    readAt: Date,
+  },
+  { timestamps: true, versionKey: false }
 );
 
-// --- Indexes ---
-messageSchema.index({ conversationId: 1 });
-messageSchema.index({ senderId: 1 });
+messageSchema.index({ conversation: 1, createdAt: -1 });
+messageSchema.index({ sender: 1 });
 
-module.exports = mongoose.model("Message", messageSchema);
+module.exports = mongoose.model('Message', messageSchema);

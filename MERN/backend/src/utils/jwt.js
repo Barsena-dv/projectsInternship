@@ -1,26 +1,36 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
-const jwtSecret = process.env.JWT_SECRET || "postnfind_demo_secret";
-const tokenExpiry = "170d";
-
-const generateToken = (user) => {
-	return jwt.sign(
-		{
-			id: String(user._id || user.id),
-			role: user.role,
-		},
-		jwtSecret,
-		{
-			expiresIn: tokenExpiry,
-		}
-	);
+/**
+ * Generate JWT token
+ * @param {String} userId - User ID
+ * @param {String} role - User role
+ */
+const generateToken = (userId, role) => {
+  return jwt.sign(
+    {
+      userId,
+      role,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRE || '7d',
+    }
+  );
 };
 
+/**
+ * Verify JWT token
+ * @param {String} token - JWT token
+ */
 const verifyToken = (token) => {
-	return jwt.verify(token, jwtSecret);
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    throw new Error('Invalid token');
+  }
 };
 
 module.exports = {
-	generateToken,
-	verifyToken,
+  generateToken,
+  verifyToken,
 };

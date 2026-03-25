@@ -1,10 +1,10 @@
-const router = require("express").Router();
-const ratingController = require("./rating.controller");
+const express = require('express');
+const ratingController = require('./rating.controller');
+const { verifyToken } = require('../../middleware/auth.middleware');
 
-router.post("/rating", ratingController.createRating);
-router.get("/ratings", ratingController.getAllRatings);
-router.get("/rating/:id", ratingController.getRatingById);
-router.put("/rating/:id", ratingController.updateRating);
-router.delete("/rating/:id", ratingController.deleteRating);
+const router = express.Router();
+
+router.post('/create', verifyToken, ratingController.createRating);
+router.get('/user/:userId', ratingController.getUserRatings);
 
 module.exports = router;

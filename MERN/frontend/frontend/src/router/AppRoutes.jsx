@@ -1,100 +1,90 @@
-import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
-import { Login } from "../components/Login";
-import { Signup } from "../components/Signup";
-import { AdminSidebar } from "../components/admin/AdminSidebar";
-import { UserList } from "../components/admin/UserList";
-import { DashboardLayout } from "../components/layout/DashboardLayout";
-import { FinderAssignmentDetails } from "../pages/finder/FinderAssignmentDetails";
-import { FinderMyAssignments } from "../pages/finder/FinderMyAssignments";
-import { FinderOpenRequests } from "../pages/finder/FinderOpenRequests";
-import { UploadEvidence } from "../pages/finder/UploadEvidence";
-import { OwnerCreateRequest } from "../pages/owner/OwnerCreateRequest";
-import { OwnerEvidenceView } from "../pages/owner/OwnerEvidenceView";
-import { OwnerMyRequests } from "../pages/owner/OwnerMyRequests";
-import { OwnerRequestDetails } from "../pages/owner/OwnerRequestDetails";
+import { Navigate, Route, Routes } from 'react-router-dom';
+import ProtectedRoute from '../components/common/ProtectedRoute';
+import { useAuth } from '../hooks/useAuth';
+import DashboardLayout from '../layouts/DashboardLayout';
 
-const roleHomeRouteMap = {
-    owner: "/owner/my-requests",
-    finder: "/finder/my-assignments",
-    admin: "/admin/users",
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
+
+import NotFoundPage from '../pages/common/NotFoundPage';
+import ChatPage from '../pages/common/ChatPage';
+import NotificationsPage from '../pages/common/NotificationsPage';
+import ProfilePage from '../pages/common/ProfilePage';
+import UnauthorizedPage from '../pages/common/UnauthorizedPage';
+
+import OwnerCreateRequestPage from '../pages/owner/OwnerCreateRequestPage';
+import OwnerDashboardPage from '../pages/owner/OwnerDashboardPage';
+import OwnerRequestDetailsPage from '../pages/owner/OwnerRequestDetailsPage';
+import OwnerRequestsPage from '../pages/owner/OwnerRequestsPage';
+
+import FinderDashboardPage from '../pages/finder/FinderDashboardPage';
+import FinderAvailableRequestsPage from '../pages/finder/FinderAvailableRequestsPage';
+import FinderAssignmentsPage from '../pages/finder/FinderAssignmentsPage';
+import FinderAssignmentDetailsPage from '../pages/finder/FinderAssignmentDetailsPage';
+import FinderRequestDetailsPage from '../pages/finder/FinderRequestDetailsPage';
+
+import { getRoleHomePath } from '../contexts/AuthContext';
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+
+const HomeRedirect = () => {
+	const { isAuthenticated, user } = useAuth();
+	if (!isAuthenticated) return <Navigate to="/login" replace />;
+	return <Navigate to={getRoleHomePath(user?.role)} replace />;
 };
 
-const normalizeRole = (rawRole) => {
-    const normalizedRole = String(rawRole ?? "").toLowerCase();
+const AppRoutes = () => {
+	return (
+		<Routes>
+			<Route path="/" element={<HomeRedirect />} />
+			<Route path="/login" element={<LoginPage />} />
+			<Route path="/register" element={<RegisterPage />} />
+			<Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-    if (normalizedRole === "owner" || normalizedRole === "finder" || normalizedRole === "admin") {
-        return normalizedRole;
-    }
+			<Route element={<ProtectedRoute allowedRoles={['owner', 'finder', 'admin']} />}>
+				<Route element={<DashboardLayout />}>
+					<Route path="/notifications" element={<NotificationsPage />} />
+					<Route path="/profile" element={<ProfilePage />} />
+				</Route>
+			</Route>
 
-    return "";
+			<Route element={<ProtectedRoute allowedRoles={['owner', 'finder']} />}>
+				<Route element={<DashboardLayout />}>
+					<Route path="/chat" element={<ChatPage />} />
+					<Route path="/chat/:assignmentId" element={<ChatPage />} />
+				</Route>
+			</Route>
+
+			<Route element={<ProtectedRoute allowedRoles={['owner']} />}>
+				<Route element={<DashboardLayout />}>
+					<Route path="/owner/dashboard" element={<OwnerDashboardPage />} />
+					<Route path="/owner/create-request" element={<OwnerCreateRequestPage />} />
+					<Route path="/owner/requests" element={<OwnerRequestsPage />} />
+					<Route path="/owner/requests/:id" element={<OwnerRequestDetailsPage />} />
+					<Route path="/owner/*" element={<Navigate to="/owner/dashboard" replace />} />
+				</Route>
+			</Route>
+
+			<Route element={<ProtectedRoute allowedRoles={['finder']} />}>
+				<Route element={<DashboardLayout />}>
+					<Route path="/finder/dashboard" element={<FinderDashboardPage />} />
+					<Route path="/finder/requests" element={<FinderAvailableRequestsPage />} />
+					<Route path="/finder/requests/:id" element={<FinderRequestDetailsPage />} />
+					<Route path="/finder/assignments" element={<FinderAssignmentsPage />} />
+					<Route path="/finder/assignments/:id" element={<FinderAssignmentDetailsPage />} />
+					<Route path="/finder/*" element={<Navigate to="/finder/dashboard" replace />} />
+				</Route>
+			</Route>
+
+			<Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+				<Route element={<DashboardLayout />}>
+					<Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+					<Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
+				</Route>
+			</Route>
+
+			<Route path="*" element={<NotFoundPage />} />
+		</Routes>
+	);
 };
 
-const ProtectedRoute = ({ allowedRoles, children }) => {
-    const token = localStorage.getItem("token");
-    const currentRole = normalizeRole(localStorage.getItem("role"));
-
-    if (!token) {
-        return <Navigate to="/" replace />;
-    }
-
-    if (!allowedRoles.includes(currentRole)) {
-        const fallbackRoute = roleHomeRouteMap[currentRole] ?? "/";
-        return <Navigate to={fallbackRoute} replace />;
-    }
-
-    return children;
-};
-
-const router = createBrowserRouter([
-    { path: "/", element: <Login /> },
-    { path: "/signup", element: <Signup /> },
-    {
-        path: "/owner",
-        element: (
-            <ProtectedRoute allowedRoles={["owner"]}>
-                <DashboardLayout role="owner" />
-            </ProtectedRoute>
-        ),
-        children: [
-            { index: true, element: <Navigate to="my-requests" replace /> },
-            { path: "create-request", element: <OwnerCreateRequest /> },
-            { path: "my-requests", element: <OwnerMyRequests /> },
-            { path: "request/:id", element: <OwnerRequestDetails /> },
-            { path: "my-requests/:requestId/evidence", element: <OwnerEvidenceView /> },
-        ],
-    },
-    {
-        path: "/finder",
-        element: (
-            <ProtectedRoute allowedRoles={["finder"]}>
-                <DashboardLayout role="finder" />
-            </ProtectedRoute>
-        ),
-        children: [
-            { index: true, element: <Navigate to="my-assignments" replace /> },
-            { path: "open-requests", element: <FinderOpenRequests /> },
-            { path: "my-assignments", element: <FinderMyAssignments /> },
-            { path: "assignment/:id", element: <FinderAssignmentDetails /> },
-            { path: "upload-evidence/:assignmentId", element: <UploadEvidence /> },
-        ],
-    },
-    {
-        path: "/admin",
-        element: (
-            <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminSidebar />
-            </ProtectedRoute>
-        ),
-        children: [
-            { index: true, element: <Navigate to="users" replace /> },
-            { path: "users", element: <UserList /> },
-        ],
-    },
-    { path: "*", element: <Navigate to="/" replace /> },
-]);
-
-const AppRoutes = ()=>{
-        return <RouterProvider router={router} />
-}
-
-export default AppRoutes
+export default AppRoutes;

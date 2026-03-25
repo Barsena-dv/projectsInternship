@@ -1,137 +1,46 @@
-const ServicePlan = require("./servicePlan.model");
+const servicePlanService = require('./servicePlan.service');
 
-//For creating the service plan
-const createServicePlan = async (req, res) => {
-    try {
-        const createServicePlanObj = await ServicePlan.create(req.body);
-        if(createServicePlanObj){
-            return res.status(201).json({
-                success: true,
-                message: "Service plan created successfully",
-                data: createServicePlanObj,
-            });
-        }else{
-            return res.status(400).json({
-                success: false,
-                message: "Service plan creation failed",
-            });
-        }      
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error,
-        });
-    }
-}
+/**
+ * Admin: Create a new service plan
+ */
+const createPlan = async (req, res) => {
+  try {
+    const plan = await servicePlanService.createPlan(req.body);
 
-//For fetching all the service plans
-const getAllServicePlans = async (req, res) => {
-    try {
-        const getAllServicePlansObj = await ServicePlan.find();
-        if(getAllServicePlansObj){
-            return res.status(200).json({
-                success: true,
-                message: "Service plans fetched successfully",
-                data: getAllServicePlansObj,
-            });
-        }else{
-            return res.status(404).json({
-                success: false,
-                message: "Service plans not found",
-            });
-        }      
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error,
-        });
-    }
-}
+    res.status(201).json({
+      success: true,
+      message: 'Service plan created successfully',
+      data: plan,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
-//For fetching a service plan by id
-const getServicePlanById = async (req, res) => {
-    try {
-        const getServicePlanByIdObj = await ServicePlan
-        .findById(req.params.id);
-        if(getServicePlanByIdObj){
-            return res.status(200).json({
-                success: true,
-                message: "Service plan fetched successfully",
-                data: getServicePlanByIdObj,
-            });
-        }else{
-            return res.status(404).json({
-                success: false,
-                message: "Service plan not found",
-            });
-        }      
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error,
-        });
-    }
-}
+/**
+ * Get all active service plans
+ */
+const getAllPlans = async (req, res) => {
+  try {
+    const plans = await servicePlanService.getAllPlans();
 
-//For updating a service plan by id
-const updateServicePlanById = async (req, res) => {
-    try {
-        const updateServicePlanByIdObj = await ServicePlan
-        .findByIdAndUpdate(req.params.id, req.body, {new: true});
-        if(updateServicePlanByIdObj){
-            return res.status(200).json({
-                success: true,
-                message: "Service plan updated successfully",
-                data: updateServicePlanByIdObj,
-            });
-        }else{
-            return res.status(404).json({
-                success: false,
-                message: "Service plan not found",
-            });
-        }      
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error,
-        });
-    }
-}
-
-//For deleting a service plan by id
-const deleteServicePlanById = async (req, res) => {
-    try {
-        const deleteServicePlanByIdObj = await ServicePlan
-        .findByIdAndDelete(req.params.id);
-        if(deleteServicePlanByIdObj){
-            return res.status(200).json({
-                success: true,
-                message: "Service plan deleted successfully",
-                data: deleteServicePlanByIdObj,
-            });
-        }else{
-            return res.status(404).json({
-                success: false,
-                message: "Service plan not found",
-            });
-        }      
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error,
-        });
-    }
-}
+    res.status(200).json({
+      success: true,
+      message: 'Service plans retrieved successfully',
+      data: plans,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 module.exports = {
-    createServicePlan,
-    getAllServicePlans,
-    getServicePlanById,
-    updateServicePlanById,
-    deleteServicePlanById,
-}
+  createPlan,
+  getAllPlans,
+};

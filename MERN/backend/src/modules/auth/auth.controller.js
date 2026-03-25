@@ -1,98 +1,93 @@
-const bcrypt = require("bcryptjs");
-const User = require("../users/user.model");
-const { generateToken } = require("../../utils/jwt");
-const sendMail = require('../../utils/mail.utils')
+const authService = require('./auth.service');
 
 const register = async (req, res) => {
-	try {
-		const { email, phone, password } = req.body;
-
-		const existingUser = await User.findOne({
-			$or: [{ email }, { phone }],
-		});
-
-		if (existingUser) {
-			return res.status(409).json({
-				success: false,
-				message: "User with email or phone already exists",
-			});
-		}
-
-		const hashedPassword = await bcrypt.hash(password, 10);
-
-		const createdUser = await User.create({
-			...req.body,
-			password: hashedPassword,
-		});
-
-        await sendMail(
-                    createdUser.email,
-                    "Welcome to PostNFind",
-                    createdUser.fullName,
-                    "Thank you for registering with PostNFind.",
-                    `${process.env.FRONTEND_URI}/`
-                );
-
-		const token = generateToken(createdUser);
-		const userData = createdUser.toObject();
-		delete userData.password;
-
-		return res.status(201).json({
-			success: true,
-			message: "User registered successfully",
-			token,
-			data: userData,
-		});
-	} catch (error) {
-        console.log("Error in registration:", error);
-		return res.status(500).json({
-			success: false,
-			message: "Internal server error",
-			error:error,
-		});
-	}
+  try {
+    const result = await authService.register(req.body);
+    res.status(201).json({
+      success: true,
+      message: 'Registration successful',
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
 };
 
 const login = async (req, res) => {
-	try {
-		const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
+    const result = await authService.login(email, password);
+    const { token, user } = result;
 
-		const foundUser = await User.findOne({ email }).select("+password");;
-		if (!foundUser) {
-			return res.status(401).json({
-				success: false,
-				message: "Invalid email or password",
-			});
-		}
+    // Audit Log
+    const auditLogService = require('../auditLogs/auditLog.service');
+    auditLogService.logAction({
+      userId: user._id,
+      action: 'USER_LOGIN',
+      entityType: 'User',
+      entityId: user._id,
+      details: { email: user.email, role: user.role },
+      ipAddress: req.ip,
+    });
 
-		const isPasswordValid = await bcrypt.compare(password, foundUser.password);
-		if (!isPasswordValid) {
-			return res.status(401).json({
-				success: false,
-				message: "Invalid email or password",
-			});
-		}
+    res.status(200).json({
+      success: true,
+      data: {
+        token,
+        user: {
+          id: user._id,
+          full_name: user.full_name,
+          email: user.email,
+          role: user.role,
+          accountStatus: user.accountStatus,
+          isVerified: user.isVerified,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(401).json({ success: false, message: error.message });
+  }
+};
 
-		const token = generateToken(foundUser);
-		const userData = foundUser.toObject();
-		delete userData.password;
+const getMe = async (req, res) => {
+  try {
+    const user = await authService.getMe(req.user.userId);
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    res.status(404).json({ success: false, message: error.message });
+  }
+};
 
-		return res.status(200).json({
-			success: true,
-			message: "User logged in successfully",
-			token,
-			data: userData,
-		});
-	} catch (error) {
-		return res.status(500).json({
-			success: false,
-			message: "Internal server error",
-			error:error,
-		});
-	}
+const updateProfile = async (req, res) => {
+  try {
+    const user = await authService.updateProfile(req.user.userId, req.body);
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: user,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    await authService.changePassword(req.user.userId, oldPassword, newPassword);
+    res.status(200).json({
+      success: true,
+      message: 'Password changed successfully',
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
 };
 
 module.exports = {
-	register,
-	login,
+  register,
+  login,
+  getMe,
+  updateProfile,
+  changePassword,
 };

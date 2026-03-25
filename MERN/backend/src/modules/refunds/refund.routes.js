@@ -1,19 +1,11 @@
-const router = require("express").Router();
-const refundController = require("./refund.controller");
-const authMiddleware = require("../../middlewares/auth.middleware");
-const roleMiddleware = require("../../middlewares/role.middleware");
+const express = require('express');
+const refundController = require('./refund.controller');
+const { verifyToken } = require('../../middleware/auth.middleware');
+const { checkRole } = require('../../middleware/role.middleware');
 
-router.post(
-	"/",
-	authMiddleware,
-	roleMiddleware("admin", "system"),
-	refundController.processRefund
-);
+const router = express.Router();
 
-router.post("/refund/create", refundController.createRefund);
-router.get("/refunds", refundController.getAllRefunds);
-router.get("/refund/:id", refundController.getRefundById);
-router.put("/refund/:id", refundController.updateRefund);
-router.delete("/refund/:id", refundController.deleteRefund);
+// Admin only (refunds are typically triggered by admin resolution or system expiration)
+router.post('/process/:paymentId', verifyToken, checkRole('admin'), refundController.processRefund);
 
 module.exports = router;

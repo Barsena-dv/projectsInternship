@@ -1,112 +1,67 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const requestSchema = new mongoose.Schema(
-    {
-        ownerId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-        planId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "ServicePlan",
-            required: true,
-        },
-        categoryId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Category",
-            required: true,
-        },
-        assignmentId: {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: "FinderAssignment",
-                        default: null,
-                },
-        itemName: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-        description: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-        brand: {
-            type: String,
-            trim: true,
-        },
-        model: {
-            type: String,
-            trim: true,
-        },
-        color: {
-            type: String,
-            trim: true,
-        },
-        serialNumber: {
-            type: String,
-            trim: true,
-        },
-        uniqueIdentifiers: {
-            type: String,
-            trim: true,
-        },
-        rewardAmount: {
-            type: Number,
-            default: 0,
-        },
-        lastSeenLocation: {
-            type: String,
-            required: true,
-        },
-        location: {
-            type: {
-                type: String,
-                enum: ["Point"],
-                default: "Point",
-            },
-            coordinates: {
-                type: [Number], // [longitude, latitude]
-                required: true,
-            },
-        },
-        lastSeenDatetime: {
-            type: Date,
-            required: true,
-        },
-        serviceDeadline: {
-            type: Date,
-            required: true,
-        },
-        images: {
-            type: [String],
-            default: [],
-        },
-        requestStatus: {
-            type: String,
-            enum: [
-                "draft",
-                "open",
-                "assigned",
-                "found",
-                "completed",
-                "failed",
-            ],
-            default: "draft",
-        },
+const lostItemRequestSchema = new mongoose.Schema(
+  {
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
-    {
-        timestamps: true,
-        versionKey: false,
-    }
+    itemName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    itemCategory: {
+      type: String,
+      required: true,
+    },
+    itemDescription: {
+      type: String,
+      required: true,
+    },
+    brand: String,
+    model: String,
+    color: String,
+    uniqueIdentifiers: String,
+    serialNumber: String,
+    lastSeenLocation: String,
+    lastSeenLat: {
+      type: Number,
+      required: true,
+    },
+    lastSeenLng: {
+      type: Number,
+      required: true,
+    },
+    lastSeenDatetime: Date,
+    serviceDeadline: Date,
+    planId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ServicePlan',
+      required: true,
+    },
+    requestStatus: {
+      type: String,
+      enum: ['pending_payment', 'open', 'assigned', 'found', 'cancelled'],
+      default: 'pending_payment',
+    },
+    itemConfirmed: {
+      type: Boolean,
+      default: false,
+    },
+    confirmationDate: Date,
+    expiryDate: Date,
+    finders: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+  },
+  { timestamps: true, versionKey: false }
 );
 
-// --- Indexes ---
-requestSchema.index({ ownerId: 1 });
-requestSchema.index({ categoryId: 1 });
-requestSchema.index({ assignmentId: 1 });
-requestSchema.index({ requestStatus: 1 });
-requestSchema.index({ location: "2dsphere" });
+lostItemRequestSchema.index({ owner: 1, requestStatus: 1 });
 
-module.exports = mongoose.model("LostItemRequest", requestSchema);
+module.exports = mongoose.model('LostItemRequest', lostItemRequestSchema);

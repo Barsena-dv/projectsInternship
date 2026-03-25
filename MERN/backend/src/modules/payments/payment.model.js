@@ -1,55 +1,54 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const paymentSchema = new mongoose.Schema(
-    {
-        requestId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "LostItemRequest",
-            required: true,
-        },
-        ownerId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-        planId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "ServicePlan",
-            required: true,
-        },
-        amount: {
-            type: Number,
-            required: true,
-        },
-        paymentStatus: {
-            type: String,
-            enum: ["unpaid", "locked", "released", "refunded"],
-            default: "unpaid",
-        },
-        transactionId: {
-            type: String,
-            trim: true,
-            default: null,
-        },
-        gateway: {
-            type: String,
-            trim: true,
-            default: null,
-        },
-        paidAt: {
-            type: Date,
-            default: null,
-        },
+  {
+    request: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LostItemRequest',
+      required: true,
     },
-    {
-        timestamps: true,
-        versionKey: false,
-    }
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    servicePlan: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ServicePlan',
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'locked', 'released', 'refunded'],
+      default: 'pending',
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['credit_card', 'debit_card', 'upi', 'wallet'],
+    },
+    transactionId: String,
+    paidAt: Date,
+    releasedAt: Date,
+    releaseReason: String,
+    refundStatus: {
+      type: String,
+      enum: ['none', 'pending', 'completed'],
+      default: 'none',
+    },
+    refundAmount: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { timestamps: true, versionKey: false }
 );
 
-// --- Indexes ---
-paymentSchema.index({ requestId: 1 });
-paymentSchema.index({ ownerId: 1 });
-paymentSchema.index({ paymentStatus: 1 });
+paymentSchema.index({ owner: 1, paymentStatus: 1 });
+paymentSchema.index({ request: 1 });
 
-module.exports = mongoose.model("Payment", paymentSchema);
+module.exports = mongoose.model('Payment', paymentSchema);

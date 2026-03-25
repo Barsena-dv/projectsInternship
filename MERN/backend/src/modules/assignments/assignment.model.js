@@ -1,58 +1,51 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const assignmentSchema = new mongoose.Schema(
-    {
-        requestId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "LostItemRequest",
-            required: true,
-        },
-        finderId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-        assignedBy: {
-            type: String,
-            enum: ["system", "admin"],
-            required: true,
-        },
-        assignmentStatus: {
-            type: String,
-            enum: ["accepted", "evidence_submitted", "completed", "rejected"],
-            default: "accepted",
-        },
-        assignedAt: {
-            type: Date,
-            default: Date.now,
-        },
-        evidenceSubmitted: {
-            type: Boolean,
-            default: false,
-        },
-        evidenceSubmittedAt: {
-            type: Date,
-            default: null,
-        },
-        ownerConfirmation: {
-            type: String,
-            enum: ["pending", "confirmed", "rejected"],
-            default: "pending",
-        },
-        completedAt: {
-            type: Date,
-            default: null,
-        },
+  {
+    request: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LostItemRequest',
+      required: true,
     },
-    {
-        timestamps: true,
-        versionKey: false,
-    }
+    finder: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'completed', 'cancelled'],
+      default: 'active',
+    },
+    evidenceSubmitted: {
+      type: Boolean,
+      default: false,
+    },
+    evidenceVerified: {
+      type: Boolean,
+      default: false,
+    },
+    chatUnlocked: {
+      type: Boolean,
+      default: false,
+    },
+    unlockTime: {
+      type: Date,
+      default: null,
+    },
+    isDisputed: {
+      type: Boolean,
+      default: false,
+    },
+    assignedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { timestamps: true, versionKey: false }
 );
 
-// --- Indexes ---
-assignmentSchema.index({ finderId: 1 });
-assignmentSchema.index({ requestId: 1 });
-assignmentSchema.index({ assignmentStatus: 1 });
+// Prevent duplicate assignments
+assignmentSchema.index({ request: 1, finder: 1 }, { unique: true });
 
-module.exports = mongoose.model("FinderAssignment", assignmentSchema);
+module.exports = mongoose.model('FinderAssignment', assignmentSchema);
