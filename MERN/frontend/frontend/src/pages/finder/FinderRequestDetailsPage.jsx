@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import EmptyState from '../../components/common/EmptyState';
+import GlassModal from '../../components/common/GlassModal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -16,6 +17,7 @@ const FinderRequestDetailsPage = () => {
   const [existingAssignment, setExistingAssignment] = useState(null);
   const [applying, setApplying] = useState(false);
   const [applicationSent, setApplicationSent] = useState(false);
+  const [applyState, setApplyState] = useState({ open: false, applyReason: '', finderRegion: '' });
 
   const load = useCallback(async () => {
     try {
@@ -25,14 +27,23 @@ const FinderRequestDetailsPage = () => {
         assignmentApi.my().catch(() => ({ data: [] })),
       ]);
 
+      const finderApplicationsRes = await assignmentApi.myApplications().catch(() => ({ data: [] }));
+
       const requestData = requestRes?.data || null;
       const finderAssignments = assignmentsRes?.data || [];
       const matched = finderAssignments.find(
         (row) => String(row?.request?._id || row?.request) === String(requestId)
       ) || null;
 
+      const hasPendingApplication = (finderApplicationsRes.data || []).some(
+        (row) =>
+          String(row?.request?._id || row?.request) === String(requestId)
+          && String(row?.status || '').toLowerCase() === 'pending'
+      );
+
       setRequestItem(requestData);
       setExistingAssignment(matched);
+      setApplicationSent(hasPendingApplication);
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -81,11 +92,28 @@ const FinderRequestDetailsPage = () => {
   const applyForAssignment = async () => {
     try {
       setApplying(true);
-      await assignmentApi.accept(requestId);
+      await assignmentApi.accept(requestId, {
+        applyReason: applyState.applyReason,
+        finderRegion: applyState.finderRegion,
+      });
       setApplicationSent(true);
+      setApplyState({ open: false, applyReason: '', finderRegion: '' });
       toast.success('Application sent. Waiting for owner approval.');
     } catch (error) {
-      toast.error(getErrorMessage(error));
+      const message = getErrorMessage(error);
+      const lower = String(message || '').toLowerCase();
+
+      if (lower.includes('already applied')) {
+        setApplicationSent(true);
+        toast.info('Application already sent. Waiting for owner approval.');
+        return;
+      }
+
+      toast.error(message);
+
+      if (lower.includes('already been assigned') || lower.includes('no longer open')) {
+        await load();
+      }
     } finally {
       setApplying(false);
     }
@@ -141,11 +169,44 @@ const FinderRequestDetailsPage = () => {
           type="button"
           className="pnf-btn-primary mt-4 rounded-lg px-3 py-2 text-sm"
           disabled={actionState.disabled || applying}
-          onClick={applyForAssignment}
+          onClick={() => setApplyState((prev) => ({ ...prev, open: true }))}
         >
           {applying ? 'Applying...' : actionState.label}
         </button>
       </section>
+
+      <GlassModal
+        open={applyState.open}
+        title="Apply For Assignment"
+        subtitle="Add optional region and reason for owner review."
+        onClose={() => setApplyState({ open: false, applyReason: '', finderRegion: '' })}
+        onConfirm={applyForAssignment}
+        confirmText="Submit Application"
+        loading={applying}
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Region</label>
+            <input
+              className="pnf-input"
+              type="text"
+              placeholder="Your working area or city"
+              value={applyState.finderRegion}
+              onChange={(event) => setApplyState((prev) => ({ ...prev, finderRegion: event.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Reason</label>
+            <textarea
+              className="pnf-input"
+              rows={3}
+              placeholder="Why you should be selected"
+              value={applyState.applyReason}
+              onChange={(event) => setApplyState((prev) => ({ ...prev, applyReason: event.target.value }))}
+            />
+          </div>
+        </div>
+      </GlassModal>
     </div>
   );
 };

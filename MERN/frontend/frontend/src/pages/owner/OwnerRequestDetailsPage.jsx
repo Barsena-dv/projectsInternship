@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { FaStar } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import EmptyState from '../../components/common/EmptyState';
@@ -6,7 +7,7 @@ import GlassModal from '../../components/common/GlassModal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
 import RequestDetails from '../../components/owner/RequestDetails';
-import { assignmentApi, evidenceApi, paymentApi, ratingApi, requestApi, trackingApi } from '../../services/api';
+import { assignmentApi, evidenceApi, paymentApi, ratingApi, requestApi } from '../../services/api';
 import { getErrorMessage } from '../../utils/helpers';
 
 const OwnerRequestDetailsPage = () => {
@@ -18,25 +19,37 @@ const OwnerRequestDetailsPage = () => {
   const [payment, setPayment] = useState(null);
   const [evidence, setEvidence] = useState(null);
   const [applications, setApplications] = useState([]);
-  const [trackingUpdates, setTrackingUpdates] = useState([]);
+  const [timelineEvents, setTimelineEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [verifyState, setVerifyState] = useState({ open: false, verified: true, notes: '' });
   const [releaseState, setReleaseState] = useState({ open: false, reason: '' });
+  const [editState, setEditState] = useState({
+    open: false,
+    itemName: '',
+    itemCategory: '',
+    itemDescription: '',
+    lastSeenLocation: '',
+  });
+  const [deleteState, setDeleteState] = useState({ open: false });
   const [applicationDecisionState, setApplicationDecisionState] = useState({
     open: false,
     decision: 'accepted',
     reason: '',
     application: null,
   });
-  const [ratingState, setRatingState] = useState({ open: false, ratingValue: 5, reviewText: '' });
+  const [ratingState, setRatingState] = useState({ open: false, ratingValue: 0, reviewText: '' });
+  const [ratingHover, setRatingHover] = useState(0);
   const [modalLoading, setModalLoading] = useState(false);
 
-  const loadDetails = async () => {
+  const loadDetails = useCallback(async () => {
     try {
       setLoading(true);
       const requestRes = await requestApi.byId(id);
       const requestData = requestRes.data;
       setRequest(requestData);
+
+      const requestTimelineRes = await assignmentApi.requestTimeline(id).catch(() => ({ data: [] }));
+      setTimelineEvents(requestTimelineRes.data || []);
 
       const applicationsRes = await assignmentApi.applicationsByRequest(id).catch(() => ({ data: [] }));
       setApplications(applicationsRes.data || []);
@@ -50,44 +63,31 @@ const OwnerRequestDetailsPage = () => {
       });
       setPayment(selectedPayment || null);
 
-      if (['assigned', 'found', 'completed'].includes(requestData?.requestStatus)) {
-        try {
-          const assignmentRes = await assignmentApi.byRequest(id);
-          const assignmentData = assignmentRes.data || null;
-          setAssignment(assignmentData);
+      try {
+        const assignmentRes = await assignmentApi.byRequest(id);
+        const assignmentData = assignmentRes.data || null;
+        setAssignment(assignmentData);
 
-          if (assignmentData?._id) {
-            const [evidenceRes, trackingRes] = await Promise.all([
-              evidenceApi.byAssignment(assignmentData._id).catch(() => ({ data: null })),
-              trackingApi.byAssignment(assignmentData._id).catch(() => ({ data: [] }))
-            ]);
-
-            setEvidence(evidenceRes.data || null);
-            setTrackingUpdates(trackingRes.data || []);
-          } else {
-            setEvidence(null);
-            setTrackingUpdates([]);
-          }
-        } catch {
-          setAssignment(null);
+        if (assignmentData?._id) {
+          const evidenceRes = await evidenceApi.byAssignment(assignmentData._id).catch(() => ({ data: null }));
+          setEvidence(evidenceRes.data || null);
+        } else {
           setEvidence(null);
-          setTrackingUpdates([]);
         }
-      } else {
+      } catch {
         setAssignment(null);
         setEvidence(null);
-        setTrackingUpdates([]);
       }
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     loadDetails();
-  }, [id]);
+  }, [loadDetails]);
 
   const handleVerifyEvidence = async (verified) => {
     if (!evidence?._id) return;
@@ -98,6 +98,11 @@ const OwnerRequestDetailsPage = () => {
     if (!evidence?._id) return;
     const { verified, notes } = verifyState;
 
+    if (!verified && !String(notes || '').trim()) {
+      toast.error('Please provide a rejection reason.');
+      return;
+    }
+
     try {
       setModalLoading(true);
       await evidenceApi.verify(evidence._id, { verified, notes });
@@ -105,7 +110,23 @@ const OwnerRequestDetailsPage = () => {
       setVerifyState({ open: false, verified: true, notes: '' });
       await loadDetails();
     } catch (error) {
-      toast.error(getErrorMessage(error));
+      const message = getErrorMessage(error);
+      toast.error(message);
+
+      const lower = String(message || '').toLowerCase();
+      if (
+        lower.includes('already assigned')
+        || lower.includes('already been decided')
+        || lower.includes('cannot process applications')
+      ) {
+        setApplicationDecisionState({
+          open: false,
+          application: null,
+          decision: 'accepted',
+          reason: '',
+        });
+        await loadDetails();
+      }
     } finally {
       setModalLoading(false);
     }
@@ -126,6 +147,7 @@ const OwnerRequestDetailsPage = () => {
       toast.success('Payment released successfully. Request completed.');
       setReleaseState({ open: false, reason: '' });
       await loadDetails();
+      setRatingState({ open: true, ratingValue: 0, reviewText: '' });
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -147,9 +169,32 @@ const OwnerRequestDetailsPage = () => {
     });
   };
 
+  const handleRetryExpired = async () => {
+    if (!request?._id) return;
+
+    try {
+      setModalLoading(true);
+      await assignmentApi.retryExpired(request._id);
+      toast.success('Expired assignment reset. Request is open for new finder applications.');
+      await loadDetails();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   const submitApplicationDecision = async () => {
     const target = applicationDecisionState.application;
     if (!target?._id || !request?._id) return;
+
+    if (
+      applicationDecisionState.decision === 'rejected'
+      && !String(applicationDecisionState.reason || '').trim()
+    ) {
+      toast.error('Reject reason is required.');
+      return;
+    }
 
     try {
       setModalLoading(true);
@@ -185,15 +230,79 @@ const OwnerRequestDetailsPage = () => {
       return;
     }
 
-    setRatingState({ open: true, ratingValue: 5, reviewText: '' });
+    setRatingState({ open: true, ratingValue: 0, reviewText: '' });
+  };
+
+  const handleOpenEditRequest = () => {
+    if (!request) return;
+
+    setEditState({
+      open: true,
+      itemName: request.itemName || '',
+      itemCategory: request.itemCategory || '',
+      itemDescription: request.itemDescription || '',
+      lastSeenLocation: request.lastSeenLocation || '',
+    });
+  };
+
+  const submitEditRequest = async () => {
+    if (!request?._id) return;
+    if (!editState.itemName.trim() || !editState.itemCategory.trim() || !editState.itemDescription.trim()) {
+      toast.error('Item name, category, and description are required.');
+      return;
+    }
+
+    try {
+      setModalLoading(true);
+      await requestApi.update(request._id, {
+        itemName: editState.itemName.trim(),
+        itemCategory: editState.itemCategory.trim(),
+        itemDescription: editState.itemDescription.trim(),
+        lastSeenLocation: editState.lastSeenLocation.trim(),
+      });
+      toast.success('Request updated successfully.');
+      setEditState({ open: false, itemName: '', itemCategory: '', itemDescription: '', lastSeenLocation: '' });
+      await loadDetails();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleOpenDeleteDraft = () => {
+    setDeleteState({ open: true });
+  };
+
+  const submitDeleteDraft = async () => {
+    if (!request?._id) return;
+
+    try {
+      setModalLoading(true);
+      await requestApi.remove(request._id);
+      toast.success('Draft request deleted successfully.');
+      navigate('/owner/requests');
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   const submitRating = async () => {
     if (!assignment?._id) return;
 
     const ratingValue = Number(ratingState.ratingValue);
+
+    // Optional rating: user can skip by leaving stars unselected.
+    if (!ratingValue) {
+      setRatingState({ open: false, ratingValue: 0, reviewText: '' });
+      toast.info('Rating skipped. You can rate later from ratings page.');
+      return;
+    }
+
     if (Number.isNaN(ratingValue) || ratingValue < 1 || ratingValue > 5) {
-      toast.error('Rating must be between 1 and 5.');
+      toast.error('Please select between 1 and 5 stars.');
       return;
     }
 
@@ -201,13 +310,18 @@ const OwnerRequestDetailsPage = () => {
       setModalLoading(true);
       await ratingApi.create({ assignmentId: assignment._id, ratingValue, reviewText: ratingState.reviewText });
       toast.success('Rating submitted successfully.');
-      setRatingState({ open: false, ratingValue: 5, reviewText: '' });
+      setRatingState({ open: false, ratingValue: 0, reviewText: '' });
       navigate('/owner/ratings');
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
       setModalLoading(false);
     }
+  };
+
+  const skipRating = () => {
+    setRatingState({ open: false, ratingValue: 0, reviewText: '' });
+    toast.info('Rating skipped. You can add it later.');
   };
 
   if (loading) return <LoadingSpinner text="Loading request details..." />;
@@ -225,13 +339,16 @@ const OwnerRequestDetailsPage = () => {
         applications={applications}
         payment={payment}
         evidence={evidence}
-        trackingUpdates={trackingUpdates}
+        timelineEvents={timelineEvents}
         onPaymentSuccess={loadDetails}
         onVerifyEvidence={handleVerifyEvidence}
         onReleasePayment={handleReleasePayment}
         onApplicationDecision={handleApplicationDecision}
+        onRetryExpired={handleRetryExpired}
         onOpenChat={handleOpenChat}
         onRateFinder={handleRateFinder}
+        onEditRequest={handleOpenEditRequest}
+        onDeleteRequest={handleOpenDeleteDraft}
       />
 
       <GlassModal
@@ -301,25 +418,105 @@ const OwnerRequestDetailsPage = () => {
       </GlassModal>
 
       <GlassModal
-        open={ratingState.open}
-        title="Rate Finder"
-        subtitle="Share your experience for this completed request."
-        onClose={() => setRatingState({ open: false, ratingValue: 5, reviewText: '' })}
-        onConfirm={submitRating}
-        confirmText="Submit Rating"
+        open={editState.open}
+        title="Edit Request"
+        subtitle="You can edit request details before assignment."
+        onClose={() => setEditState({ open: false, itemName: '', itemCategory: '', itemDescription: '', lastSeenLocation: '' })}
+        onConfirm={submitEditRequest}
+        confirmText="Save Changes"
         loading={modalLoading}
       >
         <div className="space-y-3">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Rating (1-5)</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Item Name</label>
             <input
               className="pnf-input"
-              type="number"
-              min="1"
-              max="5"
-              value={ratingState.ratingValue}
-              onChange={(e) => setRatingState((prev) => ({ ...prev, ratingValue: e.target.value }))}
+              type="text"
+              value={editState.itemName}
+              onChange={(e) => setEditState((prev) => ({ ...prev, itemName: e.target.value }))}
             />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Category</label>
+            <input
+              className="pnf-input"
+              type="text"
+              value={editState.itemCategory}
+              onChange={(e) => setEditState((prev) => ({ ...prev, itemCategory: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Description</label>
+            <textarea
+              className="pnf-input"
+              rows={3}
+              value={editState.itemDescription}
+              onChange={(e) => setEditState((prev) => ({ ...prev, itemDescription: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Last Seen Location</label>
+            <input
+              className="pnf-input"
+              type="text"
+              value={editState.lastSeenLocation}
+              onChange={(e) => setEditState((prev) => ({ ...prev, lastSeenLocation: e.target.value }))}
+            />
+          </div>
+        </div>
+      </GlassModal>
+
+      <GlassModal
+        open={deleteState.open}
+        title="Delete Draft Request"
+        subtitle="This will cancel the request. Use this only for unpaid drafts."
+        onClose={() => setDeleteState({ open: false })}
+        onConfirm={submitDeleteDraft}
+        confirmText="Delete Draft"
+        confirmClassName="rounded-lg border border-rose-600 bg-rose-600 text-white"
+        loading={modalLoading}
+      >
+        <p className="text-sm text-slate-700">
+          Are you sure you want to delete <span className="font-semibold">{request?.itemName || 'this request'}</span>?
+        </p>
+      </GlassModal>
+
+      <GlassModal
+        open={ratingState.open}
+        title="Rate Finder"
+        subtitle="Optional: select stars like modern apps, or skip for now."
+        onClose={skipRating}
+        onConfirm={submitRating}
+        confirmText={Number(ratingState.ratingValue) > 0 ? 'Submit Rating' : 'Continue Without Rating'}
+        cancelText="Skip"
+        loading={modalLoading}
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Your Rating</label>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((starValue) => {
+                const activeValue = ratingHover || Number(ratingState.ratingValue) || 0;
+                const active = starValue <= activeValue;
+
+                return (
+                  <button
+                    key={starValue}
+                    type="button"
+                    className="rounded p-1 transition hover:scale-110"
+                    onMouseEnter={() => setRatingHover(starValue)}
+                    onMouseLeave={() => setRatingHover(0)}
+                    onClick={() => setRatingState((prev) => ({ ...prev, ratingValue: starValue }))}
+                    aria-label={`Rate ${starValue} star`}
+                  >
+                    <FaStar className={active ? 'text-amber-400' : 'text-slate-300'} size={24} />
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              {Number(ratingState.ratingValue) > 0 ? `${ratingState.ratingValue} star selected` : 'No rating selected'}
+            </p>
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Review</label>

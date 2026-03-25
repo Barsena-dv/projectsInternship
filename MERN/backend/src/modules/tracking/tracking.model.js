@@ -14,16 +14,31 @@ const trackingUpdateSchema = new mongoose.Schema(
     },
     statusUpdate: {
       type: String,
-      enum: ['searching', 'near_location', 'item_found', 'search_failed'],
+      enum: ['progress', 'location_ping', 'manual_note', 'skip'],
       required: true,
+    },
+    mode: {
+      type: String,
+      enum: ['auto', 'prompt', 'manual'],
+      default: 'manual',
+    },
+    locationSource: {
+      type: String,
+      enum: ['current', 'manual_text', 'skipped', 'none'],
+      default: 'none',
+    },
+    locationName: {
+      type: String,
+      trim: true,
+      default: '',
     },
     currentLat: {
       type: Number,
-      required: true,
+      default: null,
     },
     currentLng: {
       type: Number,
-      required: true,
+      default: null,
     },
     remarks: String,
     createdAt: {

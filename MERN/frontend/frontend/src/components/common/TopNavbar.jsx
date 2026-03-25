@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { notificationApi } from '../../services/api';
 import { formatDate } from '../../utils/helpers';
+import { resolveNotificationTarget } from '../../utils/notificationRouting';
 
 const TopNavbar = () => {
   const navigate = useNavigate();
@@ -58,13 +59,6 @@ const TopNavbar = () => {
     } catch {
       // no-op
     }
-  };
-
-  const getNotificationTarget = (item) => {
-    const requestId = item?.requestId || item?.data?.requestId;
-    if (requestId) return `/owner/requests/${requestId}`;
-    if (item?.assignmentId || item?.data?.assignmentId) return '/owner/evidence-verification';
-    return '/notifications';
   };
 
   return (
@@ -124,7 +118,7 @@ const TopNavbar = () => {
                         onClick={() => {
                           markRead(item._id);
                           setOpen(false);
-                          navigate(getNotificationTarget(item));
+                          navigate(resolveNotificationTarget(item, user?.role));
                         }}
                       >
                         <p className="text-xs font-semibold text-slate-800">{item.title}</p>

@@ -14,7 +14,7 @@ const assignmentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'completed', 'cancelled'],
+      enum: ['active', 'inactive', 'expired', 'completed', 'cancelled', 'paused'],
       default: 'active',
     },
     evidenceSubmitted: {
@@ -40,6 +40,22 @@ const assignmentSchema = new mongoose.Schema(
     assignedAt: {
       type: Date,
       default: Date.now,
+    },
+    deadlineAt: {
+      type: Date,
+      default: null,
+    },
+    lastActivityAt: {
+      type: Date,
+      default: Date.now,
+    },
+    inactivityMarkedAt: {
+      type: Date,
+      default: null,
+    },
+    pausedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true, versionKey: false }

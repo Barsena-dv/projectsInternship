@@ -4,16 +4,21 @@ export const normalizeStatus = (value, fallback = 'unknown') => String(value || 
 
 export const deriveOwnerLifecycleState = ({ request, payment, assignment, evidence }) => {
   const requestStatus = normalizeStatus(request?.requestStatus);
+  const assignmentStatus = normalizeStatus(assignment?.status, 'none');
   const paymentStatus = normalizeStatus(payment?.paymentStatus, 'none');
   const evidenceStatus = normalizeStatus(evidence?.verificationStatus, 'none');
 
-  if (requestStatus === 'completed' || requestStatus === 'found' || paymentStatus === 'released' || assignment?.status === 'completed') {
+  if (requestStatus === 'completed' || requestStatus === 'found' || paymentStatus === 'released' || assignmentStatus === 'completed') {
     return 'completed';
   }
 
+  if (assignmentStatus === 'expired') return 'expired';
+  if (assignmentStatus === 'inactive') return 'inactive';
+  if (evidenceStatus === 'verified') return 'verified';
+  if (Boolean(assignment?.evidenceSubmitted) || evidenceStatus === 'pending') return 'evidence_submitted';
+  if (assignmentStatus === 'active') return 'assigned';
+
   if (requestStatus === 'assigned') {
-    if (evidenceStatus === 'verified') return 'verified';
-    if (Boolean(assignment?.evidenceSubmitted) || evidenceStatus === 'pending') return 'evidence_submitted';
     return 'assigned';
   }
 
@@ -44,6 +49,10 @@ export const getLifecycleLabel = (state) => {
       return 'Evidence Submitted';
     case 'verified':
       return 'Verified';
+    case 'inactive':
+      return 'Inactive';
+    case 'expired':
+      return 'Expired';
     case 'completed':
       return 'Completed';
     default:
@@ -65,6 +74,10 @@ export const getLifecycleTone = (state) => {
       return 'bg-violet-100 text-violet-800';
     case 'verified':
       return 'bg-emerald-100 text-emerald-800';
+    case 'inactive':
+      return 'bg-amber-100 text-amber-800';
+    case 'expired':
+      return 'bg-rose-100 text-rose-800';
     case 'completed':
       return 'bg-green-100 text-green-800';
     default:

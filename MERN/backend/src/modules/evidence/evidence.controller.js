@@ -84,9 +84,9 @@ const getEvidence = async (req, res) => {
     const evidence = await evidenceService.getEvidenceByAssignment(assignmentId, userId);
 
     if (!evidence) {
-      return res.status(404).json({
-        success: false,
-        message: 'No evidence found for this assignment',
+      return res.status(200).json({
+        success: true,
+        data: null,
       });
     }
 

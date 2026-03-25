@@ -43,7 +43,7 @@ const lostItemRequestSchema = new mongoose.Schema(
     },
     requestStatus: {
       type: String,
-      enum: ['pending_payment', 'open', 'assigned', 'found', 'cancelled'],
+      enum: ['pending_payment', 'open', 'assigned', 'found', 'completed', 'cancelled'],
       default: 'pending_payment',
     },
     itemConfirmed: {
@@ -58,6 +58,10 @@ const lostItemRequestSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    deadlineHours: {
+      type: Number,
+      default: 4,
+    },
   },
   { timestamps: true, versionKey: false }
 );

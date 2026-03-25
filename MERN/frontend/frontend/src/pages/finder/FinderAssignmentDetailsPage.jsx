@@ -11,6 +11,13 @@ import { deriveFinderLifecycleState, getFinderLifecycleMessage, isDeadlineMissed
 import { formatDate, getErrorMessage } from '../../utils/helpers';
 
 const TWO_MINUTES_SECONDS = 120;
+const AUTO_TRACKING_INTERVAL_MS = 15 * 60 * 1000;
+
+const LOCATION_MODES = {
+  CURRENT: 'current',
+  MANUAL: 'manual_text',
+  SKIP: 'skipped',
+};
 
 const formatDuration = (remainingMs) => {
   if (remainingMs <= 0) return 'Deadline passed';
@@ -80,6 +87,23 @@ const validateEvidenceFiles = async (fileList) => {
   return { valid: true, message: '' };
 };
 
+const getEvidenceFileUrl = (file) => file?.url || file?.secure_url || file?.fileUrl || file?.path || '';
+
+const mergeEvidenceFiles = (existingFiles, incomingFiles) => {
+  const merged = [...existingFiles];
+  const seen = new Set(existingFiles.map((file) => `${file.name}-${file.size}-${file.lastModified}`));
+
+  incomingFiles.forEach((file) => {
+    const key = `${file.name}-${file.size}-${file.lastModified}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(file);
+    }
+  });
+
+  return merged;
+};
+
 const FinderAssignmentDetailsPage = () => {
   const { id: assignmentId } = useParams();
 
@@ -90,16 +114,14 @@ const FinderAssignmentDetailsPage = () => {
   const [payout, setPayout] = useState(null);
 
   const [trackingForm, setTrackingForm] = useState({
-    remarks: '',
-    currentLat: '',
-    currentLng: '',
+    message: '',
+    locationSource: LOCATION_MODES.CURRENT,
+    locationName: '',
   });
   const [postingUpdate, setPostingUpdate] = useState(false);
 
   const [evidenceForm, setEvidenceForm] = useState({
     description: '',
-    lat: '',
-    lng: '',
     files: [],
   });
   const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
@@ -107,6 +129,33 @@ const FinderAssignmentDetailsPage = () => {
   const [submittingEvidence, setSubmittingEvidence] = useState(false);
   const [autoTrackingEnabled, setAutoTrackingEnabled] = useState(false);
   const [remainingMs, setRemainingMs] = useState(0);
+  const [pauseLoading, setPauseLoading] = useState(false);
+
+  const selectedEvidencePreviews = useMemo(
+    () => (evidenceForm.files || []).map((file) => ({
+      key: `${file.name}-${file.size}-${file.lastModified}`,
+      type: String(file.type || ''),
+      url: URL.createObjectURL(file),
+      name: file.name,
+    })),
+    [evidenceForm.files]
+  );
+
+  useEffect(() => () => {
+    selectedEvidencePreviews.forEach((item) => URL.revokeObjectURL(item.url));
+  }, [selectedEvidencePreviews]);
+
+  const uploadedEvidenceFiles = useMemo(() => {
+    if (!Array.isArray(evidence?.files)) return [];
+    return evidence.files
+      .map((file, index) => ({
+        key: file?.cloudinaryId || `${getEvidenceFileUrl(file)}-${index}`,
+        type: String(file?.fileType || ''),
+        url: getEvidenceFileUrl(file),
+        name: file?.originalName || file?.name || `Evidence ${index + 1}`,
+      }))
+      .filter((file) => Boolean(file.url));
+  }, [evidence]);
 
   const loadAssignment = useCallback(async () => {
     const assignmentRes = await assignmentApi.byId(assignmentId);
@@ -114,7 +163,7 @@ const FinderAssignmentDetailsPage = () => {
   }, [assignmentId]);
 
   const loadTimeline = useCallback(async () => {
-    const timelineRes = await trackingApi.timeline(assignmentId).catch(() => ({ data: [] }));
+    const timelineRes = await assignmentApi.timeline(assignmentId).catch(() => ({ data: [] }));
     return timelineRes?.data || [];
   }, [assignmentId]);
 
@@ -165,16 +214,17 @@ const FinderAssignmentDetailsPage = () => {
     [assignment, evidence]
   );
 
-  const deadlineValue = assignment?.request?.serviceDeadline;
+  const deadlineValue = assignment?.deadlineAt || assignment?.request?.serviceDeadline;
   const deadlineMissed = isDeadlineMissed(deadlineValue);
-  const canAddTracking = lifecycleState !== 'completed' && lifecycleState !== 'cancelled' && lifecycleState !== 'failed';
+  const canAddTracking = lifecycleState !== 'completed' && lifecycleState !== 'cancelled' && lifecycleState !== 'expired';
 
   const evidenceStatus = String(evidence?.verificationStatus || '').toLowerCase();
-  const canUploadEvidence = canAddTracking && (!evidence || evidenceStatus === 'rejected');
+  const canUploadEvidence = canAddTracking && !deadlineMissed && (!evidence || evidenceStatus === 'rejected');
   const evidencePending = evidenceStatus === 'pending';
   const evidenceVerified = lifecycleState === 'verified' || evidenceStatus === 'verified' || Boolean(assignment?.evidenceVerified);
 
-  const chatEnabled = (evidenceVerified || Boolean(assignment?.chatUnlocked) || lifecycleState === 'completed') && lifecycleState !== 'failed';
+  const chatEnabled = (evidenceVerified || Boolean(assignment?.chatUnlocked) || lifecycleState === 'completed') && lifecycleState !== 'expired';
+  const assignmentPaused = String(assignment?.status || '').toLowerCase() === 'paused';
 
   useEffect(() => {
     if (!deadlineValue) {
@@ -210,7 +260,9 @@ const FinderAssignmentDetailsPage = () => {
           try {
             await trackingApi.create({
               assignmentId,
-              statusUpdate: 'near_location',
+              statusUpdate: 'location_ping',
+              mode: 'auto',
+              locationSource: 'current',
               remarks: 'Auto location ping',
               currentLat: position.coords.latitude,
               currentLng: position.coords.longitude,
@@ -228,7 +280,7 @@ const FinderAssignmentDetailsPage = () => {
           maximumAge: 90 * 1000,
         }
       );
-    }, 90 * 1000);
+    }, AUTO_TRACKING_INTERVAL_MS);
 
     return () => clearInterval(timer);
   }, [assignmentId, autoTrackingEnabled, canAddTracking]);
@@ -236,23 +288,54 @@ const FinderAssignmentDetailsPage = () => {
   const submitTrackingUpdate = async (event) => {
     event.preventDefault();
 
-    if (!trackingForm.remarks.trim()) {
+    if (!trackingForm.message.trim()) {
       toast.error('Message is required');
       return;
     }
 
     try {
       setPostingUpdate(true);
-      await trackingApi.create({
+      const payload = {
         assignmentId,
-        statusUpdate: 'searching',
-        remarks: trackingForm.remarks.trim(),
-        currentLat: Number(trackingForm.currentLat || 0),
-        currentLng: Number(trackingForm.currentLng || 0),
-      });
+        mode: 'prompt',
+        remarks: trackingForm.message.trim(),
+        locationSource: trackingForm.locationSource,
+        statusUpdate: 'progress',
+      };
+
+      if (trackingForm.locationSource === LOCATION_MODES.CURRENT && navigator.geolocation) {
+        const coords = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (position) => resolve(position.coords),
+            () => reject(new Error('Unable to fetch current location. Use manual entry or skip.')),
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 2 * 60 * 1000 }
+          );
+        });
+
+        payload.currentLat = Number(coords.latitude);
+        payload.currentLng = Number(coords.longitude);
+        payload.statusUpdate = 'location_ping';
+      }
+
+      if (trackingForm.locationSource === LOCATION_MODES.MANUAL) {
+        if (!trackingForm.locationName.trim()) {
+          toast.error('Please enter location text.');
+          setPostingUpdate(false);
+          return;
+        }
+
+        payload.locationName = trackingForm.locationName.trim();
+        payload.statusUpdate = 'manual_note';
+      }
+
+      if (trackingForm.locationSource === LOCATION_MODES.SKIP) {
+        payload.statusUpdate = 'skip';
+      }
+
+      await trackingApi.create(payload);
 
       toast.success('Tracking update added');
-      setTrackingForm({ remarks: '', currentLat: '', currentLng: '' });
+      setTrackingForm({ message: '', locationSource: LOCATION_MODES.CURRENT, locationName: '' });
       const timelineData = await loadTimeline();
       setTimeline(timelineData);
     } catch (error) {
@@ -287,23 +370,91 @@ const FinderAssignmentDetailsPage = () => {
 
       const formData = new FormData();
       formData.append('description', evidenceForm.description);
-      formData.append('lat', evidenceForm.lat || '0');
-      formData.append('lng', evidenceForm.lng || '0');
       Array.from(evidenceForm.files).forEach((file) => formData.append('files', file));
 
       await evidenceApi.upload(assignmentId, formData);
       toast.success('Evidence submitted');
-      setEvidenceForm({ description: '', lat: '', lng: '', files: [] });
+      setEvidenceForm({ description: '', files: [] });
       setEvidenceValidationError('');
       setEvidenceModalOpen(false);
 
-      const [assignmentData, evidenceData] = await Promise.all([loadAssignment(), loadEvidence()]);
+      const [assignmentData, evidenceData, timelineData] = await Promise.all([loadAssignment(), loadEvidence(), loadTimeline()]);
       setAssignment(assignmentData);
       setEvidence(evidenceData);
+      setTimeline(timelineData);
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
       setSubmittingEvidence(false);
+    }
+  };
+
+  const handlePauseAssignment = async () => {
+    if (!assignmentId) return;
+
+    try {
+      setPauseLoading(true);
+      await assignmentApi.pause(assignmentId);
+      toast.success('Assignment paused. Resume within 15 minutes for full deadline extension.');
+      const assignmentData = await loadAssignment();
+      setAssignment(assignmentData);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setPauseLoading(false);
+    }
+  };
+
+  const addEvidenceFiles = async (fileList) => {
+    const incoming = Array.from(fileList || []);
+    if (incoming.length === 0) return;
+
+    const mergedFiles = mergeEvidenceFiles(evidenceForm.files || [], incoming);
+
+    try {
+      const validation = await validateEvidenceFiles(mergedFiles);
+      if (!validation.valid) {
+        setEvidenceValidationError(validation.message);
+        toast.error(validation.message);
+        return;
+      }
+
+      setEvidenceValidationError('');
+      setEvidenceForm((prev) => ({ ...prev, files: mergedFiles }));
+    } catch {
+      setEvidenceValidationError('Unable to validate selected files.');
+    }
+  };
+
+  const removeEvidenceFile = async (fileKey) => {
+    const nextFiles = (evidenceForm.files || []).filter(
+      (file) => `${file.name}-${file.size}-${file.lastModified}` !== fileKey
+    );
+
+    if (nextFiles.length === 0) {
+      setEvidenceValidationError('');
+      setEvidenceForm((prev) => ({ ...prev, files: [] }));
+      return;
+    }
+
+    const validation = await validateEvidenceFiles(nextFiles);
+    setEvidenceValidationError(validation.valid ? '' : validation.message);
+    setEvidenceForm((prev) => ({ ...prev, files: nextFiles }));
+  };
+
+  const handleResumeAssignment = async () => {
+    if (!assignmentId) return;
+
+    try {
+      setPauseLoading(true);
+      await assignmentApi.resume(assignmentId);
+      toast.success('Assignment resumed.');
+      const assignmentData = await loadAssignment();
+      setAssignment(assignmentData);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setPauseLoading(false);
     }
   };
 
@@ -323,7 +474,7 @@ const FinderAssignmentDetailsPage = () => {
         actions={(
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge value={lifecycleState} />
-            {deadlineValue ? <StatusBadge value={deadlineMissed ? 'failed' : 'deadline_active'} /> : null}
+            {deadlineValue ? <StatusBadge value={deadlineMissed ? 'expired' : 'deadline_active'} /> : null}
           </div>
         )}
       />
@@ -347,14 +498,44 @@ const FinderAssignmentDetailsPage = () => {
 
         {deadlineMissed ? (
           <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-            Deadline passed. Assignment is marked as failed and further actions are disabled.
+            Deadline passed. Assignment is marked as expired and further actions are disabled.
           </p>
+        ) : null}
+
+        {assignmentPaused ? (
+          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+            Assignment is paused. Resume to continue tracking and evidence upload.
+          </p>
+        ) : null}
+
+        {!deadlineMissed && lifecycleState !== 'completed' && lifecycleState !== 'expired' ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {!assignmentPaused ? (
+              <button
+                type="button"
+                className="pnf-btn-outline rounded-lg px-3 py-2 text-sm"
+                onClick={handlePauseAssignment}
+                disabled={pauseLoading}
+              >
+                {pauseLoading ? 'Please wait...' : 'Pause (max 15 min)'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="pnf-btn-primary rounded-lg px-3 py-2 text-sm"
+                onClick={handleResumeAssignment}
+                disabled={pauseLoading}
+              >
+                {pauseLoading ? 'Please wait...' : 'Resume Assignment'}
+              </button>
+            )}
+          </div>
         ) : null}
       </section>
 
       <section className="pnf-card mt-4 p-5">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-slate-900">Tracking Timeline</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Assignment Timeline</h2>
           <button
             type="button"
             className="pnf-btn-outline rounded-lg px-3 py-2 text-sm"
@@ -385,15 +566,14 @@ const FinderAssignmentDetailsPage = () => {
             {timeline.map((entry) => (
               <article key={entry._id} className="rounded-xl border border-slate-200 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <StatusBadge value={entry.statusUpdate || 'searching'} />
+                  <StatusBadge value={entry.action || 'timeline_event'} />
                   <p className="text-xs text-slate-500">{formatDate(entry.createdAt)}</p>
                 </div>
-                <p className="mt-2 text-sm text-slate-700">{entry.remarks || 'No message'}</p>
-                {(Number(entry.currentLat) || Number(entry.currentLng)) ? (
-                  <p className="mt-1 text-xs text-slate-500">
-                    Location: {Number(entry.currentLat || 0).toFixed(4)}, {Number(entry.currentLng || 0).toFixed(4)}
-                  </p>
-                ) : null}
+                <p className="mt-2 text-sm text-slate-700">
+                  {(entry?.actor?.user?.full_name || entry?.actor?.label || 'System')} performed {String(entry.action || '').toLowerCase().replaceAll('_', ' ')}
+                </p>
+                {entry?.details?.remarks ? <p className="mt-1 text-sm text-slate-600">{entry.details.remarks}</p> : null}
+                {entry?.details?.locationName ? <p className="mt-1 text-xs text-slate-500">Location: {entry.details.locationName}</p> : null}
               </article>
             ))}
           </div>
@@ -407,29 +587,37 @@ const FinderAssignmentDetailsPage = () => {
             className="pnf-input md:col-span-2"
             rows={3}
             placeholder="Message"
-            value={trackingForm.remarks}
-            onChange={(event) => setTrackingForm((prev) => ({ ...prev, remarks: event.target.value }))}
+            value={trackingForm.message}
+            onChange={(event) => setTrackingForm((prev) => ({ ...prev, message: event.target.value }))}
             disabled={!canAddTracking || postingUpdate}
             required
           />
-          <input
+          <select
             className="pnf-input"
-            type="number"
-            step="any"
-            placeholder="Optional latitude"
-            value={trackingForm.currentLat}
-            onChange={(event) => setTrackingForm((prev) => ({ ...prev, currentLat: event.target.value }))}
+            value={trackingForm.locationSource}
+            onChange={(event) => setTrackingForm((prev) => ({ ...prev, locationSource: event.target.value }))}
             disabled={!canAddTracking || postingUpdate}
-          />
-          <input
-            className="pnf-input"
-            type="number"
-            step="any"
-            placeholder="Optional longitude"
-            value={trackingForm.currentLng}
-            onChange={(event) => setTrackingForm((prev) => ({ ...prev, currentLng: event.target.value }))}
-            disabled={!canAddTracking || postingUpdate}
-          />
+          >
+            <option value={LOCATION_MODES.CURRENT}>Use current location</option>
+            <option value={LOCATION_MODES.MANUAL}>Enter location manually</option>
+            <option value={LOCATION_MODES.SKIP}>Skip location</option>
+          </select>
+          {trackingForm.locationSource === LOCATION_MODES.MANUAL ? (
+            <input
+              className="pnf-input"
+              type="text"
+              placeholder="Enter location text"
+              value={trackingForm.locationName}
+              onChange={(event) => setTrackingForm((prev) => ({ ...prev, locationName: event.target.value }))}
+              disabled={!canAddTracking || postingUpdate}
+            />
+          ) : (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              {trackingForm.locationSource === LOCATION_MODES.CURRENT
+                ? 'Location will be auto-captured when you submit.'
+                : 'This update will be posted without location.'}
+            </div>
+          )}
           <button
             className="pnf-btn-primary rounded-lg px-3 py-2 text-sm md:col-span-2"
             type="submit"
@@ -466,6 +654,30 @@ const FinderAssignmentDetailsPage = () => {
             Evidence verified
           </p>
         ) : null}
+
+        {uploadedEvidenceFiles.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            <p className="text-sm font-medium text-slate-700">Uploaded Evidence Preview</p>
+            <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
+              {uploadedEvidenceFiles.map((file) => (
+                <article key={file.key} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                  {file.type.toLowerCase() === 'video' ? (
+                    <video className="h-40 w-full bg-slate-100 object-cover" controls src={file.url}>
+                      <track kind="captions" />
+                    </video>
+                  ) : (
+                    <a href={file.url} target="_blank" rel="noreferrer" className="block">
+                      <img className="h-40 w-full bg-slate-100 object-cover" src={file.url} alt={file.name} loading="lazy" />
+                    </a>
+                  )}
+                  <p className="truncate px-2 py-1 text-xs text-slate-600">{file.name}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="mt-3 text-sm text-slate-600">No evidence uploaded yet.</p>
+        )}
       </section>
 
       <section className="pnf-card mt-4 p-5">
@@ -535,43 +747,46 @@ const FinderAssignmentDetailsPage = () => {
           />
 
           <input
-            className="pnf-input"
-            type="number"
-            step="any"
-            placeholder="Optional latitude"
-            value={evidenceForm.lat}
-            onChange={(event) => setEvidenceForm((prev) => ({ ...prev, lat: event.target.value }))}
-            disabled={submittingEvidence}
-          />
-          <input
-            className="pnf-input"
-            type="number"
-            step="any"
-            placeholder="Optional longitude"
-            value={evidenceForm.lng}
-            onChange={(event) => setEvidenceForm((prev) => ({ ...prev, lng: event.target.value }))}
-            disabled={submittingEvidence}
-          />
-
-          <input
             className="pnf-input md:col-span-2"
             type="file"
             accept="image/*,video/*"
             multiple
             onChange={async (event) => {
-              const files = event.target.files || [];
-              setEvidenceForm((prev) => ({ ...prev, files }));
-
-              try {
-                const validation = await validateEvidenceFiles(files);
-                setEvidenceValidationError(validation.valid ? '' : validation.message);
-              } catch {
-                setEvidenceValidationError('Unable to validate selected files.');
-              }
+              await addEvidenceFiles(event.target.files || []);
+              event.target.value = '';
             }}
             disabled={submittingEvidence}
-            required
           />
+
+          {selectedEvidencePreviews.length > 0 ? (
+            <div className="space-y-2 md:col-span-2">
+              <p className="text-sm font-medium text-slate-700">Selected Files ({selectedEvidencePreviews.length})</p>
+              <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
+                {selectedEvidencePreviews.map((file) => (
+                  <article key={file.key} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                    {file.type.startsWith('video/') ? (
+                      <video className="h-36 w-full bg-slate-100 object-cover" controls src={file.url}>
+                        <track kind="captions" />
+                      </video>
+                    ) : (
+                      <img className="h-36 w-full bg-slate-100 object-cover" src={file.url} alt={file.name} loading="lazy" />
+                    )}
+                    <div className="flex items-center justify-between gap-2 px-2 py-1">
+                      <p className="truncate text-xs text-slate-600">{file.name}</p>
+                      <button
+                        type="button"
+                        className="rounded border border-rose-200 px-2 py-0.5 text-xs text-rose-700"
+                        onClick={() => removeEvidenceFile(file.key)}
+                        disabled={submittingEvidence}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           {evidenceValidationError ? (
             <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 md:col-span-2">

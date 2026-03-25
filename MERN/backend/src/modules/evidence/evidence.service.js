@@ -3,6 +3,13 @@ const FinderAssignment = require('../assignments/assignment.model');
 const User = require('../users/user.model');
 const LostItemRequest = require('../requests/request.model');
 const { createNotification } = require('../notifications/notification.service');
+const { addTimelineEvent } = require('../assignments/assignmentTimeline.service');
+
+const isDeadlineReached = (deadlineAt) => {
+  if (!deadlineAt) return false;
+  const value = new Date(deadlineAt).getTime();
+  return Number.isFinite(value) && value <= Date.now();
+};
 
 /**
  * Finder uploads proof of recovery
@@ -12,8 +19,12 @@ const uploadEvidence = async (assignmentId, userId, files, description, lat, lng
   const assignment = await FinderAssignment.findById(assignmentId);
   if (!assignment) throw new Error('Assignment not found');
 
-  if (assignment.status !== 'active') {
+  if (!['active', 'inactive'].includes(assignment.status)) {
     throw new Error(`Cannot upload evidence for a ${assignment.status} assignment`);
+  }
+
+  if (isDeadlineReached(assignment.deadlineAt)) {
+    throw new Error('Evidence submission deadline has passed for this assignment');
   }
 
   if (assignment.isDisputed) {
@@ -63,7 +74,24 @@ const uploadEvidence = async (assignmentId, userId, files, description, lat, lng
 
   // 5. Update assignment state
   assignment.evidenceSubmitted = true;
+  assignment.status = 'active';
+  assignment.lastActivityAt = new Date();
+  assignment.inactivityMarkedAt = null;
   await assignment.save();
+
+  await addTimelineEvent({
+    assignmentId: assignment._id,
+    requestId: assignment.request,
+    action: 'EVIDENCE_SUBMITTED',
+    actorUserId: userId,
+    actorRole: 'finder',
+    actorLabel: 'Finder',
+    details: {
+      description,
+      filesCount: Array.isArray(files) ? files.length : 0,
+      locationName: '',
+    },
+  });
 
   // 6. Notify owner
   try {
@@ -119,6 +147,10 @@ const verifyEvidence = async (evidenceId, verified, notes, userId) => {
     throw new Error('Only the request owner can verify evidence');
   }
 
+  if (!verified && !String(notes || '').trim()) {
+    throw new Error('Reason is required when rejecting evidence');
+  }
+
   // Update logic
   evidence.verificationStatus = verified ? 'verified' : 'rejected';
   evidence.verificationNotes = notes;
@@ -144,7 +176,18 @@ const verifyEvidence = async (evidenceId, verified, notes, userId) => {
     // If rejected, reset submitted flag to allow re-upload
     assignment.evidenceSubmitted = false;
   }
+  assignment.lastActivityAt = new Date();
   await assignment.save();
+
+  await addTimelineEvent({
+    assignmentId: assignment._id,
+    requestId: assignment.request._id,
+    action: verified ? 'EVIDENCE_VERIFIED' : 'EVIDENCE_REJECTED',
+    actorUserId: userId,
+    actorRole: 'owner',
+    actorLabel: 'Owner',
+    details: { notes: notes || '' },
+  });
 
   // Notify finder
   try {
@@ -160,6 +203,17 @@ const verifyEvidence = async (evidenceId, verified, notes, userId) => {
   } catch (err) {
     console.error('Notification failed:', err.message);
   }
+
+  // Timeline Event
+  await addTimelineEvent({
+    assignmentId: assignment._id,
+    requestId: assignment.request._id,
+    action: verified ? 'EVIDENCE_VERIFIED' : 'EVIDENCE_REJECTED',
+    actorUserId: userId,
+    actorRole: 'owner',
+    actorLabel: 'Owner',
+    details: { notes, evidenceId: evidence._id },
+  });
 
   return evidence;
 };

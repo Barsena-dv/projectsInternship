@@ -17,6 +17,18 @@ const assignmentApplicationSchema = new mongoose.Schema(
       enum: ['pending', 'accepted', 'rejected'],
       default: 'pending',
     },
+    applyReason: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 300,
+    },
+    finderRegion: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 120,
+    },
     decisionReason: {
       type: String,
       default: '',

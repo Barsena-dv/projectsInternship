@@ -84,15 +84,31 @@ const OwnerRequestsPage = () => {
         const unreadNotifications = notificationsRes.data || [];
         const alertsByRequestId = unreadNotifications.reduce((acc, notification) => {
           const type = String(notification.notificationType || notification.type || '').toLowerCase();
+          const title = String(notification.title || '').toLowerCase();
+          const message = String(notification.message || '').toLowerCase();
           const directRequestId = getId(notification.requestId || notification.data?.requestId);
           const assignmentId = getId(notification.assignmentId || notification.data?.assignmentId);
           const requestId = directRequestId || (assignmentId ? requestByAssignmentId[assignmentId] : null);
           if (!requestId) return acc;
 
           const current = acc[requestId] || { newEvidence: false, newApplicant: false, newMessage: false };
-          if (type.includes('evidence')) current.newEvidence = true;
-          if (type.includes('finder') || type.includes('applicant')) current.newApplicant = true;
-          if (type.includes('message') || type.includes('chat')) current.newMessage = true;
+          if (type.includes('evidence') || title.includes('evidence') || message.includes('evidence')) current.newEvidence = true;
+          if (
+            type.includes('finder')
+            || type.includes('assignment')
+            || type.includes('applicant')
+            || title.includes('finder')
+            || title.includes('application')
+            || message.includes('appl')
+          ) current.newApplicant = true;
+          if (
+            type.includes('message')
+            || type.includes('chat')
+            || title.includes('message')
+            || title.includes('chat')
+            || message.includes('message')
+            || message.includes('chat')
+          ) current.newMessage = true;
 
           acc[requestId] = current;
           return acc;

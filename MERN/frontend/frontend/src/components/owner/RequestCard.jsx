@@ -22,26 +22,31 @@ const RequestCard = ({ request, lifecycleState, alerts, onEdit, onDelete, onPay,
 
     if (lifecycleState === 'open') {
       return (
-        <button className="pnf-btn-outline rounded-lg px-2.5 py-1 text-xs" onClick={() => onViewApplicants(request)} type="button">
-          View Applicants Count ({applicantCount})
-        </button>
+        <>
+          <button className="pnf-btn-outline rounded-lg px-2.5 py-1 text-xs" onClick={() => onEdit(request)} type="button">
+            Edit
+          </button>
+          <button className="pnf-btn-outline rounded-lg px-2.5 py-1 text-xs" onClick={() => onViewApplicants(request)} type="button">
+            Applicants ({applicantCount})
+          </button>
+        </>
       );
     }
 
     if (lifecycleState === 'assigned') {
-      return <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-800">Assigned</span>;
+      return null;
     }
 
     if (lifecycleState === 'evidence_submitted') {
-      return <span className="rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-800">Evidence Uploaded</span>;
+      return null;
     }
 
     if (lifecycleState === 'verified') {
-      return <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800">Ready to Release Payment</span>;
+      return null;
     }
 
     if (lifecycleState === 'completed') {
-      return <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800">Completed</span>;
+      return null;
     }
 
     return null;

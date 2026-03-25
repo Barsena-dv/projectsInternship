@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import EmptyState from '../../components/common/EmptyState';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
+import { useAuth } from '../../hooks/useAuth';
 import { notificationApi } from '../../services/api';
 import { formatDate, getErrorMessage } from '../../utils/helpers';
+import { resolveNotificationTarget } from '../../utils/notificationRouting';
 
 const NotificationsPage = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,6 +38,19 @@ const NotificationsPage = () => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
+  };
+
+  const openNotification = async (item) => {
+    try {
+      if (!item?.isRead && item?._id) {
+        await notificationApi.markRead(item._id);
+        setItems((prev) => prev.map((n) => (n._id === item._id ? { ...n, isRead: true } : n)));
+      }
+    } catch {
+      // Navigate even if mark read fails.
+    }
+
+    navigate(resolveNotificationTarget(item, user?.role));
   };
 
   const markAll = async () => {
@@ -68,7 +86,8 @@ const NotificationsPage = () => {
           {items.map((item) => (
             <article
               key={item._id}
-              className={`pnf-card p-4 ${item.isRead ? 'opacity-80' : 'border-blue-200 bg-blue-50/30'}`}
+              className={`pnf-card cursor-pointer p-4 ${item.isRead ? 'opacity-80' : 'border-blue-200 bg-blue-50/30'}`}
+              onClick={() => openNotification(item)}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
@@ -81,7 +100,10 @@ const NotificationsPage = () => {
                   <button
                     className="pnf-btn-outline rounded-lg px-3 py-1.5 text-xs"
                     type="button"
-                    onClick={() => markRead(item._id)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      markRead(item._id);
+                    }}
                   >
                     Mark as read
                   </button>

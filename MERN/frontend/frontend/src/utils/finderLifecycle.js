@@ -14,8 +14,11 @@ export const deriveFinderLifecycleState = ({ assignment, evidence, deadline }) =
 
   if (assignmentStatus === 'completed') return 'completed';
   if (assignmentStatus === 'cancelled') return 'cancelled';
-  if (assignmentStatus === 'failed' || isDeadlineMissed(deadline || assignment?.request?.serviceDeadline)) {
-    return 'failed';
+  if (assignmentStatus === 'expired' || isDeadlineMissed(deadline || assignment?.deadlineAt || assignment?.request?.serviceDeadline)) {
+    return 'expired';
+  }
+  if (assignmentStatus === 'inactive') {
+    return 'inactive';
   }
 
   if (evidenceStatus === 'verified' || chatUnlocked) {
@@ -28,6 +31,10 @@ export const deriveFinderLifecycleState = ({ assignment, evidence, deadline }) =
 
   if (evidenceStatus === 'pending' || assignment?.evidenceSubmitted) {
     return 'evidence_submitted';
+  }
+
+  if (!assignment) {
+    return 'none';
   }
 
   return 'assigned';
@@ -43,8 +50,10 @@ export const getFinderLifecycleMessage = (state) => {
       return 'Next step: review rejection notes and re-submit clearer evidence.';
     case 'verified':
       return 'Next step: coordinate final handoff in chat.';
-    case 'failed':
-      return 'Deadline passed. Assignment is marked as failed.';
+    case 'inactive':
+      return 'No updates were posted recently. Add a progress update to reactivate this assignment.';
+    case 'expired':
+      return 'Deadline reached. Assignment is marked as expired.';
     case 'cancelled':
       return 'Assignment has been cancelled.';
     case 'completed':

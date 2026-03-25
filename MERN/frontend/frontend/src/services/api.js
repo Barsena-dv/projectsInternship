@@ -39,13 +39,19 @@ export const requestApi = {
 };
 
 export const assignmentApi = {
-  accept: (requestId) => unwrap(api.post('/assignments/accept', { requestId })),
+  accept: (requestId, payload = {}) => unwrap(api.post('/assignments/accept', { requestId, ...payload })),
   my: () => unwrap(api.get('/assignments/my')),
+  myApplications: () => unwrap(api.get('/assignments/my-applications')),
   byRequest: (requestId) => unwrap(api.get(`/assignments/request/${requestId}`)),
   applicationsByRequest: (requestId) => unwrap(api.get(`/assignments/request/${requestId}/applications`)),
   decideApplication: (requestId, applicationId, payload) => unwrap(api.post(`/assignments/request/${requestId}/applications/${applicationId}/decision`, payload)),
+  retryExpired: (requestId) => unwrap(api.post(`/assignments/request/${requestId}/retry`)),
   byId: (assignmentId) => unwrap(api.get(`/assignments/${assignmentId}`)),
+  timeline: (assignmentId) => unwrap(api.get(`/assignments/${assignmentId}/timeline`)),
+  requestTimeline: (requestId) => unwrap(api.get(`/assignments/request/${requestId}/timeline`)),
   complete: (assignmentId, payload = {}) => unwrap(api.post(`/assignments/${assignmentId}/complete`, payload)),
+  pause: (assignmentId) => unwrap(api.post(`/assignments/${assignmentId}/pause`)),
+  resume: (assignmentId) => unwrap(api.post(`/assignments/${assignmentId}/resume`)),
 };
 
 export const paymentApi = {

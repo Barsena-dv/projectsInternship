@@ -7,8 +7,8 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
 import StatusBadge from '../../components/common/StatusBadge';
 import { assignmentApi, requestApi } from '../../services/api';
-import { calculateDistanceKm, formatDistance } from '../../utils/locationDistance';
 import { formatCurrency, formatDate, getErrorMessage } from '../../utils/helpers';
+import { calculateDistanceKm, formatDistance } from '../../utils/locationDistance';
 
 const FinderAvailableRequestsPage = () => {
   const navigate = useNavigate();
@@ -17,6 +17,13 @@ const FinderAvailableRequestsPage = () => {
   const [acceptingId, setAcceptingId] = useState(null);
   const [appliedIds, setAppliedIds] = useState(() => new Set());
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [applyState, setApplyState] = useState({
+    open: false,
+    requestId: '',
+    itemName: '',
+    applyReason: '',
+    finderRegion: '',
+  });
   const [finderLocation, setFinderLocation] = useState(null);
   const [locating, setLocating] = useState(true);
   const [locationError, setLocationError] = useState('');
@@ -54,9 +61,22 @@ const FinderAvailableRequestsPage = () => {
   const load = async () => {
     try {
       setLoading(true);
-      const res = await requestApi.available();
+      const [res, applicationsRes] = await Promise.all([
+        requestApi.available(),
+        assignmentApi.myApplications().catch(() => ({ data: [] })),
+      ]);
+
       const rows = (res.data || []).filter((row) => String(row?.requestStatus || '').toLowerCase() === 'open');
+      const appliedRows = applicationsRes.data || [];
+      const appliedSet = new Set(
+        appliedRows
+          .filter((row) => ['pending', 'accepted'].includes(String(row?.status || '').toLowerCase()))
+          .map((row) => String(row?.request?._id || row?.request || ''))
+          .filter(Boolean)
+      );
+
       setItems(rows);
+      setAppliedIds(appliedSet);
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -112,17 +132,54 @@ const FinderAvailableRequestsPage = () => {
     };
   }, [finderLocation, items]);
 
-  const accept = async (requestId) => {
+  const accept = async (requestId, payload = {}) => {
     try {
       setAcceptingId(requestId);
-      await assignmentApi.accept(requestId);
+      await assignmentApi.accept(requestId, payload);
       setAppliedIds((prev) => new Set(prev).add(String(requestId)));
+      setItems((prev) => prev.filter((item) => String(item?._id) !== String(requestId)));
+      setApplyState({ open: false, requestId: '', itemName: '', applyReason: '', finderRegion: '' });
       toast.success('Application sent');
     } catch (error) {
-      toast.error(getErrorMessage(error));
+      const message = getErrorMessage(error);
+      const lower = String(message || '').toLowerCase();
+
+      if (lower.includes('already applied')) {
+        setAppliedIds((prev) => new Set(prev).add(String(requestId)));
+        toast.info('Application already sent. Waiting for owner approval.');
+        return;
+      }
+
+      toast.error(message);
+
+      if (
+        lower.includes('already been assigned')
+        || lower.includes('no longer open')
+      ) {
+        setItems((prev) => prev.filter((item) => String(item?._id) !== String(requestId)));
+        await load();
+      }
     } finally {
       setAcceptingId(null);
     }
+  };
+
+  const openApplyModal = (item) => {
+    setApplyState({
+      open: true,
+      requestId: String(item?._id || ''),
+      itemName: item?.itemName || 'Request',
+      applyReason: '',
+      finderRegion: '',
+    });
+  };
+
+  const submitApply = async () => {
+    if (!applyState.requestId) return;
+    await accept(applyState.requestId, {
+      applyReason: applyState.applyReason,
+      finderRegion: applyState.finderRegion,
+    });
   };
 
   const openRequestDetails = () => {
@@ -199,7 +256,7 @@ const FinderAvailableRequestsPage = () => {
                   <button
                     type="button"
                     className="pnf-btn-primary rounded-lg px-3 py-2 text-sm"
-                    onClick={() => accept(item._id)}
+                    onClick={() => openApplyModal(item)}
                     disabled={acceptingId === item._id || appliedIds.has(String(item._id))}
                   >
                     {acceptingId === item._id
@@ -214,6 +271,42 @@ const FinderAvailableRequestsPage = () => {
           ))}
         </div>
       ) : null}
+
+      <GlassModal
+        open={applyState.open}
+        title="Apply For Assignment"
+        subtitle="Add optional reason and your region for owner visibility."
+        confirmText="Submit Application"
+        onClose={() => setApplyState({ open: false, requestId: '', itemName: '', applyReason: '', finderRegion: '' })}
+        onConfirm={submitApply}
+        loading={acceptingId === applyState.requestId}
+      >
+        <div className="space-y-3 text-sm text-slate-700">
+          <p>
+            Request: <span className="font-semibold">{applyState.itemName || '-'}</span>
+          </p>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Region</label>
+            <input
+              className="pnf-input"
+              type="text"
+              placeholder="Your working area or city"
+              value={applyState.finderRegion}
+              onChange={(e) => setApplyState((prev) => ({ ...prev, finderRegion: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Reason</label>
+            <textarea
+              className="pnf-input"
+              rows={3}
+              placeholder="Why are you a good fit for this request?"
+              value={applyState.applyReason}
+              onChange={(e) => setApplyState((prev) => ({ ...prev, applyReason: e.target.value }))}
+            />
+          </div>
+        </div>
+      </GlassModal>
 
       <GlassModal
         open={Boolean(selectedRequest)}

@@ -1,6 +1,7 @@
 const LostItemRequest = require('./request.model');
 const ServicePlan = require('../servicePlans/servicePlan.model');
-const { calculateDistance } = require('../../utils/distance');
+const FinderAssignment = require('../assignments/assignment.model');
+const AssignmentApplication = require('../assignments/assignmentApplication.model');
 
 /**
  * Create a new lost item request
@@ -85,8 +86,26 @@ const getMyRequests = async (ownerId) => {
  * Get all available requests for finders (status: open)
  * Masking sensitive fields for public discovery
  */
-const getAvailableRequests = async () => {
-  return LostItemRequest.find({ requestStatus: 'open' })
+const getAvailableRequests = async (finderUserId = null) => {
+  const lockedRequestIds = await FinderAssignment.distinct('request', {
+    status: { $in: ['active', 'inactive', 'paused'] },
+  });
+
+  let excludedIds = [...lockedRequestIds];
+
+  if (finderUserId) {
+    const appliedIds = await AssignmentApplication.distinct('request', {
+      finder: finderUserId,
+      status: { $in: ['pending', 'accepted'] },
+    });
+
+    excludedIds = [...new Set([...excludedIds, ...appliedIds])];
+  }
+
+  return LostItemRequest.find({
+    requestStatus: 'open',
+    _id: { $nin: excludedIds },
+  })
     .select('-finders') // Do not expose finder IDs
     .populate('owner', 'full_name profileImage ratingAvg')
     .populate('planId', 'planName rewardAmount searchDuration')

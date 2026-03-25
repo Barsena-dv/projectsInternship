@@ -4,8 +4,13 @@ import EmptyState from '../../components/common/EmptyState';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
 import { assignmentApi, trackingApi } from '../../services/api';
-import { TRACKING_STATUSES } from '../../utils/constants';
-import { getErrorMessage, titleCase } from '../../utils/helpers';
+import { getErrorMessage } from '../../utils/helpers';
+
+const LOCATION_MODES = {
+  CURRENT: 'current',
+  MANUAL: 'manual_text',
+  SKIP: 'skipped',
+};
 
 const FinderTrackingPage = () => {
   const [assignments, setAssignments] = useState([]);
@@ -14,10 +19,10 @@ const FinderTrackingPage = () => {
 
   const [form, setForm] = useState({
     assignmentId: '',
-    statusUpdate: TRACKING_STATUSES[0],
-    currentLat: '',
-    currentLng: '',
-    remarks: '',
+    statusUpdate: 'progress',
+    locationSource: LOCATION_MODES.CURRENT,
+    locationName: '',
+    message: '',
   });
 
   useEffect(() => {
@@ -42,15 +47,52 @@ const FinderTrackingPage = () => {
 
   const submit = async (e) => {
     e.preventDefault();
+
+    if (!form.message.trim()) {
+      toast.error('Please add a progress message.');
+      return;
+    }
+
+    if (form.locationSource === LOCATION_MODES.MANUAL && !form.locationName.trim()) {
+      toast.error('Please enter your location manually or choose another option.');
+      return;
+    }
+
     try {
       setSubmitting(true);
-      await trackingApi.create({
+      const payload = {
         ...form,
-        currentLat: Number(form.currentLat || 0),
-        currentLng: Number(form.currentLng || 0),
-      });
+        mode: 'prompt',
+        remarks: form.message.trim(),
+      };
+
+      if (form.locationSource === LOCATION_MODES.CURRENT && navigator.geolocation) {
+        const coords = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (position) => resolve(position.coords),
+            () => reject(new Error('Could not fetch current location. Try manual entry or skip.')),
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 2 * 60 * 1000 }
+          );
+        });
+
+        payload.currentLat = Number(coords.latitude);
+        payload.currentLng = Number(coords.longitude);
+        payload.statusUpdate = 'location_ping';
+      }
+
+      if (form.locationSource === LOCATION_MODES.MANUAL) {
+        payload.locationName = form.locationName.trim();
+        payload.statusUpdate = 'manual_note';
+      }
+
+      if (form.locationSource === LOCATION_MODES.SKIP) {
+        payload.statusUpdate = 'skip';
+      }
+
+      await trackingApi.create(payload);
+
       toast.success('Tracking update posted');
-      setForm((prev) => ({ ...prev, remarks: '', currentLat: '', currentLng: '' }));
+      setForm((prev) => ({ ...prev, message: '', locationName: '' }));
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -60,7 +102,7 @@ const FinderTrackingPage = () => {
 
   return (
     <div>
-      <PageHeader title="Tracking Updates" subtitle="Post assignment progress in real time" />
+      <PageHeader title="Tracking Updates" subtitle="Hybrid tracking: current location, manual location text, or skip" />
 
       {loading ? <LoadingSpinner text="Loading active assignments..." /> : null}
 
@@ -75,16 +117,39 @@ const FinderTrackingPage = () => {
               ))}
             </select>
 
-            <select className="pnf-input" value={form.statusUpdate} onChange={(e) => setForm((prev) => ({ ...prev, statusUpdate: e.target.value }))}>
-              {TRACKING_STATUSES.map((status) => (
-                <option key={status} value={status}>{titleCase(status)}</option>
-              ))}
+            <select
+              className="pnf-input"
+              value={form.locationSource}
+              onChange={(e) => setForm((prev) => ({ ...prev, locationSource: e.target.value }))}
+            >
+              <option value={LOCATION_MODES.CURRENT}>Use current location</option>
+              <option value={LOCATION_MODES.MANUAL}>Enter location manually</option>
+              <option value={LOCATION_MODES.SKIP}>Skip location for now</option>
             </select>
 
-            <input className="pnf-input" type="number" step="any" placeholder="Current latitude" value={form.currentLat} onChange={(e) => setForm((prev) => ({ ...prev, currentLat: e.target.value }))} required />
-            <input className="pnf-input" type="number" step="any" placeholder="Current longitude" value={form.currentLng} onChange={(e) => setForm((prev) => ({ ...prev, currentLng: e.target.value }))} required />
+            {form.locationSource === LOCATION_MODES.MANUAL ? (
+              <input
+                className="pnf-input"
+                type="text"
+                placeholder="Enter location (e.g., Near City Mall)"
+                value={form.locationName}
+                onChange={(e) => setForm((prev) => ({ ...prev, locationName: e.target.value }))}
+              />
+            ) : (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                {form.locationSource === LOCATION_MODES.CURRENT
+                  ? 'Location will be fetched automatically at submit time.'
+                  : 'Update will be submitted without location coordinates.'}
+              </div>
+            )}
 
-            <textarea className="pnf-input md:col-span-2" rows={3} placeholder="Remarks" value={form.remarks} onChange={(e) => setForm((prev) => ({ ...prev, remarks: e.target.value }))} />
+            <textarea
+              className="pnf-input md:col-span-2"
+              rows={3}
+              placeholder="Progress message"
+              value={form.message}
+              onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
+            />
 
             <button className="pnf-btn-primary rounded-lg px-4 py-2 text-sm md:col-span-2" type="submit" disabled={submitting}>
               {submitting ? 'Posting...' : 'Post Update'}

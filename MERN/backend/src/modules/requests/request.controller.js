@@ -24,7 +24,7 @@ const getMyRequests = async (req, res) => {
 
 const getAvailableRequests = async (req, res) => {
   try {
-    const requests = await requestService.getAvailableRequests();
+    const requests = await requestService.getAvailableRequests(req.user?.userId || null);
     res.status(200).json({ success: true, data: requests });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

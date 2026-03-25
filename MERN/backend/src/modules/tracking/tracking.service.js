@@ -1,12 +1,28 @@
 const TrackingUpdate = require('./tracking.model');
 const FinderAssignment = require('../assignments/assignment.model');
 const { createNotification } = require('../notifications/notification.service');
+const { addTimelineEvent } = require('../assignments/assignmentTimeline.service');
+
+const isDeadlineReached = (deadlineAt) => {
+  if (!deadlineAt) return false;
+  const value = new Date(deadlineAt).getTime();
+  return Number.isFinite(value) && value <= Date.now();
+};
 
 /**
  * Finder sends a progress update for their assignment
  */
 const createUpdate = async (updateData, userId) => {
-  const { assignmentId, statusUpdate, currentLat, currentLng, remarks } = updateData;
+  const {
+    assignmentId,
+    statusUpdate,
+    mode,
+    locationSource,
+    locationName,
+    currentLat,
+    currentLng,
+    remarks,
+  } = updateData;
 
   // 1. Validate assignment ownership and existence
   const assignment = await FinderAssignment.findById(assignmentId).populate('request');
@@ -19,42 +35,72 @@ const createUpdate = async (updateData, userId) => {
   }
 
   // 2. Lifecycle protection: Block updates if completed, cancelled, or disputed
-  if (['completed', 'cancelled'].includes(assignment.status)) {
+  if (['completed', 'cancelled', 'expired'].includes(assignment.status)) {
     throw new Error(`Cannot post updates to a ${assignment.status} assignment`);
+  }
+
+  if (isDeadlineReached(assignment.deadlineAt)) {
+    throw new Error('Assignment deadline has been reached. Tracking updates are disabled.');
   }
 
   if (assignment.isDisputed) {
     throw new Error('Progress updates are locked while an active dispute exists');
   }
 
+  if (assignment.status === 'inactive') {
+    assignment.status = 'active';
+  }
+
+  assignment.lastActivityAt = new Date();
+  assignment.inactivityMarkedAt = null;
+  await assignment.save();
+
   // 3. Create tracking update
   const update = await TrackingUpdate.create({
     assignmentId,
     finderId: userId,
-    statusUpdate,
-    currentLat: currentLat || 0,
-    currentLng: currentLng || 0,
-    remarks,
+    statusUpdate: statusUpdate || 'progress',
+    mode: mode || 'manual',
+    locationSource: locationSource || 'none',
+    locationName: locationName || '',
+    currentLat: Number.isFinite(Number(currentLat)) ? Number(currentLat) : null,
+    currentLng: Number.isFinite(Number(currentLng)) ? Number(currentLng) : null,
+    remarks: remarks || '',
   });
 
-  // 4. Milestone Notification Logic
-  if (statusUpdate === 'item_found' || statusUpdate === 'search_failed') {
-    try {
-      const title = statusUpdate === 'item_found' ? 'Item Found! 🎉' : 'Search Update';
-      const message = statusUpdate === 'item_found' 
-        ? `Great news! The finder has reported that your item has been found. Check details in the timeline.`
-        : `Management Update: The finder reported that the search was unsuccessful. Please check the remarks.`;
-      
-      await createNotification({
-        userId: assignment.request.owner,
-        type: 'assignment',
-        title,
-        message,
-        data: { assignmentId: assignment._id, status: statusUpdate },
-      });
-    } catch (err) {
-      console.error('Milestone notification failed:', err.message);
-    }
+  // 4. Milestone Notification & Timeline Logic
+  const eventDetails = {
+    mode: update.mode,
+    statusUpdate: update.statusUpdate,
+    locationSource: update.locationSource,
+    locationName: update.locationName,
+    remarks: update.remarks,
+  };
+
+  await addTimelineEvent({
+    assignmentId: assignment._id,
+    requestId: assignment.request._id,
+    action: 'TRACKING_UPDATED',
+    actorUserId: userId,
+    actorRole: 'finder',
+    actorLabel: 'Finder',
+    details: eventDetails,
+  });
+
+  // Notify Owner
+  try {
+    const isMajor = ['progress', 'manual_note'].includes(update.statusUpdate);
+    const locDesc = update.locationName ? ` near ${update.locationName}` : "";
+    
+    await createNotification({
+      userId: assignment.request.owner,
+      type: 'tracking',
+      title: isMajor ? 'Finder Milestone Update' : 'Finder Activity Ping',
+      message: `The finder just posted a ${update.mode} update${locDesc}. Remarks: "${update.remarks || 'No remarks'}"`,
+      data: { assignmentId: assignment._id, updateId: update._id },
+    });
+  } catch (err) {
+    console.error('Tracking notification failed:', err.message);
   }
 
   return update;

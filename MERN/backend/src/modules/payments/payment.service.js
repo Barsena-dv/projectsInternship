@@ -5,6 +5,7 @@ const ServicePlan = require('../servicePlans/servicePlan.model');
 const Conversation = require('../chat/conversation.model');
 const { createNotification } = require('../notifications/notification.service');
 const payoutService = require('../payouts/payout.service');
+const { addTimelineEvent } = require('../assignments/assignmentTimeline.service');
 
 /**
  * Create a new payment record (initial state: pending)
@@ -96,7 +97,7 @@ const releasePayment = async (paymentId, userId, reason = '') => {
   // Find active assignment
   const assignment = await FinderAssignment.findOne({
     request: payment.request,
-    status: 'active',
+    status: { $in: ['active', 'inactive'] },
   });
 
   if (!assignment) throw new Error('No active assignment found to release funds to');
@@ -173,6 +174,20 @@ const releasePayment = async (paymentId, userId, reason = '') => {
   } catch (err) {
     console.error('Notification failed:', err.message);
   }
+
+  await addTimelineEvent({
+    assignmentId: assignment._id,
+    requestId: payment.request,
+    action: 'PAYMENT_RELEASED',
+    actorUserId: userId,
+    actorRole: 'owner',
+    actorLabel: 'Owner',
+    details: {
+      paymentId: payment._id,
+      amount: payment.amount,
+      releaseReason: reason || '',
+    },
+  });
 
   return payment;
 };

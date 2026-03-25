@@ -6,7 +6,7 @@ export const ROLES = {
 
 export const REQUEST_STATUSES = ['pending_payment', 'open', 'assigned', 'completed', 'found', 'cancelled'];
 
-export const TRACKING_STATUSES = ['searching', 'near_location', 'item_found', 'search_failed'];
+export const TRACKING_STATUSES = ['progress', 'location_ping', 'manual_note', 'skip'];
 
 export const DISPUTE_REASONS = [
   'wrong_item',
