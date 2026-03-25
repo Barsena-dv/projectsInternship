@@ -44,6 +44,23 @@ const paymentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    flaggedByAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    flaggedReason: {
+      type: String,
+      default: '',
+    },
+    flaggedAt: {
+      type: Date,
+      default: null,
+    },
+    flaggedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
   },
   { timestamps: true, versionKey: false }
 );

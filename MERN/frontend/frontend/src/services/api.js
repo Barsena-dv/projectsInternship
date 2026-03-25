@@ -97,4 +97,41 @@ export const chatApi = {
   messages: (conversationId, params = {}) => unwrap(api.get(`/chat/${conversationId}/messages`, { params })),
 };
 
+export const adminApi = {
+  dashboard: () => unwrap(api.get('/admin/dashboard')),
+
+  users: (params = {}) => unwrap(api.get('/admin/users', { params })),
+  userProfile: (userId) => unwrap(api.get(`/admin/users/${userId}`)),
+  verifyFinder: (userId, payload) => unwrap(api.post(`/admin/finder/${userId}/verify`, payload)),
+  updateUserStatus: (userId, payload) => unwrap(api.patch(`/admin/user/${userId}/status`, payload)),
+
+  requests: (params = {}) => unwrap(api.get('/admin/requests', { params })),
+  requestDetails: (requestId) => unwrap(api.get(`/admin/requests/${requestId}`)),
+  deleteRequest: (requestId, payload = {}) => unwrap(api.delete(`/admin/requests/${requestId}`, { data: payload })),
+  forceCloseRequest: (requestId, payload = {}) => unwrap(api.post(`/admin/requests/${requestId}/force-close`, payload)),
+  reopenRequest: (requestId, payload = {}) => unwrap(api.post(`/admin/requests/${requestId}/reopen`, payload)),
+
+  assignments: (params = {}) => unwrap(api.get('/admin/assignments', { params })),
+  assignmentDetails: (assignmentId) => unwrap(api.get(`/admin/assignments/${assignmentId}`)),
+  updateAssignmentStatus: (assignmentId, payload) => unwrap(api.post(`/admin/assignments/${assignmentId}/status`, payload)),
+  extendAssignmentDeadline: (assignmentId, payload) => unwrap(api.post(`/admin/assignments/${assignmentId}/extend-deadline`, payload)),
+  trackingAnalytics: (assignmentId) => unwrap(api.get(`/admin/tracking/assignments/${assignmentId}/analytics`)),
+
+  disputes: (params = {}) => unwrap(api.get('/admin/disputes', { params })),
+  disputeDetails: (disputeId) => unwrap(api.get(`/admin/disputes/${disputeId}`)),
+  resolveDispute: (disputeId, payload) => unwrap(api.post(`/admin/disputes/${disputeId}/resolve`, payload)),
+
+  payments: (params = {}) => unwrap(api.get('/admin/payments', { params })),
+  paymentDetails: (paymentId) => unwrap(api.get(`/admin/payments/${paymentId}`)),
+  forceReleasePayment: (paymentId, payload = {}) => unwrap(api.post(`/admin/payments/${paymentId}/force-release`, payload)),
+  refundPayment: (paymentId, payload = {}) => unwrap(api.post(`/admin/payments/${paymentId}/refund`, payload)),
+  flagPayment: (paymentId, payload = {}) => unwrap(api.post(`/admin/payments/${paymentId}/flag`, payload)),
+
+  auditLogs: (params = {}) => unwrap(api.get('/admin/audit-logs', { params })),
+  notifications: (params = {}) => unwrap(api.get('/admin/notifications', { params })),
+  fraudSignals: (params = {}) => unwrap(api.get('/admin/fraud-signals', { params })),
+  settings: () => unwrap(api.get('/admin/settings')),
+  updateSettings: (payload) => unwrap(api.patch('/admin/settings', payload)),
+};
+
 export default api;
