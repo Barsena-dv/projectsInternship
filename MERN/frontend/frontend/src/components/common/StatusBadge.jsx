@@ -21,6 +21,7 @@ const toneMap = {
   cancelled: 'bg-slate-200 text-slate-700',
   locked: 'bg-orange-100 text-orange-800',
   refunded: 'bg-purple-100 text-purple-800',
+  compensation: 'bg-cyan-100 text-cyan-800',
   resolved: 'bg-green-100 text-green-800',
   suspended: 'bg-orange-100 text-orange-800',
   blocked: 'bg-rose-100 text-rose-800',

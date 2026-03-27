@@ -1,6 +1,8 @@
 const User = require('../users/user.model');
 const { hashPassword, comparePassword } = require('../../utils/passwordHash');
 const { generateToken } = require('../../utils/jwt');
+const { sendPasswordResetEmail } = require('../../utils/mailer');
+const crypto = require('crypto');
 
 /**
  * Register new user
@@ -135,10 +137,71 @@ const changePassword = async (userId, oldPassword, newPassword) => {
   return true;
 };
 
+/**
+ * Forgot password - Generate token and send email
+ */
+const forgotPassword = async (email) => {
+  const normalizedEmail = email.toLowerCase().trim();
+  const user = await User.findOne({ email: normalizedEmail });
+  
+  if (!user) {
+    throw new Error('There is no user with that email address');
+  }
+
+  // 1. Generate random reset token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // 2. Hash it and save to DB
+  const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  user.resetPasswordToken = hashedToken;
+  user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+  await user.save({ validateBeforeSave: false });
+
+  // 3. Send email with unhashed token
+  const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+  try {
+    await sendPasswordResetEmail(user.email, user.full_name, resetUrl);
+    return true;
+  } catch (error) {
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save({ validateBeforeSave: false });
+    throw new Error('There was an error sending the email. Try again later.');
+  }
+};
+
+/**
+ * Reset password - Verify token and save new password
+ */
+const resetPassword = async (token, newPassword) => {
+  // 1. Hash the incoming token
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  // 2. Find user by token & check if expired
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new Error('Token is invalid or has expired');
+  }
+
+  // 3. Set new password
+  user.password = await hashPassword(newPassword);
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  return true;
+};
+
 module.exports = {
   register,
   login,
   getMe,
   updateProfile,
   changePassword,
+  forgotPassword,
+  resetPassword,
 };

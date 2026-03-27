@@ -3,22 +3,127 @@ const AssignmentApplication = require('./assignmentApplication.model');
 const LostItemRequest = require('../requests/request.model');
 const User = require('../users/user.model');
 const Payment = require('../payments/payment.model');
+const ServicePlan = require('../servicePlans/servicePlan.model');
+const Payout = require('../payouts/payout.model');
 const { createNotification } = require('../notifications/notification.service');
 const paymentService = require('../payments/payment.service');
+const payoutService = require('../payouts/payout.service');
 const { addTimelineEvent, getTimelineByAssignment, getTimelineByRequest } = require('./assignmentTimeline.service');
 
 const MAX_PAUSE_MS = 15 * 60 * 1000;
+const ASSIGNMENT_DEADLINE_HOURS = Number(process.env.ASSIGNMENT_DEADLINE_HOURS || 4);
+const EXPIRED_DROP_FINDER_FEE_PERCENT = Number(process.env.EXPIRED_DROP_FINDER_FEE_PERCENT || 10);
 
-const buildDeadlineAt = (request) => {
-  const explicitDeadline = request?.serviceDeadline ? new Date(request.serviceDeadline) : null;
-  if (explicitDeadline && !Number.isNaN(explicitDeadline.getTime()) && explicitDeadline.getTime() > Date.now()) {
-    return explicitDeadline;
-  }
+const round2 = (value) => Number(Number(value || 0).toFixed(2));
 
-  const hours = request?.deadlineHours || 4;
+const buildDeadlineAt = () => {
+  const hours = Number.isFinite(ASSIGNMENT_DEADLINE_HOURS) && ASSIGNMENT_DEADLINE_HOURS > 0
+    ? ASSIGNMENT_DEADLINE_HOURS
+    : 4;
   const fallback = new Date();
   fallback.setHours(fallback.getHours() + hours);
   return fallback;
+};
+
+const isOwnerDeadlinePassed = (serviceDeadline) => {
+  if (!serviceDeadline) return false;
+  const ms = new Date(serviceDeadline).getTime();
+  return Number.isFinite(ms) && ms <= Date.now();
+};
+
+const getLatestStoppedAssignment = async (requestId) => FinderAssignment.findOne({
+  request: requestId,
+  status: { $in: ['expired', 'failed', 'cancelled'] },
+}).sort({ updatedAt: -1 });
+
+const getLockedPaymentForRequest = async (requestId, ownerId) => {
+  const payment = await Payment.findOne({
+    request: requestId,
+    owner: ownerId,
+    paymentStatus: 'locked',
+  })
+    .sort({ createdAt: -1 })
+    .populate('servicePlan');
+
+  if (!payment) return null;
+
+  if (!payment.servicePlan) {
+    payment.servicePlan = await ServicePlan.findById(payment.servicePlan);
+  }
+
+  return payment;
+};
+
+const calculateSettlementAmounts = (payment, kind) => {
+  const amount = Number(payment?.amount || 0);
+  const planRefundPercent = Number(payment?.servicePlan?.refundPercent || 0);
+  const planFinderPercent = Number(payment?.servicePlan?.finderPercent || 0);
+
+  const ownerRefundAmount = round2((amount * planRefundPercent) / 100);
+
+  const rawFinderCompensation = kind === 'failed_drop'
+    ? round2((amount * planFinderPercent) / 100)
+    : round2((amount * EXPIRED_DROP_FINDER_FEE_PERCENT) / 100);
+
+  const availableForFinder = Math.max(round2(amount - ownerRefundAmount), 0);
+  const finderCompensationAmount = round2(Math.min(rawFinderCompensation, availableForFinder));
+
+  return {
+    ownerRefundAmount,
+    finderCompensationAmount,
+    planRefundPercent,
+    planFinderPercent,
+  };
+};
+
+const applySettlement = async ({ payment, assignment, reason, kind, requestId, actorUserId }) => {
+  const { ownerRefundAmount, finderCompensationAmount, planRefundPercent, planFinderPercent } = calculateSettlementAmounts(payment, kind);
+
+  payment.paymentStatus = 'refunded';
+  payment.refundStatus = 'completed';
+  payment.refundAmount = ownerRefundAmount;
+  payment.finderCompensationAmount = finderCompensationAmount;
+  payment.refundReason = reason;
+  payment.settlementType = kind;
+  payment.settlementReason = reason;
+  await payment.save();
+
+  if (finderCompensationAmount > 0) {
+    const existingPayout = await Payout.findOne({ payment: payment._id });
+    if (!existingPayout) {
+      await payoutService.createPayout(payment._id, assignment._id, assignment.finder, finderCompensationAmount, {
+        payoutCategory: 'compensation',
+        payoutStatus: 'processed',
+        settlementReason: reason,
+        remarks: kind === 'failed_drop'
+          ? 'Failed drop settlement compensation'
+          : 'Expired drop goodwill compensation',
+      });
+    }
+  }
+
+  await addTimelineEvent({
+    assignmentId: assignment._id,
+    requestId,
+    action: kind === 'failed_drop' ? 'REQUEST_DROPPED_AFTER_FAILED' : kind === 'failed_retry_refund' ? 'REQUEST_RETRY_DIFFERENT_FINDER' : 'REQUEST_DROPPED_AFTER_EXPIRED',
+    actorUserId,
+    actorRole: 'owner',
+    actorLabel: 'Owner',
+    details: {
+      settlementType: kind,
+      reason,
+      ownerRefundAmount,
+      finderCompensationAmount,
+      refundPercent: planRefundPercent,
+      finderPercent: planFinderPercent,
+    },
+  });
+
+  return {
+    payment,
+    ownerRefundAmount,
+    finderCompensationAmount,
+  };
 };
 
 /**
@@ -133,6 +238,17 @@ const acceptAssignment = async (requestId, userId, payload = {}) => {
         applicationId: application._id,
       },
     });
+
+    await createNotification({
+      userId,
+      type: 'assignment',
+      title: 'Application Submitted',
+      message: `Your application for "${request.itemName}" is submitted and waiting for owner decision.`,
+      data: {
+        requestId: request._id,
+        applicationId: application._id,
+      },
+    });
   } catch (err) {
     console.error('Notification failed:', err.message);
   }
@@ -185,7 +301,7 @@ const getApplicationsByRequest = async (requestId, userId) => {
 
     acc[key].total += 1;
     if (row.status === 'completed') acc[key].completed += 1;
-    if (['expired', 'cancelled'].includes(row.status)) acc[key].failed += 1;
+    if (['expired', 'cancelled', 'failed'].includes(row.status)) acc[key].failed += 1;
     return acc;
   }, {});
 
@@ -283,7 +399,7 @@ const decideApplication = async (requestId, applicationId, decision, reason, use
     request: requestId,
     finder: application.finder._id,
     status: 'active',
-    deadlineAt: buildDeadlineAt(request),
+    deadlineAt: buildDeadlineAt(),
     lastActivityAt: new Date(),
   });
 
@@ -291,6 +407,15 @@ const decideApplication = async (requestId, applicationId, decision, reason, use
   application.decisionReason = reason || '';
   application.decidedAt = new Date();
   await application.save();
+
+  const pendingOthers = await AssignmentApplication.find(
+    {
+      request: requestId,
+      _id: { $ne: application._id },
+      status: 'pending',
+    },
+    { _id: 1, finder: 1 }
+  );
 
   // Reject all other pending applications since assignment is now locked.
   await AssignmentApplication.updateMany(
@@ -341,6 +466,26 @@ const decideApplication = async (requestId, applicationId, decision, reason, use
       message: `Your application for "${request.itemName}" was accepted. Assignment is now active.`,
       data: { requestId: request._id, assignmentId: assignment._id, applicationId: application._id },
     });
+
+    await createNotification({
+      userId,
+      type: 'assignment',
+      title: 'Finder Assigned',
+      message: `You accepted ${application.finder.full_name} for "${request.itemName}".`,
+      data: { requestId: request._id, assignmentId: assignment._id, applicationId: application._id },
+    });
+
+    if (pendingOthers.length) {
+      await Promise.all(
+        pendingOthers.map((row) => createNotification({
+          userId: row.finder,
+          type: 'assignment',
+          title: 'Application Closed',
+          message: `Another finder was selected for "${request.itemName}".`,
+          data: { requestId: request._id, applicationId: row._id },
+        }))
+      );
+    }
   } catch (err) {
     console.error('Notification failed:', err.message);
   }
@@ -391,14 +536,14 @@ const getAssignmentByRequest = async (requestId, userId) => {
  */
 const syncAssignmentStatus = async (assignmentId) => {
   const assignment = await FinderAssignment.findById(assignmentId).populate('request');
-  if (!assignment || ['completed', 'cancelled', 'expired'].includes(assignment.status)) {
+  if (!assignment || ['completed', 'cancelled', 'expired', 'failed'].includes(assignment.status)) {
     return assignment;
   }
 
   const now = new Date();
   let changed = false;
 
-  // 1. Check Deadline Expiration
+  // 1. Check Finder assignment deadline (4h window)
   if (assignment.status !== 'expired' && assignment.deadlineAt && now > assignment.deadlineAt) {
     assignment.status = 'expired';
     changed = true;
@@ -415,21 +560,56 @@ const syncAssignmentStatus = async (assignmentId) => {
       await createNotification({
         userId: assignment.finder,
         type: 'deadline',
-        title: 'Assignment Expired',
-        message: `Your deadline for "${assignment.request.itemName}" has passed.`,
+        title: 'Finder Assignment Expired',
+        message: `Your 4-hour assignment deadline for "${assignment.request.itemName}" has passed.`,
         data: { assignmentId: assignment._id },
       });
       await createNotification({
         userId: assignment.request.owner,
         type: 'deadline',
-        title: 'Assignment Expired',
-        message: `The finder's deadline for "${assignment.request.itemName}" has passed without completion.`,
+        title: 'Finder Assignment Expired',
+        message: `Finder assignment deadline for "${assignment.request.itemName}" has passed without completion.`,
         data: { assignmentId: assignment._id },
       });
     } catch (nErr) { console.error('Notification failed:', nErr.message); }
   }
 
-  // 2. Check Inactivity (Only if still active)
+  // 2. Check owner service deadline (independent hard stop)
+  if (!changed && assignment.request && isOwnerDeadlinePassed(assignment.request.serviceDeadline)) {
+    assignment.status = 'failed';
+    changed = true;
+
+    assignment.request.requestStatus = 'failed';
+    await assignment.request.save();
+
+    await addTimelineEvent({
+      assignmentId: assignment._id,
+      requestId: assignment.request._id,
+      action: 'REQUEST_SERVICE_DEADLINE_FAILED',
+      details: { serviceDeadline: assignment.request.serviceDeadline },
+    });
+
+    try {
+      await createNotification({
+        userId: assignment.finder,
+        type: 'deadline',
+        title: 'Request Failed (Owner Deadline)',
+        message: `Owner service deadline for "${assignment.request.itemName}" has ended. Assignment is marked failed.`,
+        data: { assignmentId: assignment._id, requestId: assignment.request._id },
+      });
+      await createNotification({
+        userId: assignment.request.owner,
+        type: 'deadline',
+        title: 'Request Failed (Owner Deadline)',
+        message: `Your service deadline for "${assignment.request.itemName}" has ended. Request and assignment are now failed.`,
+        data: { assignmentId: assignment._id, requestId: assignment.request._id },
+      });
+    } catch (nErr) {
+      console.error('Notification failed:', nErr.message);
+    }
+  }
+
+  // 3. Check Inactivity (Only if still active)
   if (!changed && assignment.status === 'active') {
     const inactivityThreshold = 60 * 60 * 1000; // 1 hour
     const lastActivity = assignment.lastActivityAt || assignment.assignedAt;
@@ -453,6 +633,14 @@ const syncAssignmentStatus = async (assignmentId) => {
           type: 'inactivity',
           title: 'Finder Inactive',
           message: `The finder seems inactive on your request: "${assignment.request.itemName}". No updates for over 1 hour.`,
+          data: { assignmentId: assignment._id },
+        });
+
+        await createNotification({
+          userId: assignment.finder,
+          type: 'inactivity',
+          title: 'You Are Marked Inactive',
+          message: `No updates were posted for over 1 hour on "${assignment.request.itemName}". Add tracking updates to reactivate.`,
           data: { assignmentId: assignment._id },
         });
       } catch (nErr) { console.error('Notification failed:', nErr.message); }
@@ -557,43 +745,191 @@ const completeAssignmentByOwner = async (assignmentId, userId, reason = '') => {
 };
 
 const retryExpiredAssignment = async (requestId, userId) => {
+  const latestStop = await getLatestStoppedAssignment(requestId);
+  if (!latestStop) throw new Error('No expired or failed assignment found to retry');
+
+  if (String(latestStop.status) !== 'failed') {
+    throw new Error('Expired assignments can only be retried with same finder or dropped by owner');
+  }
+
+  const result = await retryFailedWithDifferentFinder(requestId, userId, 'Owner requested different finder after failed state');
+  return result.request;
+};
+
+const retryExpiredWithSameFinder = async (requestId, userId, reason = '') => {
   const request = await LostItemRequest.findById(requestId);
-  if (!request) {
-    throw new Error('Request not found');
+  if (!request) throw new Error('Request not found');
+  if (request.owner.toString() !== userId.toString()) throw new Error('Unauthorized retry attempt');
+
+  const latestStop = await getLatestStoppedAssignment(requestId);
+  if (!latestStop || String(latestStop.status) !== 'expired') {
+    throw new Error('Only expired assignments can be retried with same finder');
   }
 
-  if (request.owner.toString() !== userId.toString()) {
-    throw new Error('Unauthorized retry attempt');
-  }
+  latestStop.status = 'active';
+  latestStop.deadlineAt = buildDeadlineAt();
+  latestStop.pausedAt = null;
+  latestStop.lastActivityAt = new Date();
+  latestStop.inactivityMarkedAt = null;
+  await latestStop.save();
 
-  const latestStop = await FinderAssignment.findOne({
-    request: requestId,
-    status: { $in: ['expired', 'cancelled'] },
-  }).sort({ updatedAt: -1 });
-
-  if (!latestStop) {
-    throw new Error('No expired or cancelled assignment found to retry');
-  }
-
-  if (latestStop.status === 'expired') {
-    latestStop.status = 'cancelled';
-    await latestStop.save();
-  }
-
-  request.requestStatus = 'open';
+  request.requestStatus = 'assigned';
   await request.save();
 
   await addTimelineEvent({
     assignmentId: latestStop._id,
     requestId,
-    action: 'ASSIGNMENT_RETRIED',
+    action: 'ASSIGNMENT_RETRY_SAME_FINDER',
     actorUserId: userId,
     actorRole: 'owner',
     actorLabel: 'Owner',
-    details: {},
+    details: {
+      reason: String(reason || ''),
+      newDeadlineAt: latestStop.deadlineAt,
+    },
   });
 
-  return request;
+  try {
+    await createNotification({
+      userId: latestStop.finder,
+      type: 'assignment',
+      title: 'Assignment Reopened',
+      message: `Owner has retried the same assignment. A new finder deadline has been set.`,
+      data: { assignmentId: latestStop._id, requestId },
+    });
+
+    await createNotification({
+      userId: request.owner,
+      type: 'assignment',
+      title: 'Retry Started With Same Finder',
+      message: `Request is active again with same finder and updated assignment deadline.`,
+      data: { assignmentId: latestStop._id, requestId },
+    });
+  } catch (nErr) {
+    console.error('Notification failed:', nErr.message);
+  }
+
+  return { request, assignment: latestStop };
+};
+
+const retryFailedWithDifferentFinder = async (requestId, userId, reason = '') => {
+  const request = await LostItemRequest.findById(requestId);
+  if (!request) throw new Error('Request not found');
+  if (request.owner.toString() !== userId.toString()) throw new Error('Unauthorized retry attempt');
+
+  const latestStop = await getLatestStoppedAssignment(requestId);
+  if (!latestStop || String(latestStop.status) !== 'failed') {
+    throw new Error('Only failed assignments can be retried with different finder');
+  }
+
+  const lockedPayment = await getLockedPaymentForRequest(requestId, userId);
+  if (!lockedPayment) {
+    throw new Error('No locked payment found for refund and retry. Please contact admin.');
+  }
+
+  const settlement = await applySettlement({
+    payment: lockedPayment,
+    assignment: latestStop,
+    reason: String(reason || 'Retry with different finder after failed state'),
+    kind: 'failed_retry_refund',
+    requestId,
+    actorUserId: userId,
+  });
+
+  request.requestStatus = 'pending_payment';
+  await request.save();
+
+  try {
+    await createNotification({
+      userId: latestStop.finder,
+      type: 'payment',
+      title: 'Assignment Closed For Reassignment',
+      message: `Owner chose different finder path after failed deadline. Compensation recorded: Rs ${settlement.finderCompensationAmount}.`,
+      data: { requestId, assignmentId: latestStop._id, paymentId: lockedPayment._id },
+    });
+
+    await createNotification({
+      userId: request.owner,
+      type: 'payment',
+      title: 'Refund Issued For Retry',
+      message: `Refund of Rs ${settlement.ownerRefundAmount} processed. Please complete payment again to reopen this request.`,
+      data: { requestId, paymentId: lockedPayment._id },
+    });
+  } catch (nErr) {
+    console.error('Notification failed:', nErr.message);
+  }
+
+  return {
+    request,
+    payment: settlement.payment,
+    settlement,
+  };
+};
+
+const dropRequestByOwner = async (requestId, userId, options = {}) => {
+  const request = await LostItemRequest.findById(requestId);
+  if (!request) throw new Error('Request not found');
+  if (request.owner.toString() !== userId.toString()) throw new Error('Unauthorized drop attempt');
+
+  const latestStop = await getLatestStoppedAssignment(requestId);
+  if (!latestStop || !['expired', 'failed'].includes(String(latestStop.status))) {
+    throw new Error('Only expired or failed assignments can be dropped from owner controls');
+  }
+
+  const mode = String(options.mode || latestStop.status).toLowerCase();
+  if (!['expired', 'failed'].includes(mode)) {
+    throw new Error('mode must be expired or failed');
+  }
+
+  const lockedPayment = await getLockedPaymentForRequest(requestId, userId);
+  if (!lockedPayment) {
+    throw new Error('No locked payment found for drop settlement. Please contact admin.');
+  }
+
+  if (mode === 'expired') {
+    latestStop.status = 'cancelled';
+  } else {
+    latestStop.status = 'failed';
+  }
+  await latestStop.save();
+
+  const settlement = await applySettlement({
+    payment: lockedPayment,
+    assignment: latestStop,
+    reason: String(options.reason || `Owner dropped request after ${mode}`),
+    kind: mode === 'failed' ? 'failed_drop' : 'expired_drop',
+    requestId,
+    actorUserId: userId,
+  });
+
+  request.requestStatus = mode === 'failed' ? 'failed' : 'cancelled';
+  await request.save();
+
+  try {
+    await createNotification({
+      userId: latestStop.finder,
+      type: 'payment',
+      title: 'Owner Closed Request',
+      message: `Owner has dropped this request. Compensation Rs ${settlement.finderCompensationAmount} has been recorded for your side.`,
+      data: { requestId, assignmentId: latestStop._id, paymentId: lockedPayment._id },
+    });
+    await createNotification({
+      userId: request.owner,
+      type: 'payment',
+      title: 'Request Dropped',
+      message: `Request dropped successfully. Owner refund: Rs ${settlement.ownerRefundAmount}. Finder compensation: Rs ${settlement.finderCompensationAmount}.`,
+      data: { requestId, assignmentId: latestStop._id, paymentId: lockedPayment._id },
+    });
+  } catch (nErr) {
+    console.error('Notification failed:', nErr.message);
+  }
+
+  return {
+    request,
+    assignment: latestStop,
+    payment: settlement.payment,
+    settlement,
+  };
 };
 
 const getAssignmentTimelineByAssignment = async (assignmentId, userId) => {
@@ -659,6 +995,14 @@ const pauseAssignment = async (assignmentId, userId) => {
       message: `The finder has paused the search for "${assignment.request.itemName}". They will resume soon.`,
       data: { assignmentId: assignment._id },
     });
+
+    await createNotification({
+      userId: assignment.finder,
+      type: 'assignment',
+      title: 'Break Applied',
+      message: `You paused "${assignment.request.itemName}". Resume within 15 minutes for fair extension.`,
+      data: { assignmentId: assignment._id },
+    });
   } catch (nErr) { console.error('Notification failed:', nErr.message); }
 
   return assignment;
@@ -713,6 +1057,14 @@ const resumeAssignment = async (assignmentId, userId) => {
       message: `Great news! The finder has resumed searching for "${assignment.request.itemName}".`,
       data: { assignmentId: assignment._id },
     });
+
+    await createNotification({
+      userId: assignment.finder,
+      type: 'assignment',
+      title: 'Break Ended',
+      message: `Assignment resumed for "${assignment.request.itemName}". Keep posting updates to avoid inactivity.`,
+      data: { assignmentId: assignment._id },
+    });
   } catch (nErr) { console.error('Notification failed:', nErr.message); }
 
   return assignment;
@@ -730,6 +1082,9 @@ module.exports = {
   getAssignmentTimelineByRequest,
   completeAssignmentByOwner,
   retryExpiredAssignment,
+  retryExpiredWithSameFinder,
+  retryFailedWithDifferentFinder,
+  dropRequestByOwner,
   pauseAssignment,
   resumeAssignment,
 };

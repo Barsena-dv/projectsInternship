@@ -31,10 +31,10 @@ const GlassModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/35 backdrop-blur-md" onClick={!loading ? onClose : undefined} aria-hidden="true" />
-      <div className="relative w-full max-w-lg rounded-2xl border border-white/40 bg-white/70 p-5 shadow-[0_20px_70px_rgba(2,6,23,0.25)] backdrop-blur-xl">
+      <div className="pnf-modal-panel relative w-full max-w-lg rounded-2xl p-5">
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-          {subtitle ? <p className="mt-1 text-sm text-slate-600">{subtitle}</p> : null}
+          <h3 className="pnf-heading text-lg font-semibold">{title}</h3>
+          {subtitle ? <p className="pnf-muted mt-1 text-sm">{subtitle}</p> : null}
         </div>
 
         <div>{children}</div>

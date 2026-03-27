@@ -248,7 +248,7 @@ const retryExpiredAssignment = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Expired assignment retried successfully',
+      message: 'Failed assignment moved to repay-and-retry flow successfully',
       data: request,
     });
   } catch (error) {
@@ -259,6 +259,60 @@ const retryExpiredAssignment = async (req, res) => {
       success: false,
       message,
     });
+  }
+};
+
+const retryExpiredWithSameFinder = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { reason } = req.body;
+    const data = await assignmentService.retryExpiredWithSameFinder(requestId, req.user.userId, reason);
+
+    res.status(200).json({
+      success: true,
+      message: 'Expired assignment reopened with same finder',
+      data,
+    });
+  } catch (error) {
+    const message = String(error.message || 'Failed to retry with same finder');
+    const statusCode = message.toLowerCase().includes('unauthorized') ? 403 : 400;
+    res.status(statusCode).json({ success: false, message });
+  }
+};
+
+const retryFailedWithDifferentFinder = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { reason } = req.body;
+    const data = await assignmentService.retryFailedWithDifferentFinder(requestId, req.user.userId, reason);
+
+    res.status(200).json({
+      success: true,
+      message: 'Failed assignment moved to different-finder repay cycle',
+      data,
+    });
+  } catch (error) {
+    const message = String(error.message || 'Failed to retry with different finder');
+    const statusCode = message.toLowerCase().includes('unauthorized') ? 403 : 400;
+    res.status(statusCode).json({ success: false, message });
+  }
+};
+
+const dropRequestByOwner = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { reason, mode } = req.body;
+    const data = await assignmentService.dropRequestByOwner(requestId, req.user.userId, { reason, mode });
+
+    res.status(200).json({
+      success: true,
+      message: 'Request dropped with settlement successfully',
+      data,
+    });
+  } catch (error) {
+    const message = String(error.message || 'Failed to drop request');
+    const statusCode = message.toLowerCase().includes('unauthorized') ? 403 : 400;
+    res.status(statusCode).json({ success: false, message });
   }
 };
 
@@ -316,6 +370,9 @@ module.exports = {
   getRequestTimeline,
   completeAssignmentByOwner,
   retryExpiredAssignment,
+  retryExpiredWithSameFinder,
+  retryFailedWithDifferentFinder,
+  dropRequestByOwner,
   pauseAssignment,
   resumeAssignment,
 };

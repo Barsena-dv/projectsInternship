@@ -5,8 +5,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
 import RequestForm from '../../components/owner/RequestForm';
 import { paymentApi, planApi, requestApi } from '../../services/api';
-import { formatCurrency } from '../../utils/helpers';
-import { getErrorMessage } from '../../utils/helpers';
+import { formatCurrency, getErrorMessage } from '../../utils/helpers';
 
 const OwnerCreateRequestPage = () => {
   const navigate = useNavigate();
@@ -89,7 +88,7 @@ const OwnerCreateRequestPage = () => {
   if (planLoading) return <LoadingSpinner text="Loading plans..." />;
 
   return (
-    <div>
+    <div className="owner-create-request-page">
       <PageHeader title="Create Request" subtitle="Post lost item details for finders" />
       <RequestForm plans={plans} loading={loading} onSubmit={handleSubmit} />
     </div>

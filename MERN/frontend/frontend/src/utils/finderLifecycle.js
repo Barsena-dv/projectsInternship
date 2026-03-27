@@ -9,12 +9,14 @@ export const isDeadlineMissed = (deadlineValue) => {
 
 export const deriveFinderLifecycleState = ({ assignment, evidence, deadline }) => {
   const assignmentStatus = toKey(assignment?.status, 'active');
+  const requestStatus = toKey(assignment?.request?.requestStatus, 'none');
   const evidenceStatus = toKey(evidence?.verificationStatus, 'none');
   const chatUnlocked = Boolean(assignment?.chatUnlocked || assignment?.evidenceVerified);
 
   if (assignmentStatus === 'completed') return 'completed';
   if (assignmentStatus === 'cancelled') return 'cancelled';
-  if (assignmentStatus === 'expired' || isDeadlineMissed(deadline || assignment?.deadlineAt || assignment?.request?.serviceDeadline)) {
+  if (assignmentStatus === 'failed' || requestStatus === 'failed') return 'failed';
+  if (assignmentStatus === 'expired' || isDeadlineMissed(assignment?.deadlineAt || deadline)) {
     return 'expired';
   }
   if (assignmentStatus === 'inactive') {
@@ -53,7 +55,9 @@ export const getFinderLifecycleMessage = (state) => {
     case 'inactive':
       return 'No updates were posted recently. Add a progress update to reactivate this assignment.';
     case 'expired':
-      return 'Deadline reached. Assignment is marked as expired.';
+      return 'Finder assignment deadline reached. Assignment is marked expired.';
+    case 'failed':
+      return 'Owner service deadline reached. Assignment is marked failed.';
     case 'cancelled':
       return 'Assignment has been cancelled.';
     case 'completed':

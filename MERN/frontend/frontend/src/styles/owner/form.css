@@ -1,0 +1,244 @@
+/* ============================================================
+   OWNER — FORM STYLES (Light Theme)
+   ============================================================ */
+
+/* ---- Floating Label Input ---- */
+
+.owner-field {
+  position: relative;
+  margin-bottom: 1.1rem;
+}
+
+.owner-field-input,
+.owner-field-select,
+.owner-field-textarea {
+  width: 100%;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9px;
+  padding: 1.1rem 1rem 0.45rem;
+  font-size: 0.875rem;
+  color: #f8fafc;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  font-family: 'Inter', inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.owner-field-input:focus,
+.owner-field-select:focus,
+.owner-field-textarea:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.owner-field-label {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: all 0.18s cubic-bezier(0.16,1,0.3,1);
+  transform-origin: left top;
+  font-weight: 400;
+}
+
+.owner-field-textarea ~ .owner-field-label { top: 1rem; transform: none; }
+
+.owner-field-input:focus ~ .owner-field-label,
+.owner-field-input:not(:placeholder-shown) ~ .owner-field-label,
+.owner-field-select:focus ~ .owner-field-label,
+.owner-field-textarea:focus ~ .owner-field-label,
+.owner-field-textarea:not(:placeholder-shown) ~ .owner-field-label {
+  top: 0.5rem;
+  transform: scale(0.73);
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.owner-field.has-error .owner-field-input,
+.owner-field.has-error .owner-field-select {
+  border-color: #fca5a5;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
+}
+
+.owner-field-error {
+  font-size: 0.72rem;
+  color: #fca5a5;
+  margin-top: 0.3rem;
+  font-weight: 500;
+}
+
+/* ---- Plan Selection Cards ---- */
+
+.owner-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.owner-plan-card {
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 11px;
+  padding: 1rem;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.18s ease;
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(16px);
+}
+
+.owner-plan-card:hover { border-color: #fbbf24; background: rgba(255,255,255,0.07); }
+
+.owner-plan-card.selected {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.owner-plan-card .plan-check {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f59e0b;
+  color: #1c1917;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+}
+
+.owner-plan-card.selected .plan-check { display: flex; }
+
+.owner-plan-card .plan-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
+
+.owner-plan-card .plan-name {
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.owner-plan-card .plan-desc {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 0.2rem;
+  line-height: 1.4;
+}
+
+/* ---- Payment Toggle ---- */
+
+.owner-pay-toggle {
+  display: flex;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+  background: rgba(0,0,0,0.2);
+}
+
+.owner-pay-toggle-option {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #94a3b8;
+  transition: all 0.15s ease;
+  user-select: none;
+  font-family: inherit;
+}
+
+.owner-pay-toggle-option:hover:not(.active) { color: #e2e8f0; background: rgba(255,255,255,0.05); }
+
+.owner-pay-toggle-option.active {
+  background: #f59e0b;
+  color: #1c1917;
+}
+
+/* ---- Form Section Label ---- */
+
+.owner-form-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin-bottom: 1.25rem;
+}
+
+/* ---- Form Section Card ---- */
+
+.owner-form-section {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.02) inset;
+}
+
+/* ---- Request Preview ---- */
+
+.owner-req-preview {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  position: sticky;
+  top: 5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.02) inset;
+}
+
+.owner-req-preview-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #fbbf24;
+  margin-bottom: 1rem;
+}
+
+.owner-req-preview-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.8rem;
+}
+
+.owner-req-preview-row:last-child { border-bottom: none; }
+.owner-req-preview-key { color: #94a3b8; font-weight: 500; }
+.owner-req-preview-val { color: #f8fafc; font-weight: 600; text-align: right; word-break: break-word; }
+
+/* ---- Submit Button ---- */
+
+.owner-form-submit {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9px;
+  border: none;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: #1c1917;
+  font-size: 0.875rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+}
+
+.owner-form-submit:hover { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5); transform: translateY(-1px); }
+.owner-form-submit:active { transform: scale(0.98); }
+.owner-form-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }

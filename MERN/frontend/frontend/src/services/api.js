@@ -23,6 +23,8 @@ export const authApi = {
   me: () => unwrap(api.get('/auth/me')),
   updateProfile: (payload) => unwrap(api.patch('/auth/update-profile', payload)),
   changePassword: (payload) => unwrap(api.patch('/auth/change-password', payload)),
+  forgotPassword: (email) => unwrap(api.post('/auth/forgot-password', { email })),
+  resetPassword: (token, password) => unwrap(api.post(`/auth/reset-password/${token}`, { password })),
 };
 
 export const planApi = {
@@ -46,6 +48,9 @@ export const assignmentApi = {
   applicationsByRequest: (requestId) => unwrap(api.get(`/assignments/request/${requestId}/applications`)),
   decideApplication: (requestId, applicationId, payload) => unwrap(api.post(`/assignments/request/${requestId}/applications/${applicationId}/decision`, payload)),
   retryExpired: (requestId) => unwrap(api.post(`/assignments/request/${requestId}/retry`)),
+  retrySameFinder: (requestId, payload = {}) => unwrap(api.post(`/assignments/request/${requestId}/retry-same-finder`, payload)),
+  retryDifferentFinder: (requestId, payload = {}) => unwrap(api.post(`/assignments/request/${requestId}/retry-different-finder`, payload)),
+  dropByOwner: (requestId, payload = {}) => unwrap(api.post(`/assignments/request/${requestId}/drop-by-owner`, payload)),
   byId: (assignmentId) => unwrap(api.get(`/assignments/${assignmentId}`)),
   timeline: (assignmentId) => unwrap(api.get(`/assignments/${assignmentId}/timeline`)),
   requestTimeline: (requestId) => unwrap(api.get(`/assignments/request/${requestId}/timeline`)),

@@ -40,6 +40,11 @@ const OwnerRequestDetailsPage = () => {
   const [ratingState, setRatingState] = useState({ open: false, ratingValue: 0, reviewText: '' });
   const [ratingHover, setRatingHover] = useState(0);
   const [modalLoading, setModalLoading] = useState(false);
+  const [ownerActionState, setOwnerActionState] = useState({
+    open: false,
+    action: '',
+    reason: '',
+  });
 
   const loadDetails = useCallback(async () => {
     try {
@@ -169,13 +174,33 @@ const OwnerRequestDetailsPage = () => {
     });
   };
 
-  const handleRetryExpired = async () => {
-    if (!request?._id) return;
+  const openOwnerActionModal = (action) => {
+    setOwnerActionState({ open: true, action, reason: '' });
+  };
+
+  const submitOwnerAction = async () => {
+    if (!request?._id || !ownerActionState.action) return;
+
+    const reason = String(ownerActionState.reason || '').trim();
 
     try {
       setModalLoading(true);
-      await assignmentApi.retryExpired(request._id);
-      toast.success('Expired assignment reset. Request is open for new finder applications.');
+
+      if (ownerActionState.action === 'retry_same') {
+        await assignmentApi.retrySameFinder(request._id, { reason });
+        toast.success('Assignment reopened with same finder and new deadline.');
+      } else if (ownerActionState.action === 'retry_different') {
+        await assignmentApi.retryDifferentFinder(request._id, { reason });
+        toast.success('Refund applied. Complete payment again to reopen for new finder.');
+      } else if (ownerActionState.action === 'drop_expired') {
+        await assignmentApi.dropByOwner(request._id, { mode: 'expired', reason });
+        toast.success('Expired request dropped with settlement.');
+      } else if (ownerActionState.action === 'drop_failed') {
+        await assignmentApi.dropByOwner(request._id, { mode: 'failed', reason });
+        toast.success('Failed request dropped with final settlement.');
+      }
+
+      setOwnerActionState({ open: false, action: '', reason: '' });
       await loadDetails();
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -344,12 +369,45 @@ const OwnerRequestDetailsPage = () => {
         onVerifyEvidence={handleVerifyEvidence}
         onReleasePayment={handleReleasePayment}
         onApplicationDecision={handleApplicationDecision}
-        onRetryExpired={handleRetryExpired}
+        onRetrySameFinder={() => openOwnerActionModal('retry_same')}
+        onRetryDifferentFinder={() => openOwnerActionModal('retry_different')}
+        onDropExpired={() => openOwnerActionModal('drop_expired')}
+        onDropFailed={() => openOwnerActionModal('drop_failed')}
         onOpenChat={handleOpenChat}
         onRateFinder={handleRateFinder}
         onEditRequest={handleOpenEditRequest}
         onDeleteRequest={handleOpenDeleteDraft}
       />
+
+      <GlassModal
+        open={ownerActionState.open}
+        title={ownerActionState.action === 'retry_same' ? 'Retry With Same Finder' : ownerActionState.action === 'retry_different' ? 'Retry With Different Finder' : 'Drop Request'}
+        subtitle={ownerActionState.action === 'retry_same'
+          ? 'This reactivates the same finder with a fresh assignment deadline.'
+          : ownerActionState.action === 'retry_different'
+            ? 'This refunds current payment as per plan. Owner must pay again to reopen cycle.'
+            : ownerActionState.action === 'drop_expired'
+              ? 'This will close request and settle owner refund + finder compensation.'
+              : 'This will keep failed history and apply final settlement as per plan.'}
+        onClose={() => setOwnerActionState({ open: false, action: '', reason: '' })}
+        onConfirm={submitOwnerAction}
+        confirmText={ownerActionState.action?.startsWith('retry') ? 'Confirm Retry' : 'Confirm Drop'}
+        confirmClassName={ownerActionState.action?.startsWith('drop') ? 'rounded-lg border border-rose-600 bg-rose-600 text-white' : 'pnf-btn-primary'}
+        loading={modalLoading}
+      >
+        <div className="space-y-3 text-sm text-slate-700">
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            Warning: Financial settlement and timeline history will be recorded permanently.
+          </p>
+          <textarea
+            className="pnf-input"
+            rows={3}
+            placeholder="Add reason/notes for audit timeline"
+            value={ownerActionState.reason}
+            onChange={(e) => setOwnerActionState((prev) => ({ ...prev, reason: e.target.value }))}
+          />
+        </div>
+      </GlassModal>
 
       <GlassModal
         open={applicationDecisionState.open}

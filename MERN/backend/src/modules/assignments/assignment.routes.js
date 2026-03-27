@@ -19,6 +19,9 @@ router.get('/request/:requestId/applications', verifyToken, assignmentController
 router.post('/request/:requestId/applications/:applicationId/decision', verifyToken, assignmentController.decideApplication);
 router.get('/request/:requestId/timeline', verifyToken, assignmentController.getRequestTimeline);
 router.post('/request/:requestId/retry', verifyToken, assignmentController.retryExpiredAssignment);
+router.post('/request/:requestId/retry-same-finder', verifyToken, assignmentController.retryExpiredWithSameFinder);
+router.post('/request/:requestId/retry-different-finder', verifyToken, assignmentController.retryFailedWithDifferentFinder);
+router.post('/request/:requestId/drop-by-owner', verifyToken, assignmentController.dropRequestByOwner);
 
 /**
  * Owner Side: Confirm item received and complete assignment

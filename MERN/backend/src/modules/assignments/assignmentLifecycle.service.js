@@ -11,9 +11,15 @@ const isExpired = (deadlineAt) => {
   return Number.isFinite(ms) && ms <= Date.now();
 };
 
+const isOwnerDeadlineFailed = (serviceDeadline) => {
+  if (!serviceDeadline) return false;
+  const ms = new Date(serviceDeadline).getTime();
+  return Number.isFinite(ms) && ms <= Date.now();
+};
+
 const evaluateAssignmentsLifecycle = async () => {
   const assignments = await FinderAssignment.find({
-    status: { $in: ['active', 'inactive'] },
+    status: { $in: ['active', 'inactive', 'paused'] },
   }).populate('request');
 
   const now = Date.now();
@@ -21,6 +27,44 @@ const evaluateAssignmentsLifecycle = async () => {
   for (const assignment of assignments) {
     const request = assignment.request || await LostItemRequest.findById(assignment.request);
     if (!request) continue;
+
+    if (isOwnerDeadlineFailed(request.serviceDeadline)) {
+      assignment.status = 'failed';
+      await assignment.save();
+
+      request.requestStatus = 'failed';
+      await request.save();
+
+      try {
+        await Promise.all([
+          createNotification({
+            userId: assignment.finder,
+            type: 'assignment',
+            title: 'Request Failed',
+            message: `Owner service deadline for "${request.itemName}" has ended. Assignment marked failed.`,
+            data: { assignmentId: assignment._id, requestId: request._id },
+          }),
+          createNotification({
+            userId: request.owner,
+            type: 'assignment',
+            title: 'Request Failed',
+            message: `Service deadline ended for "${request.itemName}". Request and assignment marked failed.`,
+            data: { assignmentId: assignment._id, requestId: request._id },
+          }),
+        ]);
+      } catch (error) {
+        console.error('Failed deadline notification failed:', error.message);
+      }
+
+      await addTimelineEvent({
+        assignmentId: assignment._id,
+        requestId: request._id,
+        action: 'REQUEST_SERVICE_DEADLINE_FAILED',
+        details: { serviceDeadline: request.serviceDeadline },
+      });
+
+      continue;
+    }
 
     if (isExpired(assignment.deadlineAt)) {
       assignment.status = 'expired';
@@ -31,15 +75,15 @@ const evaluateAssignmentsLifecycle = async () => {
           createNotification({
             userId: assignment.finder,
             type: 'assignment',
-            title: 'Deadline Reached',
-            message: `Assignment for "${request.itemName}" has expired.`,
+            title: 'Finder Assignment Expired',
+            message: `Your 4-hour assignment deadline for "${request.itemName}" has expired.`,
             data: { assignmentId: assignment._id, requestId: request._id },
           }),
           createNotification({
             userId: request.owner,
             type: 'assignment',
-            title: 'Deadline Reached',
-            message: `Finder assignment for "${request.itemName}" has expired.`,
+            title: 'Finder Assignment Expired',
+            message: `Finder assignment deadline for "${request.itemName}" has expired. You can retry this request.`,
             data: { assignmentId: assignment._id, requestId: request._id },
           }),
         ]);
