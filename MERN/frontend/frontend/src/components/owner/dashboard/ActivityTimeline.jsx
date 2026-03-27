@@ -20,20 +20,38 @@ const ActivityTimeline = ({ items = [] }) => {
 
   return (
     <div className="owner-timeline">
-      {items.map((item, i) => (
-        <div key={item.id} className="owner-timeline-item">
-          <div className="timeline-dot-wrap">
-            <div className="timeline-dot">{ICON_MAP[item.type] || ICON_MAP.default}</div>
-            {i < items.length - 1 && <div className="timeline-line" />}
+      {items.map((item, i) => {
+        const type = String(item.type || '').toLowerCase();
+        let statusClass = 'pending';
+        if (type.includes('open')) statusClass = 'open';
+        if (type.includes('completed') || type.includes('verified')) statusClass = 'completed';
+        if (type.includes('failed') || type.includes('expired') || type.includes('cancelled')) statusClass = 'failed';
+
+        return (
+          <div key={item.id} className="owner-timeline-item">
+            <div className="timeline-dot-wrap">
+              <div className={`timeline-dot ${statusClass}`}>
+                {ICON_MAP[item.type] || ICON_MAP.default}
+              </div>
+              {i < items.length - 1 && <div className="timeline-line" />}
+            </div>
+            <div className="timeline-content">
+              <p className="timeline-title">{item.title}</p>
+              <p className="timeline-meta">
+                <span>{String(item.description || '').replace(/_/g, ' ')}</span>
+                {item.timestamp && (
+                  <span>
+                    {new Date(item.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p className="timeline-title">{item.title}</p>
-            <p className="timeline-meta">{String(item.description || '').replace(/_/g, ' ')} · {item.timestamp ? new Date(item.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}</p>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
+
 
 export default ActivityTimeline;

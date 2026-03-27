@@ -133,7 +133,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
   const goBack = () => setStep((prev) => Math.max(prev - 1, 1));
 
   return (
-    <form className="pnf-card owner-request-form p-5" onSubmit={handleSubmit((values) => handleFormSubmit(values, 'draft'))}>
+    <form className="owner-section-card owner-request-form p-5" onSubmit={handleSubmit((values) => handleFormSubmit(values, 'draft'))}>
       <div className="owner-request-step-grid mb-5 grid gap-2 md:grid-cols-3">
         {STEPS.map((item) => {
           const isActive = step === item.id;
@@ -142,13 +142,13 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
           return (
             <div
               key={item.id}
-              className={`owner-request-step-card rounded-lg border p-3 ${isActive ? 'is-active border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'} ${isDone ? 'is-done' : ''}`}
+              className={`owner-request-step-card rounded-lg border p-3 ${isActive ? 'is-active border-amber-500/50 bg-amber-500/10' : 'border-white/10 bg-black/20'} ${isDone ? 'is-done border-emerald-500/30 bg-emerald-500/5' : ''}`}
             >
-              <p className={`text-xs font-semibold ${isDone ? 'text-emerald-700' : 'text-slate-600'}`}>
+              <p className={`text-xs font-semibold ${isDone ? 'text-emerald-400' : (isActive ? 'text-amber-400' : 'text-stone-400')}`}>
                 Step {item.id}
               </p>
-              <p className="text-sm font-medium text-slate-900">{item.title}</p>
-              <p className="text-xs text-slate-500">{item.subtitle}</p>
+              <p className="text-sm font-medium text-stone-100">{item.title}</p>
+              <p className="text-xs text-stone-400">{item.subtitle}</p>
             </div>
           );
         })}
@@ -190,7 +190,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
             <input type="hidden" {...register('lastSeenLng', { required: 'Longitude is required' })} />
 
             {location.address ? (
-              <p className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <p className="mt-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-stone-300">
                 Selected location: {location.address}
               </p>
             ) : null}
@@ -203,7 +203,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
 
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium">Pick Location From Map</label>
-            <p className="mb-2 text-xs text-slate-500">Search or click on the map to set location details.</p>
+            <p className="mb-2 text-xs text-stone-400">Search or click on the map to set location details.</p>
             <MapPicker lat={mapLat} lng={mapLng} onPick={pickFromMap} />
             {isLocationBusy ? <p className="mt-2 text-xs text-slate-500">Loading location data...</p> : null}
           </div>
@@ -276,15 +276,15 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
             </select>
           </div>
 
-          <div className="md:col-span-2 owner-request-preview rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <p className="text-sm font-semibold text-slate-900">Request Preview</p>
-            <div className="mt-2 grid gap-1 text-sm text-slate-700 md:grid-cols-2">
-              <p><span className="font-medium">Item:</span> {watchedItemName || '-'}</p>
-              <p><span className="font-medium">Category:</span> {watchedItemCategory || '-'}</p>
-              <p className="md:col-span-2"><span className="font-medium">Description:</span> {watchedDescription || '-'}</p>
-              <p className="md:col-span-2"><span className="font-medium">Location:</span> {watchedLocation || '-'}</p>
-              <p><span className="font-medium">Plan:</span> {selectedPlan?.planName || '-'}</p>
-              <p><span className="font-medium">Price:</span> Rs {Number(selectedPlan?.price || selectedPlan?.amount || selectedPlan?.rewardAmount || 0)}</p>
+          <div className="md:col-span-2 owner-request-preview rounded-lg border border-white/10 bg-black/20 p-3">
+            <p className="text-sm font-semibold text-amber-100">Request Preview</p>
+            <div className="mt-2 grid gap-1 text-sm text-stone-300 md:grid-cols-2">
+              <p><span className="font-medium text-stone-400">Item:</span> {watchedItemName || '-'}</p>
+              <p><span className="font-medium text-stone-400">Category:</span> {watchedItemCategory || '-'}</p>
+              <p className="md:col-span-2"><span className="font-medium text-stone-400">Description:</span> {watchedDescription || '-'}</p>
+              <p className="md:col-span-2"><span className="font-medium text-stone-400">Location:</span> {watchedLocation || '-'}</p>
+              <p><span className="font-medium text-stone-400">Plan:</span> {selectedPlan?.planName || '-'}</p>
+              <p><span className="font-medium text-stone-400">Price:</span> Rs {Number(selectedPlan?.price || selectedPlan?.amount || selectedPlan?.rewardAmount || 0)}</p>
             </div>
           </div>
 
@@ -311,17 +311,17 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
         </div>
       ) : null}
 
-      <div className="owner-request-form-footer mt-5 flex flex-wrap justify-between gap-2 border-t border-slate-200 pt-4">
-        <button className="pnf-btn-outline rounded-lg px-4 py-2 text-sm font-medium" type="button" onClick={goBack} disabled={loading || step === 1}>
+      <div className="owner-request-form-footer mt-5 flex flex-wrap justify-between gap-2 border-t border-white/10 pt-4">
+        <button className="pnf-btn-outline rounded-lg px-4 py-2 text-sm font-medium" type="button" onClick={goBack} disabled={loading || step === 1} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}>
           Back
         </button>
 
         {step < STEPS.length ? (
-          <button className="pnf-btn-primary rounded-lg px-4 py-2 text-sm font-medium" type="button" onClick={goNext} disabled={loading}>
+          <button className="owner-quick-btn primary rounded-lg px-4 py-2" type="button" onClick={goNext} disabled={loading}>
             Continue
           </button>
         ) : (
-          <p className="self-center text-xs text-slate-500">Review details above and choose draft or pay now.</p>
+          <p className="self-center text-xs text-stone-400">Review details above and choose draft or pay now.</p>
         )}
       </div>
     </form>

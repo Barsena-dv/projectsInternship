@@ -9,19 +9,35 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
-  border-radius: 12px;
-  padding: 1.125rem 1.375rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.02) inset;
-  transition: box-shadow 0.2s, transform 0.2s;
-  margin-bottom: 0.75rem;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.02) inset;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .owner-req-card:hover {
-  box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05) inset;
-  transform: translateY(-1px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08) inset;
+  transform: translateY(-4px);
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
-.owner-req-card:last-child { margin-bottom: 0; }
+/* ---- Request Grid ---- */
+.owner-requests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .owner-requests-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 .owner-req-card-title {
   font-size: 0.9rem;

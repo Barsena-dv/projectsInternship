@@ -135,22 +135,24 @@ const OwnerDashboardPage = () => {
               <span className="owner-section-title">Recent Requests</span>
               <Link to="/owner/requests" className="owner-section-link">View all →</Link>
             </div>
-            {recentRequests.length === 0
-              ? <p style={text('0.825rem', '#a8a29e')}>Nothing yet — create your first request.</p>
-              : recentRequests.map((item) => (
-                <Link key={item._id} to={`/owner/requests/${item._id}`} style={{ display: 'block', textDecoration: 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', gap: '0.75rem', transition: 'all 0.15s' }}
-                    onMouseEnter={(e) => { e.currentTarget.closest('a').style.opacity = '0.8'; }}
-                    onMouseLeave={(e) => { e.currentTarget.closest('a').style.opacity = '1'; }}
-                  >
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ ...text('0.85rem', '#e8eaf0', 600), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.itemName || 'Untitled'}</p>
-                      <p style={{ ...text('0.75rem', '#a8a29e'), marginTop: '2px' }}>{item.itemCategory || '—'} · {formatDate(item.createdAt)}</p>
+            <div className="pnf-scroll-limited">
+              {recentRequests.length === 0
+                ? <p style={text('0.825rem', '#a8a29e')}>Nothing yet — create your first request.</p>
+                : recentRequests.map((item) => (
+                  <Link key={item._id} to={`/owner/requests/${item._id}`} style={{ display: 'block', textDecoration: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', gap: '0.75rem', transition: 'all 0.15s' }}
+                      onMouseEnter={(e) => { e.currentTarget.closest('a').style.opacity = '0.8'; }}
+                      onMouseLeave={(e) => { e.currentTarget.closest('a').style.opacity = '1'; }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ ...text('0.85rem', '#e8eaf0', 600), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.itemName || 'Untitled'}</p>
+                        <p style={{ ...text('0.75rem', '#a8a29e'), marginTop: '2px' }}>{item.itemCategory || '—'} · {formatDate(item.createdAt)}</p>
+                      </div>
+                      <OwnerStatusBadge value={item._lifecycle} />
                     </div>
-                    <OwnerStatusBadge value={item._lifecycle} />
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))}
+            </div>
           </div>
 
           {/* High interest */}
@@ -159,20 +161,22 @@ const OwnerDashboardPage = () => {
               <span className="owner-section-title">High-Interest Requests</span>
               <span style={{ fontSize: '0.72rem', color: '#a8a29e' }}>By applicant count</span>
             </div>
-            {topApplicant.length === 0
-              ? <p style={text('0.825rem', '#a8a29e')}>No applicant activity yet.</p>
-              : topApplicant.map((item, idx) => (
-                <Link key={item._id} to={`/owner/requests/${item._id}`} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.625rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', textDecoration: 'none' }}>
-                  <div style={{ width: '26px', height: '26px', borderRadius: '7px', background: 'rgba(245,158,11,0.15)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.72rem', flexShrink: 0 }}>
-                    {idx + 1}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ ...text('0.83rem', '#e8eaf0', 600), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.itemName || 'Untitled'}</p>
-                    <p style={{ ...text('0.72rem', '#a8a29e'), marginTop: '1px' }}>{item.count} applicant{item.count !== 1 ? 's' : ''}</p>
-                  </div>
-                  <OwnerStatusBadge value={item._lifecycle} />
-                </Link>
-              ))}
+            <div className="pnf-scroll-limited">
+              {topApplicant.length === 0
+                ? <p style={text('0.825rem', '#a8a29e')}>No applicant activity yet.</p>
+                : topApplicant.map((item, idx) => (
+                  <Link key={item._id} to={`/owner/requests/${item._id}`} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.625rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', textDecoration: 'none' }}>
+                    <div style={{ width: '26px', height: '26px', borderRadius: '7px', background: 'rgba(245,158,11,0.15)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.72rem', flexShrink: 0 }}>
+                      {idx + 1}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ ...text('0.83rem', '#e8eaf0', 600), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.itemName || 'Untitled'}</p>
+                      <p style={{ ...text('0.72rem', '#a8a29e'), marginTop: '1px' }}>{item.count} applicant{item.count !== 1 ? 's' : ''}</p>
+                    </div>
+                    <OwnerStatusBadge value={item._lifecycle} />
+                  </Link>
+                ))}
+            </div>
           </div>
         </div>
 
@@ -184,7 +188,9 @@ const OwnerDashboardPage = () => {
             <div className="owner-section-header">
               <span className="owner-section-title">Activity</span>
             </div>
-            <ActivityTimeline items={timelineItems} />
+            <div className="pnf-scroll-limited">
+              <ActivityTimeline items={timelineItems} />
+            </div>
           </div>
 
           {/* Notifications */}
@@ -193,17 +199,19 @@ const OwnerDashboardPage = () => {
               <span className="owner-section-title">Notifications</span>
               <Link to="/notifications" className="owner-section-link">All →</Link>
             </div>
-            {notifications.length === 0
-              ? <p style={text('0.8rem', '#a8a29e')}>No recent alerts.</p>
-              : notifications.slice(0, 5).map((n) => (
-                <div key={n._id} className={`owner-notif-item${n.isRead ? '' : ' unread'}`}>
-                  <div className="owner-notif-icon">🔔</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ ...text('0.78rem', '#e8eaf0', 600), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.title || 'Notification'}</p>
-                    <p style={{ ...text('0.7rem', '#a8a29e'), marginTop: '2px' }}>{formatDate(n.createdAt)}</p>
+            <div className="pnf-scroll-limited">
+              {notifications.length === 0
+                ? <p style={text('0.8rem', '#a8a29e')}>No recent alerts.</p>
+                : notifications.slice(0, 15).map((n) => (
+                  <div key={n._id} className={`owner-notif-item${n.isRead ? '' : ' unread'}`}>
+                    <div className="owner-notif-icon">🔔</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ ...text('0.78rem', '#e8eaf0', 600), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.title || 'Notification'}</p>
+                      <p style={{ ...text('0.7rem', '#a8a29e'), marginTop: '2px' }}>{formatDate(n.createdAt)}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+            </div>
           </div>
         </div>
       </div>

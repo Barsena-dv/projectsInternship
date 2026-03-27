@@ -40,15 +40,15 @@ const LocationSearchInput = ({
         </button>
       </div>
 
-      {isLoading ? <p className="mt-1 text-xs text-slate-500">Searching locations...</p> : null}
+      {isLoading ? <p className="mt-1 text-xs text-stone-500">Searching locations...</p> : null}
 
       {isOpen && hasSuggestions ? (
-        <ul className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+        <ul className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-white/10 bg-stone-900 shadow-xl" style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
           {suggestions.map((suggestion) => (
             <li key={suggestion.id}>
               <button
                 type="button"
-                className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                className="w-full px-4 py-3 text-left text-sm text-stone-200 transition-colors hover:bg-amber-500/10 hover:text-amber-400"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
                   onSelect(suggestion);

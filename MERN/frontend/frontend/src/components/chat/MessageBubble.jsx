@@ -6,7 +6,7 @@ const MessageBubble = ({ message, isMine = false, showSender = true, compactTop 
       <div className={`relative max-w-[86%] md:max-w-[72%] ${isMine ? 'pr-2' : 'pl-2'}`}>
         <article
           className={`relative rounded-lg px-3 py-2 text-sm shadow-sm ${
-            isMine ? 'bg-[#dcf8c6] text-slate-900' : 'bg-white text-slate-800'
+            isMine ? 'message-bubble-mine' : 'message-bubble-peer'
           }`}
         >
           {showSender ? (
@@ -23,7 +23,7 @@ const MessageBubble = ({ message, isMine = false, showSender = true, compactTop 
         <span
           aria-hidden="true"
           className={`absolute top-0 h-0 w-0 border-y-[7px] border-y-transparent ${
-            isMine ? 'right-0 border-l-[9px] border-l-[#dcf8c6]' : 'left-0 border-r-[9px] border-r-white'
+            isMine ? 'right-0 border-l-[9px] border-l-amber-500' : 'left-0 border-r-[9px] border-r-stone-800'
           }`}
         />
       </div>

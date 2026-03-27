@@ -15,7 +15,7 @@ const EvidenceFileItem = ({ file, index }) => {
 
   if (!fileUrl) {
     return (
-      <div className="flex h-36 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 p-2 text-center text-xs text-rose-700">
+      <div className="flex h-36 items-center justify-center rounded-lg border border-rose-500/30 bg-rose-500/5 p-2 text-center text-xs text-rose-400">
         File URL missing
       </div>
     );
@@ -24,7 +24,7 @@ const EvidenceFileItem = ({ file, index }) => {
   if (type === 'document') {
     return (
       <a
-        className="flex h-36 items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-center text-xs font-medium text-blue-700 hover:bg-blue-50"
+        className="flex h-36 items-center justify-center rounded-lg border border-white/10 bg-black/20 p-2 text-center text-xs font-medium text-amber-400 hover:bg-amber-500/10"
         href={fileUrl}
         target="_blank"
         rel="noreferrer"
@@ -35,9 +35,9 @@ const EvidenceFileItem = ({ file, index }) => {
   }
 
   return (
-    <div className="relative h-36 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+    <div className="relative h-36 overflow-hidden rounded-lg border border-white/10 bg-black/20">
       {!isLoaded && !hasError ? (
-        <div className="absolute inset-0 flex animate-pulse items-center justify-center bg-slate-100 text-[11px] font-medium text-slate-500">
+        <div className="absolute inset-0 flex animate-pulse items-center justify-center bg-stone-800 text-[11px] font-medium text-stone-500">
           Loading evidence...
         </div>
       ) : null}
@@ -135,19 +135,19 @@ const RequestDetails = ({
 
   return (
     <div className="space-y-4">
-      <section className="pnf-card p-5">
+      <section className="owner-section-card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-slate-900">Request Information</h2>
+          <h2 className="text-lg font-semibold text-stone-100">Request Information</h2>
           <StatusBadge value={lifecycleState} />
         </div>
 
-        <div className="mt-4 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
-          <p><span className="font-medium">Item Name:</span> {request.itemName}</p>
-          <p><span className="font-medium">Category:</span> {request.itemCategory || '-'}</p>
-          <p><span className="font-medium">Description:</span> {request.itemDescription || '-'}</p>
-          <p><span className="font-medium">Last Seen:</span> {request.lastSeenLocation || '-'}</p>
-          <p><span className="font-medium">Service Plan:</span> {request.planId?.planName || '-'}</p>
-          <p><span className="font-medium">Created:</span> {formatDate(request.createdAt)}</p>
+        <div className="mt-4 grid gap-2 text-sm text-stone-300 md:grid-cols-2">
+          <p><span className="font-medium text-stone-400">Item Name:</span> {request.itemName}</p>
+          <p><span className="font-medium text-stone-400">Category:</span> {request.itemCategory || '-'}</p>
+          <p><span className="font-medium text-stone-400">Description:</span> {request.itemDescription || '-'}</p>
+          <p><span className="font-medium text-stone-400">Last Seen:</span> {request.lastSeenLocation || '-'}</p>
+          <p><span className="font-medium text-stone-400">Service Plan:</span> {request.planId?.planName || '-'}</p>
+          <p><span className="font-medium text-stone-400">Created:</span> {formatDate(request.createdAt)}</p>
         </div>
       </section>
 
@@ -201,10 +201,10 @@ const RequestDetails = ({
 
       {(lifecycleState === 'open' || lifecycleState === 'assigned' || lifecycleState === 'inactive' || lifecycleState === 'expired' || lifecycleState === 'failed' || lifecycleState === 'evidence_submitted' || lifecycleState === 'verified' || isCompleted) ? (
         <section className="pnf-card p-5">
-          <h3 className="text-base font-semibold text-slate-900">Applicants History ({applications?.length || 0})</h3>
-          <p className="mt-1 text-xs text-slate-500">Pending now: {pendingApplications.length}</p>
+          <h3 className="text-base font-semibold text-stone-100">Applicants History ({applications?.length || 0})</h3>
+          <p className="mt-1 text-xs text-stone-400">Pending now: {pendingApplications.length}</p>
           {!canDecideApplications ? (
-            <p className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+            <p className="mt-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-stone-400">
               Finder already assigned. Applicant decisions are locked now.
             </p>
           ) : null}
@@ -213,10 +213,10 @@ const RequestDetails = ({
           ) : (
             <div className="mt-3 space-y-2">
               {pendingApplications.map((application) => (
-                <article key={application._id} className="rounded-lg border border-slate-200 p-3 text-sm text-slate-700">
+                 <article key={application._id} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm text-stone-300">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="font-medium text-slate-900">{application?.finder?.full_name || 'Finder'}</p>
+                      <p className="font-medium text-stone-100">{application?.finder?.full_name || 'Finder'}</p>
                       <p>Rating: {application?.finder?.ratingAvg || 0}</p>
                       <p>Region: {application?.finderRegion || '-'}</p>
                       <p>Reason: {application?.applyReason || '-'}</p>
@@ -258,8 +258,8 @@ const RequestDetails = ({
               ))}
 
               {applicants.map((finder) => (
-                <article key={finder._id} className="rounded-lg border border-slate-200 p-3 text-sm text-slate-700">
-                  <p className="font-medium text-slate-900">{finder.full_name || 'Finder'}</p>
+                 <article key={finder._id} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm text-stone-300">
+                  <p className="font-medium text-stone-100">{finder.full_name || 'Finder'}</p>
                   <p>Rating: {finder.ratingAvg || 0}</p>
                 </article>
               ))}
@@ -323,23 +323,23 @@ const RequestDetails = ({
             </div>
           ) : null}
 
-          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <p className="text-sm font-medium text-slate-800">Assignment Timeline</p>
+          <div className="mt-3 rounded-lg border border-white/10 bg-black/20 p-3">
+            <p className="text-sm font-medium text-amber-100">Assignment Tracking</p>
             {timelineEvents?.length ? (
-              <div className="mt-3 space-y-4 border-l-2 border-slate-200 pl-4">
+              <div className="mt-3 space-y-4 border-l-2 border-white/10 pl-4">
                 {timelineEvents.map((row) => (
-                  <article key={row._id} className="relative rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 shadow-sm">
-                    <div className="absolute -left-5.25 top-3 h-2 w-2 rounded-full border border-slate-200 bg-white" />
-                    <p className="font-semibold text-slate-900">{row.action?.replace(/_/g, ' ')}</p>
-                    <p className="text-slate-600">Actor: {row?.actor?.user?.full_name || row?.actor?.label || 'System'}</p>
+                  <article key={row._id} className="relative rounded-lg border border-white/10 bg-stone-900/50 p-3 text-xs text-stone-300 shadow-sm">
+                    <div className="absolute -left-5.25 top-3 h-2 w-2 rounded-full border border-white/10 bg-stone-900" />
+                    <p className="font-semibold text-stone-100">{row.action?.replace(/_/g, ' ')}</p>
+                    <p className="text-stone-400">Actor: {row?.actor?.user?.full_name || row?.actor?.label || 'System'}</p>
                     {row?.details?.remarks ? <p className="mt-1 italic">"{row.details.remarks}"</p> : null}
-                    {row?.details?.locationName ? <p className="mt-0.5 text-blue-600">📍 {row.details.locationName}</p> : null}
-                    <p className="mt-1 text-right text-[10px] text-slate-400 font-mono">{formatDate(row.createdAt)}</p>
+                    {row?.details?.locationName ? <p className="mt-0.5 text-amber-400">📍 {row.details.locationName}</p> : null}
+                    <p className="mt-1 text-right text-[10px] text-stone-500 font-mono">{formatDate(row.createdAt)}</p>
                   </article>
                 ))}
               </div>
             ) : (
-              <p className="mt-1 text-sm text-slate-600">No tracking updates yet.</p>
+              <p className="mt-1 text-sm text-stone-400">No tracking updates yet.</p>
             )}
           </div>
         </section>

@@ -148,7 +148,7 @@ const OwnerRequestsPage = () => {
         <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           My Requests
         </h1>
-        <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.875rem' }}>
+        <p style={{ margin: '0.35rem 0 0', color: '#a8a29e', fontSize: '0.875rem' }}>
           Track pending, open, assigned, and completed requests
         </p>
       </div>
@@ -161,9 +161,9 @@ const OwnerRequestsPage = () => {
           placeholder="🔍 Search by name…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ padding: '0.4rem 1rem', borderRadius: '100px', border: '1.5px solid rgba(15,23,42,0.1)', fontSize: '0.82rem', outline: 'none', minWidth: '180px', transition: 'border-color 0.2s' }}
-          onFocus={(e) => { e.target.style.borderColor = '#f59e0b'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.1)'; }}
-          onBlur={(e) => { e.target.style.borderColor = 'rgba(15,23,42,0.1)'; e.target.style.boxShadow = 'none'; }}
+          style={{ padding: '0.4rem 1rem', borderRadius: '100px', border: '1.5px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: '#fffbeb', fontSize: '0.82rem', outline: 'none', minWidth: '180px', transition: 'all 0.2s' }}
+          onFocus={(e) => { e.target.style.borderColor = '#f59e0b'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.2)'; }}
+          onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none'; }}
         />
         {FILTERS.map((f) => (
           <button
@@ -184,7 +184,7 @@ const OwnerRequestsPage = () => {
       ) : null}
 
       {!loading && filtered.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', marginTop: '0.5rem' }}>
+        <div className="owner-requests-grid">
           {filtered.map((item) => (
             <OwnerRequestCard
               key={item._id}
@@ -210,9 +210,9 @@ const OwnerRequestsPage = () => {
         confirmClassName="rounded-lg border border-rose-600 bg-rose-600 text-white"
         loading={deleteLoading}
       >
-        <div className="pnf-glass-soft rounded-xl p-3 text-sm text-slate-700">
-          <p><span className="font-medium">Item:</span> {deleteTarget?.itemName || '-'}</p>
-          <p><span className="font-medium">Category:</span> {deleteTarget?.itemCategory || '-'}</p>
+        <div className="owner-section-card rounded-xl p-3 text-sm text-stone-300" style={{ background: 'rgba(0,0,0,0.2)' }}>
+          <p><span className="font-medium text-stone-400">Item:</span> {deleteTarget?.itemName || '-'}</p>
+          <p><span className="font-medium text-stone-400">Category:</span> {deleteTarget?.itemCategory || '-'}</p>
         </div>
       </GlassModal>
     </div>

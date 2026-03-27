@@ -1,0 +1,118 @@
+/* ============================================================
+   OWNER — CHAT THEME (Stone & Amber Glassmorphism)
+   ============================================================ */
+
+.owner-chat-page {
+  --chat-bg: #1c1917;
+  --chat-surface: rgba(255, 241, 230, 0.04);
+  --chat-border: rgba(255, 237, 213, 0.12);
+  --chat-accent: #f59e0b;
+  --chat-text: #fffbeb;
+  --chat-muted: #a8a29e;
+  
+  color: var(--chat-text);
+}
+
+.owner-chat-page .chat-shell {
+  background: var(--chat-surface) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--chat-border) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  border-radius: 20px;
+}
+
+/* Sidebar */
+.owner-chat-page aside {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-right: 1px solid var(--chat-border) !important;
+}
+
+.owner-chat-page .pnf-soft-border {
+  border-color: var(--chat-border) !important;
+}
+
+.owner-chat-page .pnf-heading {
+  color: var(--chat-text) !important;
+}
+
+.owner-chat-page .pnf-muted {
+  color: var(--chat-muted) !important;
+}
+
+/* Conversation List Items */
+.owner-chat-page button[type="button"].w-full {
+  border-bottom: 1px solid var(--chat-border) !important;
+  transition: all 0.2s ease;
+}
+
+.owner-chat-page button[type="button"].w-full:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.owner-chat-page button[type="button"].w-full.bg-\(--pnf-accent-soft\) {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-left: 3px solid var(--chat-accent) !important;
+}
+
+/* Chat Window */
+.owner-chat-page .flex.h-full.min-h-0.flex-col {
+  background: transparent !important;
+}
+
+.owner-chat-page .border-b.bg-\(--pnf-surface\) {
+  background: rgba(0, 0, 0, 0.15) !important;
+  border-bottom: 1px solid var(--chat-border) !important;
+}
+
+/* Messages Area */
+.owner-chat-page [ref="messagesContainerRef"] {
+  background-color: transparent !important;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0) !important;
+}
+
+/* Bubbles */
+.owner-chat-page .message-bubble-mine {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24) !important;
+  color: #1c1917 !important;
+  border-radius: 14px 14px 2px 14px !important;
+  box-shadow: 0 4px 12px rgba(245,158,11,0.25) !important;
+}
+
+.owner-chat-page .message-bubble-peer {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #fffbeb !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 14px 14px 14px 2px !important;
+}
+
+.owner-chat-page .message-bubble-mine .text-emerald-700 {
+  color: #78350f !important; /* Dark brown for owner name on amber */
+}
+
+.owner-chat-page .message-bubble-peer .text-slate-500 {
+  color: #fca5a5 !important; /* Light rose for peer name */
+}
+
+.owner-chat-page .message-bubble-mine .text-slate-500 {
+  color: #451a03 !important; /* Dark brown for timestamp on amber */
+}
+
+/* Input Area */
+.owner-chat-page .border-t.bg-\(--pnf-surface\) {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-top: 1px solid var(--chat-border) !important;
+}
+
+.owner-chat-page .chat-input-wrapper {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid var(--chat-border) !important;
+  color: #fffbeb !important;
+}
+
+.owner-chat-page .chat-input-wrapper .pnf-input {
+  background: transparent !important;
+  border: none !important;
+  color: #fffbeb !important;
+}

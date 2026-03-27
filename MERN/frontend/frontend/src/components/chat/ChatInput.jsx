@@ -7,7 +7,7 @@ const ChatInput = ({
   sending = false,
 }) => {
   return (
-    <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+    <div className="chat-input-wrapper flex items-end gap-2 p-2 shadow-sm">
       <button
         type="button"
         className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-600 transition hover:bg-slate-100"

@@ -11,6 +11,7 @@ import PageHeader from '../../components/common/PageHeader';
 import { useAuth } from '../../hooks/useAuth';
 import { assignmentApi, chatApi } from '../../services/api';
 import { getErrorMessage } from '../../utils/helpers';
+import '../../styles/owner/chat.css';
 
 const POLL_INTERVAL_MS = 7000;
 
@@ -319,7 +320,7 @@ const ChatPage = () => {
 
   if (finderNeedsAssignmentScope) {
     return (
-      <div className="owner-chat-page finder-chat-page admin-chat-page">
+      <div className="owner-chat-page">
         <PageHeader title="Chat" subtitle="Chat is available only from Assignment Details after evidence verification." />
         <EmptyState
           title="Open chat from an assignment"
@@ -330,7 +331,7 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="owner-chat-page finder-chat-page admin-chat-page">
+    <div className="owner-chat-page">
       <PageHeader title="Chat" subtitle="Owner and finder can chat after evidence verification." />
 
       <ChatLayout

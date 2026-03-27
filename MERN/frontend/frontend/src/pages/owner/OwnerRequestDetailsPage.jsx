@@ -395,8 +395,8 @@ const OwnerRequestDetailsPage = () => {
         confirmClassName={ownerActionState.action?.startsWith('drop') ? 'rounded-lg border border-rose-600 bg-rose-600 text-white' : 'pnf-btn-primary'}
         loading={modalLoading}
       >
-        <div className="space-y-3 text-sm text-slate-700">
-          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <div className="space-y-3 text-sm text-stone-300">
+          <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
             Warning: Financial settlement and timeline history will be recorded permanently.
           </p>
           <textarea
@@ -424,7 +424,7 @@ const OwnerRequestDetailsPage = () => {
         confirmClassName={applicationDecisionState.decision === 'accepted' ? 'pnf-btn-primary' : 'rounded-lg border border-rose-600 bg-rose-600 text-white'}
         loading={modalLoading}
       >
-        <div className="space-y-3 text-sm text-slate-700">
+        <div className="space-y-3 text-sm text-stone-300">
           <p>
             Finder: <span className="font-semibold">{applicationDecisionState.application?.finder?.full_name || 'Finder'}</span>
           </p>
@@ -486,7 +486,7 @@ const OwnerRequestDetailsPage = () => {
       >
         <div className="space-y-3">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Item Name</label>
+            <label className="mb-1 block text-sm font-medium text-stone-400">Item Name</label>
             <input
               className="pnf-input"
               type="text"
@@ -495,7 +495,7 @@ const OwnerRequestDetailsPage = () => {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Category</label>
+            <label className="mb-1 block text-sm font-medium text-stone-400">Category</label>
             <input
               className="pnf-input"
               type="text"
@@ -504,7 +504,7 @@ const OwnerRequestDetailsPage = () => {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Description</label>
+            <label className="mb-1 block text-sm font-medium text-stone-400">Description</label>
             <textarea
               className="pnf-input"
               rows={3}
@@ -513,7 +513,7 @@ const OwnerRequestDetailsPage = () => {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Last Seen Location</label>
+            <label className="mb-1 block text-sm font-medium text-stone-400">Last Seen Location</label>
             <input
               className="pnf-input"
               type="text"
@@ -534,7 +534,7 @@ const OwnerRequestDetailsPage = () => {
         confirmClassName="rounded-lg border border-rose-600 bg-rose-600 text-white"
         loading={modalLoading}
       >
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-stone-300">
           Are you sure you want to delete <span className="font-semibold">{request?.itemName || 'this request'}</span>?
         </p>
       </GlassModal>
@@ -551,7 +551,7 @@ const OwnerRequestDetailsPage = () => {
       >
         <div className="space-y-3">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Your Rating</label>
+            <label className="mb-1 block text-sm font-medium text-stone-400">Your Rating</label>
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((starValue) => {
                 const activeValue = ratingHover || Number(ratingState.ratingValue) || 0;
@@ -567,7 +567,7 @@ const OwnerRequestDetailsPage = () => {
                     onClick={() => setRatingState((prev) => ({ ...prev, ratingValue: starValue }))}
                     aria-label={`Rate ${starValue} star`}
                   >
-                    <FaStar className={active ? 'text-amber-400' : 'text-slate-300'} size={24} />
+                    <FaStar className={active ? 'text-amber-400' : 'text-stone-700'} size={24} />
                   </button>
                 );
               })}
@@ -577,7 +577,7 @@ const OwnerRequestDetailsPage = () => {
             </p>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Review</label>
+            <label className="mb-1 block text-sm font-medium text-stone-400">Review</label>
             <textarea
               className="pnf-input"
               rows={3}

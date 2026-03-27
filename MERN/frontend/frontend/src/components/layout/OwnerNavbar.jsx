@@ -10,10 +10,10 @@ const NAV_LINKS = [
   { label: 'Dashboard',      to: '/owner/dashboard' },
   { label: 'My Requests',    to: '/owner/requests' },
   { label: 'Create Request', to: '/owner/create-request' },
-  { label: 'Payments',       to: '/owner/payments' },
+  { label: 'Chat',           to: '/chat' },
 ];
 
-const OwnerNavbar = ({ darkMode, onToggleDark }) => {
+const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -30,10 +30,14 @@ const OwnerNavbar = ({ darkMode, onToggleDark }) => {
   const profileRef = useRef(null);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 2);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
-  }, []);
+    if (scrolledOverride !== undefined) {
+      setScrolled(scrolledOverride);
+    } else {
+      const fn = () => setScrolled(window.scrollY > 2);
+      window.addEventListener('scroll', fn, { passive: true });
+      return () => window.removeEventListener('scroll', fn);
+    }
+  }, [scrolledOverride]);
 
   useEffect(() => {
     const fn = (e) => {
@@ -74,7 +78,7 @@ const OwnerNavbar = ({ darkMode, onToggleDark }) => {
     height: '64px',
     display: 'flex',
     alignItems: 'center',
-    background: scrolled ? 'rgba(15, 23, 42, 0.7)' : 'rgba(15, 23, 42, 0.3)',
+    background: scrolled ? 'rgba(28, 25, 23, 0.7)' : 'rgba(28, 25, 23, 0.3)',
     backdropFilter: 'blur(16px)',
     WebkitBackdropFilter: 'blur(16px)',
     borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
@@ -87,7 +91,7 @@ const OwnerNavbar = ({ darkMode, onToggleDark }) => {
     position: 'absolute',
     right: 0,
     top: '56px',
-    background: 'rgba(15, 23, 42, 0.85)',
+    background: 'rgba(28, 25, 23, 0.85)',
     backdropFilter: 'blur(20px)',
     border: '1px solid rgba(255,255,255,0.1)',
     borderRadius: '16px',
@@ -133,8 +137,8 @@ const OwnerNavbar = ({ darkMode, onToggleDark }) => {
                   padding: '0.4rem 0.875rem',
                   borderRadius: '10px',
                   transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  border: isActive ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
+                  background: isActive ? 'rgba(245, 158, 11, 0.08)' : 'transparent',
+                  border: isActive ? '1px solid rgba(245, 158, 11, 0.15)' : '1px solid transparent',
                   whiteSpace: 'nowrap',
                   boxShadow: isActive ? '0 4px 12px rgba(0,0,0,0.2)' : 'none',
                 })}
