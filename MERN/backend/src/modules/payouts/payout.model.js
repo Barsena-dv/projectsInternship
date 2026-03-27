@@ -26,9 +26,18 @@ const payoutSchema = new mongoose.Schema(
       enum: ['pending', 'processed', 'failed'],
       default: 'pending',
     },
+    payoutCategory: {
+      type: String,
+      enum: ['standard', 'compensation'],
+      default: 'standard',
+    },
     processedAt: Date,
     transactionId: String,
     remarks: String,
+    settlementReason: {
+      type: String,
+      default: '',
+    },
   },
   { timestamps: true, versionKey: false }
 );

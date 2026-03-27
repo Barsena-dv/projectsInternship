@@ -319,7 +319,7 @@ const ChatPage = () => {
 
   if (finderNeedsAssignmentScope) {
     return (
-      <div>
+      <div className="owner-chat-page finder-chat-page admin-chat-page">
         <PageHeader title="Chat" subtitle="Chat is available only from Assignment Details after evidence verification." />
         <EmptyState
           title="Open chat from an assignment"
@@ -330,7 +330,7 @@ const ChatPage = () => {
   }
 
   return (
-    <div>
+    <div className="owner-chat-page finder-chat-page admin-chat-page">
       <PageHeader title="Chat" subtitle="Owner and finder can chat after evidence verification." />
 
       <ChatLayout

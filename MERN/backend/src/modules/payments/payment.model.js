@@ -44,6 +44,19 @@ const paymentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    finderCompensationAmount: {
+      type: Number,
+      default: 0,
+    },
+    settlementType: {
+      type: String,
+      enum: ['none', 'expired_drop', 'failed_retry_refund', 'failed_drop'],
+      default: 'none',
+    },
+    settlementReason: {
+      type: String,
+      default: '',
+    },
     flaggedByAdmin: {
       type: Boolean,
       default: false,

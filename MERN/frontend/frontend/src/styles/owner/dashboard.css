@@ -28,6 +28,14 @@
   --shadow-accent:0 6px 24px rgba(245,158,11,0.35);
 }
 
+/* Wrapper to replace auth layout and allow sticky nav */
+.owner-dashboard-wrapper {
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
 /* ============================================================
    PAGE ANIMATION
    ============================================================ */

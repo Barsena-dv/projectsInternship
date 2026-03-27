@@ -66,6 +66,8 @@ const userSchema = new mongoose.Schema(
     },
     verificationToken: String,
     verificationTokenExpiry: Date,
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
     accountStatus: {
       type: String,
       enum: ['active', 'suspended', 'blocked'],

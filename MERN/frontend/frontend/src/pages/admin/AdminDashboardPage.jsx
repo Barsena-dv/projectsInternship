@@ -594,6 +594,7 @@ const AdminDashboardPage = () => {
                 <option value="assigned">Assigned</option>
                 <option value="completed">Completed</option>
                 <option value="expired">Expired</option>
+                <option value="failed">Failed</option>
               </select>
               <button type="button" className="pnf-btn-outline rounded-lg px-3 py-2 text-sm" onClick={loadRequests}>Apply</button>
             </div>
@@ -646,6 +647,7 @@ const AdminDashboardPage = () => {
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="expired">Expired</option>
+                <option value="failed">Failed</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
@@ -664,6 +666,7 @@ const AdminDashboardPage = () => {
                     <button type="button" className="pnf-btn-outline rounded-lg px-2 py-1 text-xs" onClick={() => onSelectAssignment(row._id)}>View</button>
                     <button type="button" className="rounded border border-emerald-300 px-2 py-1 text-xs text-emerald-700" onClick={() => handleAssignmentStatus(row._id, 'active')}>Mark Active</button>
                     <button type="button" className="rounded border border-rose-300 px-2 py-1 text-xs text-rose-700" onClick={() => handleAssignmentStatus(row._id, 'expired')}>Force Expire</button>
+                    <button type="button" className="rounded border border-rose-300 px-2 py-1 text-xs text-rose-700" onClick={() => handleAssignmentStatus(row._id, 'failed')}>Force Failed</button>
                     <button type="button" className="rounded border border-amber-300 px-2 py-1 text-xs text-amber-700" onClick={() => handleAssignmentStatus(row._id, 'cancelled')}>Cancel</button>
                     <button type="button" className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-700" onClick={() => handleExtendDeadline(row._id)}>Extend</button>
                   </div>
@@ -805,8 +808,13 @@ const AdminDashboardPage = () => {
                 <p><span className="font-medium">Assignment:</span> {selectedPayment?.assignment?._id || '-'}</p>
                 <p><span className="font-medium">Amount:</span> {formatCurrency(selectedPayment?.payment?.amount || 0)}</p>
                 <p><span className="font-medium">Status:</span> {selectedPayment?.payment?.paymentStatus || '-'}</p>
+                <p><span className="font-medium">Refund Amount:</span> {formatCurrency(selectedPayment?.payment?.refundAmount || 0)}</p>
+                <p><span className="font-medium">Finder Compensation:</span> {formatCurrency(selectedPayment?.payment?.finderCompensationAmount || 0)}</p>
+                <p><span className="font-medium">Settlement Type:</span> {selectedPayment?.payment?.settlementType || '-'}</p>
                 <p><span className="font-medium">Created:</span> {formatDate(selectedPayment?.payment?.createdAt)}</p>
                 <p><span className="font-medium">Released:</span> {formatDate(selectedPayment?.payment?.releasedAt)}</p>
+                <p><span className="font-medium">Payout Category:</span> {selectedPayment?.payout?.payoutCategory || '-'}</p>
+                <p><span className="font-medium">Payout Amount:</span> {formatCurrency(selectedPayment?.payout?.payoutAmount || 0)}</p>
               </div>
             )}
           </article>

@@ -34,8 +34,8 @@ const createUpdate = async (updateData, userId) => {
     throw new Error('Only the assigned finder can post progress updates');
   }
 
-  // 2. Lifecycle protection: Block updates if completed, cancelled, or disputed
-  if (['completed', 'cancelled', 'expired'].includes(assignment.status)) {
+  // 2. Lifecycle protection: Block updates on terminal assignment states.
+  if (['completed', 'cancelled', 'expired', 'failed'].includes(assignment.status)) {
     throw new Error(`Cannot post updates to a ${assignment.status} assignment`);
   }
 

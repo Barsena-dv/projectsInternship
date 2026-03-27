@@ -12,6 +12,7 @@ export const deriveOwnerLifecycleState = ({ request, payment, assignment, eviden
     return 'completed';
   }
 
+  if (requestStatus === 'failed' || assignmentStatus === 'failed') return 'failed';
   if (assignmentStatus === 'expired') return 'expired';
   if (assignmentStatus === 'inactive') return 'inactive';
   if (evidenceStatus === 'verified') return 'verified';
@@ -53,6 +54,8 @@ export const getLifecycleLabel = (state) => {
       return 'Inactive';
     case 'expired':
       return 'Expired';
+    case 'failed':
+      return 'Failed';
     case 'completed':
       return 'Completed';
     default:
@@ -77,6 +80,8 @@ export const getLifecycleTone = (state) => {
     case 'inactive':
       return 'bg-amber-100 text-amber-800';
     case 'expired':
+      return 'bg-rose-100 text-rose-800';
+    case 'failed':
       return 'bg-rose-100 text-rose-800';
     case 'completed':
       return 'bg-green-100 text-green-800';

@@ -6,13 +6,21 @@ const { createNotification } = require('../notifications/notification.service');
 /**
  * Automatically create a payout record when a payment is released
  */
-const createPayout = async (paymentId, assignmentId, finderId, amount) => {
+const createPayout = async (paymentId, assignmentId, finderId, amount, options = {}) => {
+  const category = String(options.payoutCategory || 'standard').toLowerCase();
+  const initialStatus = String(options.payoutStatus || 'pending').toLowerCase();
+
   const payout = await Payout.create({
     finder: finderId,
     assignment: assignmentId,
     payment: paymentId,
     payoutAmount: amount,
-    payoutStatus: 'pending',
+    payoutStatus: ['pending', 'processed', 'failed'].includes(initialStatus) ? initialStatus : 'pending',
+    payoutCategory: category === 'compensation' ? 'compensation' : 'standard',
+    settlementReason: String(options.settlementReason || ''),
+    remarks: String(options.remarks || ''),
+    processedAt: initialStatus === 'processed' ? new Date() : null,
+    transactionId: initialStatus === 'processed' ? String(options.transactionId || 'SYSTEM_AUTO_SETTLEMENT') : undefined,
   });
 
   return payout;
@@ -32,12 +40,21 @@ const processPayout = async (payoutId, transactionId) => {
     throw new Error('Payout already processed');
   }
 
-  if (payout.payment.paymentStatus !== 'released') {
+  const isCompensation = String(payout.payoutCategory || '').toLowerCase() === 'compensation';
+
+  if (!isCompensation && payout.payment.paymentStatus !== 'released') {
     throw new Error('Payment must be released before processing payout');
   }
 
-  if (payout.assignment.status !== 'completed') {
+  if (!isCompensation && payout.assignment.status !== 'completed') {
     throw new Error('Assignment must be completed before processing payout');
+  }
+
+  if (isCompensation) {
+    const paymentStatus = String(payout.payment.paymentStatus || '').toLowerCase();
+    if (!['released', 'refunded'].includes(paymentStatus)) {
+      throw new Error('Compensation payout requires payment to be released or refunded');
+    }
   }
 
   payout.payoutStatus = 'processed';

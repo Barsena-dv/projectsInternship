@@ -43,7 +43,7 @@ const lostItemRequestSchema = new mongoose.Schema(
     },
     requestStatus: {
       type: String,
-      enum: ['pending_payment', 'open', 'assigned', 'found', 'completed', 'cancelled'],
+      enum: ['pending_payment', 'open', 'assigned', 'found', 'completed', 'cancelled', 'failed'],
       default: 'pending_payment',
     },
     itemConfirmed: {

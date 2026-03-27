@@ -735,7 +735,7 @@ const getAssignmentDetails = async (assignmentId) => {
 
 const updateAssignmentStatus = async (assignmentId, status, adminId, reason = '') => {
   const targetStatus = String(status || '').toLowerCase();
-  if (!['active', 'inactive', 'expired', 'completed', 'cancelled', 'paused'].includes(targetStatus)) {
+  if (!['active', 'inactive', 'expired', 'completed', 'cancelled', 'paused', 'failed'].includes(targetStatus)) {
     throw new Error('Invalid assignment status');
   }
 
@@ -749,6 +749,7 @@ const updateAssignmentStatus = async (assignmentId, status, adminId, reason = ''
   if (assignment.request) {
     if (targetStatus === 'completed') assignment.request.requestStatus = 'completed';
     if (['expired', 'cancelled'].includes(targetStatus)) assignment.request.requestStatus = 'cancelled';
+    if (targetStatus === 'failed') assignment.request.requestStatus = 'failed';
     if (['active', 'inactive', 'paused'].includes(targetStatus) && assignment.request.requestStatus === 'cancelled') {
       assignment.request.requestStatus = 'assigned';
     }

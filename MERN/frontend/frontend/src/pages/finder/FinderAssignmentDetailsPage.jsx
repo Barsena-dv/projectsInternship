@@ -127,6 +127,7 @@ const FinderAssignmentDetailsPage = () => {
   const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
   const [evidenceValidationError, setEvidenceValidationError] = useState('');
   const [submittingEvidence, setSubmittingEvidence] = useState(false);
+  const [trackingModalOpen, setTrackingModalOpen] = useState(false);
   const [autoTrackingEnabled, setAutoTrackingEnabled] = useState(false);
   const [remainingMs, setRemainingMs] = useState(0);
   const [pauseLoading, setPauseLoading] = useState(false);
@@ -209,21 +210,26 @@ const FinderAssignmentDetailsPage = () => {
     () => deriveFinderLifecycleState({
       assignment,
       evidence,
-      deadline: assignment?.request?.serviceDeadline,
+      deadline: assignment?.deadlineAt,
     }),
     [assignment, evidence]
   );
 
-  const deadlineValue = assignment?.deadlineAt || assignment?.request?.serviceDeadline;
-  const deadlineMissed = isDeadlineMissed(deadlineValue);
-  const canAddTracking = lifecycleState !== 'completed' && lifecycleState !== 'cancelled' && lifecycleState !== 'expired';
+  const finderDeadlineValue = assignment?.deadlineAt;
+  const ownerDeadlineValue = assignment?.request?.serviceDeadline;
+  const deadlineValue = finderDeadlineValue;
+  const finderDeadlineMissed = isDeadlineMissed(finderDeadlineValue);
+  const ownerDeadlineMissed = isDeadlineMissed(ownerDeadlineValue);
+  const deadlineMissed = finderDeadlineMissed;
+  const canAddTracking = !['completed', 'cancelled', 'expired', 'failed'].includes(lifecycleState);
 
   const evidenceStatus = String(evidence?.verificationStatus || '').toLowerCase();
   const canUploadEvidence = canAddTracking && !deadlineMissed && (!evidence || evidenceStatus === 'rejected');
   const evidencePending = evidenceStatus === 'pending';
   const evidenceVerified = lifecycleState === 'verified' || evidenceStatus === 'verified' || Boolean(assignment?.evidenceVerified);
 
-  const chatEnabled = (evidenceVerified || Boolean(assignment?.chatUnlocked) || lifecycleState === 'completed') && lifecycleState !== 'expired';
+  const chatEnabled = (evidenceVerified || Boolean(assignment?.chatUnlocked) || lifecycleState === 'completed')
+    && !['expired', 'failed'].includes(lifecycleState);
   const assignmentPaused = String(assignment?.status || '').toLowerCase() === 'paused';
 
   useEffect(() => {
@@ -336,6 +342,7 @@ const FinderAssignmentDetailsPage = () => {
 
       toast.success('Tracking update added');
       setTrackingForm({ message: '', locationSource: LOCATION_MODES.CURRENT, locationName: '' });
+      setTrackingModalOpen(false);
       const timelineData = await loadTimeline();
       setTimeline(timelineData);
     } catch (error) {
@@ -458,6 +465,25 @@ const FinderAssignmentDetailsPage = () => {
     }
   };
 
+  const handleOpenTrackingModal = () => {
+    if (finderDeadlineMissed || lifecycleState === 'expired') {
+      toast.error('Finder assignment deadline passed. You cannot add updates now.');
+      return;
+    }
+
+    if (ownerDeadlineMissed || lifecycleState === 'failed') {
+      toast.error('Owner service deadline passed. Assignment is failed.');
+      return;
+    }
+
+    if (!canAddTracking) {
+      toast.error('Tracking updates are disabled for this assignment status.');
+      return;
+    }
+
+    setTrackingModalOpen(true);
+  };
+
   if (loading) {
     return <LoadingSpinner text="Loading assignment details..." />;
   }
@@ -474,7 +500,8 @@ const FinderAssignmentDetailsPage = () => {
         actions={(
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge value={lifecycleState} />
-            {deadlineValue ? <StatusBadge value={deadlineMissed ? 'expired' : 'deadline_active'} /> : null}
+            {finderDeadlineValue ? <StatusBadge value={finderDeadlineMissed ? 'expired' : 'deadline_active'} /> : null}
+            {ownerDeadlineValue && (ownerDeadlineMissed || lifecycleState === 'failed') ? <StatusBadge value="failed" /> : null}
           </div>
         )}
       />
@@ -484,10 +511,11 @@ const FinderAssignmentDetailsPage = () => {
         <div className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
           <p><span className="font-medium">Title:</span> {assignment?.request?.itemName || '-'}</p>
           <p><span className="font-medium">Location:</span> {assignment?.request?.lastSeenLocation || '-'}</p>
-          <p><span className="font-medium">Deadline:</span> {formatDate(deadlineValue)}</p>
+          <p><span className="font-medium">Finder Deadline (4h):</span> {formatDate(finderDeadlineValue)}</p>
+          <p><span className="font-medium">Owner Service Deadline:</span> {formatDate(ownerDeadlineValue)}</p>
           <p>
-            <span className="font-medium">Countdown:</span>{' '}
-            <span className={deadlineMissed ? 'font-semibold text-rose-700' : 'font-semibold text-blue-700'}>
+            <span className="font-medium">Finder Countdown:</span>{' '}
+            <span className={finderDeadlineMissed ? 'font-semibold text-rose-700' : 'font-semibold text-blue-700'}>
               {formatDuration(remainingMs)}
             </span>
           </p>
@@ -496,9 +524,15 @@ const FinderAssignmentDetailsPage = () => {
           </p>
         </div>
 
-        {deadlineMissed ? (
+        {finderDeadlineMissed ? (
           <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-            Deadline passed. Assignment is marked as expired and further actions are disabled.
+            Finder deadline passed. Assignment is marked as expired and further actions are disabled.
+          </p>
+        ) : null}
+
+        {ownerDeadlineMissed || lifecycleState === 'failed' ? (
+          <p className="mt-3 rounded-lg border border-rose-300 bg-rose-100 px-3 py-2 text-sm text-rose-800">
+            Owner service deadline reached. Assignment and request are marked failed.
           </p>
         ) : null}
 
@@ -508,7 +542,7 @@ const FinderAssignmentDetailsPage = () => {
           </p>
         ) : null}
 
-        {!deadlineMissed && lifecycleState !== 'completed' && lifecycleState !== 'expired' ? (
+        {!finderDeadlineMissed && !ownerDeadlineMissed && !['completed', 'expired', 'failed'].includes(lifecycleState) ? (
           <div className="mt-3 flex flex-wrap gap-2">
             {!assignmentPaused ? (
               <button
@@ -517,7 +551,7 @@ const FinderAssignmentDetailsPage = () => {
                 onClick={handlePauseAssignment}
                 disabled={pauseLoading}
               >
-                {pauseLoading ? 'Please wait...' : 'Pause (max 15 min)'}
+                {pauseLoading ? 'Please wait...' : 'Apply Break (max 15 min)'}
               </button>
             ) : (
               <button
@@ -531,6 +565,12 @@ const FinderAssignmentDetailsPage = () => {
             )}
           </div>
         ) : null}
+
+        {!assignmentPaused && !finderDeadlineMissed && !ownerDeadlineMissed && !['completed', 'expired', 'failed'].includes(lifecycleState) ? (
+          <p className="mt-2 text-xs text-slate-500">
+            Break pauses assignment temporarily. Resume within 15 minutes for fair deadline extension.
+          </p>
+        ) : null}
       </section>
 
       <section className="pnf-card mt-4 p-5">
@@ -539,11 +579,7 @@ const FinderAssignmentDetailsPage = () => {
           <button
             type="button"
             className="pnf-btn-outline rounded-lg px-3 py-2 text-sm"
-            onClick={() => {
-              const element = document.getElementById('finder-add-update-form');
-              element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }}
-            disabled={!canAddTracking}
+            onClick={handleOpenTrackingModal}
           >
             Add Update
           </button>
@@ -578,54 +614,6 @@ const FinderAssignmentDetailsPage = () => {
             ))}
           </div>
         )}
-      </section>
-
-      <section className="pnf-card mt-4 p-5" id="finder-add-update-form">
-        <h2 className="text-lg font-semibold text-slate-900">Add Tracking Update</h2>
-        <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={submitTrackingUpdate}>
-          <textarea
-            className="pnf-input md:col-span-2"
-            rows={3}
-            placeholder="Message"
-            value={trackingForm.message}
-            onChange={(event) => setTrackingForm((prev) => ({ ...prev, message: event.target.value }))}
-            disabled={!canAddTracking || postingUpdate}
-            required
-          />
-          <select
-            className="pnf-input"
-            value={trackingForm.locationSource}
-            onChange={(event) => setTrackingForm((prev) => ({ ...prev, locationSource: event.target.value }))}
-            disabled={!canAddTracking || postingUpdate}
-          >
-            <option value={LOCATION_MODES.CURRENT}>Use current location</option>
-            <option value={LOCATION_MODES.MANUAL}>Enter location manually</option>
-            <option value={LOCATION_MODES.SKIP}>Skip location</option>
-          </select>
-          {trackingForm.locationSource === LOCATION_MODES.MANUAL ? (
-            <input
-              className="pnf-input"
-              type="text"
-              placeholder="Enter location text"
-              value={trackingForm.locationName}
-              onChange={(event) => setTrackingForm((prev) => ({ ...prev, locationName: event.target.value }))}
-              disabled={!canAddTracking || postingUpdate}
-            />
-          ) : (
-            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-              {trackingForm.locationSource === LOCATION_MODES.CURRENT
-                ? 'Location will be auto-captured when you submit.'
-                : 'This update will be posted without location.'}
-            </div>
-          )}
-          <button
-            className="pnf-btn-primary rounded-lg px-3 py-2 text-sm md:col-span-2"
-            type="submit"
-            disabled={!canAddTracking || postingUpdate}
-          >
-            {postingUpdate ? 'Adding update...' : 'Add Update'}
-          </button>
-        </form>
       </section>
 
       <section className="pnf-card mt-4 p-5">
@@ -716,6 +704,84 @@ const FinderAssignmentDetailsPage = () => {
           ) : null}
         </section>
       ) : null}
+
+      {payout && lifecycleState !== 'completed' ? (
+        <section className="pnf-card mt-4 p-5">
+          <h2 className="text-lg font-semibold text-slate-900">Settlement / Payout</h2>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <StatusBadge value={payout?.payoutStatus || 'pending'} />
+            {payout?.payoutCategory ? <StatusBadge value={payout.payoutCategory} /> : null}
+          </div>
+          <p className="mt-2 text-sm text-slate-600">
+            Amount: Rs {Number(payout?.payoutAmount || 0).toFixed(2)}
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            Category: {payout?.payoutCategory ? String(payout.payoutCategory).replace('_', ' ') : 'standard'}
+          </p>
+          {payout?.settlementReason ? (
+            <p className="mt-1 text-xs text-slate-500">Reason: {payout.settlementReason}</p>
+          ) : null}
+          {payout?.processedAt ? (
+            <p className="mt-1 text-xs text-slate-500">Processed at: {formatDate(payout.processedAt)}</p>
+          ) : null}
+        </section>
+      ) : null}
+
+      <GlassModal
+        open={trackingModalOpen}
+        title="Add Tracking Update"
+        subtitle="Share progress with optional location details."
+        confirmText={postingUpdate ? 'Adding update...' : 'Add Update'}
+        onClose={() => {
+          if (!postingUpdate) {
+            setTrackingModalOpen(false);
+          }
+        }}
+        onConfirm={() => {
+          const form = document.getElementById('finder-tracking-form');
+          form?.requestSubmit();
+        }}
+        confirmDisabled={!canAddTracking || postingUpdate}
+        loading={postingUpdate}
+      >
+        <form id="finder-tracking-form" className="grid gap-3 md:grid-cols-2" onSubmit={submitTrackingUpdate}>
+          <textarea
+            className="pnf-input md:col-span-2"
+            rows={3}
+            placeholder="Message"
+            value={trackingForm.message}
+            onChange={(event) => setTrackingForm((prev) => ({ ...prev, message: event.target.value }))}
+            disabled={!canAddTracking || postingUpdate}
+            required
+          />
+          <select
+            className="pnf-input"
+            value={trackingForm.locationSource}
+            onChange={(event) => setTrackingForm((prev) => ({ ...prev, locationSource: event.target.value }))}
+            disabled={!canAddTracking || postingUpdate}
+          >
+            <option value={LOCATION_MODES.CURRENT}>Use current location</option>
+            <option value={LOCATION_MODES.MANUAL}>Enter location manually</option>
+            <option value={LOCATION_MODES.SKIP}>Skip location</option>
+          </select>
+          {trackingForm.locationSource === LOCATION_MODES.MANUAL ? (
+            <input
+              className="pnf-input"
+              type="text"
+              placeholder="Enter location text"
+              value={trackingForm.locationName}
+              onChange={(event) => setTrackingForm((prev) => ({ ...prev, locationName: event.target.value }))}
+              disabled={!canAddTracking || postingUpdate}
+            />
+          ) : (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              {trackingForm.locationSource === LOCATION_MODES.CURRENT
+                ? 'Location will be auto-captured when you submit.'
+                : 'This update will be posted without location.'}
+            </div>
+          )}
+        </form>
+      </GlassModal>
 
       <GlassModal
         open={evidenceModalOpen}

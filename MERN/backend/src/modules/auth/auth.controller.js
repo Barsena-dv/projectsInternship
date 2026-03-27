@@ -84,10 +84,48 @@ const changePassword = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) throw new Error('Please provide an email address');
+    
+    await authService.forgotPassword(email);
+    res.status(200).json({
+      success: true,
+      message: 'Password reset token sent to email!',
+    });
+  } catch (error) {
+    // Return 200 even for non-existent emails to prevent email enumeration, but with a different message
+    if (error.message.includes('no user')) {
+       res.status(200).json({ success: true, message: 'Password reset token sent to email!' });
+       return;
+    }
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+    if (!password) throw new Error('Please provide a new password');
+
+    await authService.resetPassword(token, password);
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successful. You can now login.',
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
   getMe,
   updateProfile,
   changePassword,
+  forgotPassword,
+  resetPassword,
 };
