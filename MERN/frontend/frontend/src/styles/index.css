@@ -1,86 +1,116 @@
+/* ============================================================
+   POSTNFIND — GLOBAL BASE (Light + Dark Combo)
+   Philosophy: Off-white content area, dark navy header, 
+               indigo accent, crisp Inter typography
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 @import 'tailwindcss';
 
+/* ---- Global tokens ---- */
 :root {
-  --pnf-bg: #f7f8fb;
-  --pnf-surface: #ffffff;
-  --pnf-primary: #0b5cff;
-  --pnf-text: #1f2937;
-  --pnf-muted: #6b7280;
-  --pnf-border: #e5e7eb;
+  /* Backgrounds */
+  --pnf-bg:          #f4f6fb;
+  --pnf-surface:     #ffffff;
+  --pnf-surface-alt: #f8fafc;
+  --pnf-nav-bg:      #131929;
+
+  /* Text */
+  --pnf-text:        #111827;
+  --pnf-text-2:      #4b5563;
+  --pnf-text-3:      #9ca3af;
+
+  /* Border */
+  --pnf-border:      #e5e7eb;
+  --pnf-border-2:    #d1d5db;
+
+  /* Accent — indigo */
+  --pnf-accent:      #6366f1;
+  --pnf-accent-dim:  rgba(99,102,241,0.08);
+  --pnf-accent-glow: rgba(99,102,241,0.2);
+
+  /* Shadows */
+  --pnf-shadow-xs:   0 1px 2px rgba(0,0,0,0.05);
+  --pnf-shadow-sm:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --pnf-shadow-md:   0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+  --pnf-shadow-lg:   0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-body {
+html, body {
   margin: 0;
   min-height: 100dvh;
-  background: radial-gradient(circle at top left, #eef3ff 0%, var(--pnf-bg) 45%, #f3f5fa 100%);
+  background: var(--pnf-bg);
   color: var(--pnf-text);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-#root {
-  min-height: 100dvh;
-}
+#root { min-height: 100dvh; display: flex; flex-direction: column; }
 
+/* ---- Typography Scale ---- */
+h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
+
+/* ---- Utility card ---- */
 .pnf-card {
   background: var(--pnf-surface);
   border: 1px solid var(--pnf-border);
-  border-radius: 16px;
-  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.04);
+  border-radius: 12px;
+  box-shadow: var(--pnf-shadow-sm);
 }
 
-.pnf-glass-soft {
-  background: rgba(255, 255, 255, 0.58);
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(14px);
-}
-
+/* ---- Buttons ---- */
 .pnf-btn-primary {
-  background: var(--pnf-primary);
+  background: var(--pnf-accent);
   color: #fff;
-  border: 1px solid var(--pnf-primary);
+  border: 1px solid var(--pnf-accent);
+  font-family: inherit;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
-
-.pnf-btn-primary:hover {
-  filter: brightness(0.95);
-}
+.pnf-btn-primary:hover { background: #5558e3; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
 
 .pnf-btn-outline {
-  border: 1px solid #cbd5e1;
-  color: #334155;
-  background: #fff;
+  border: 1px solid var(--pnf-border-2);
+  color: var(--pnf-text-2);
+  background: var(--pnf-surface);
+  font-family: inherit;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
+.pnf-btn-outline:hover { border-color: var(--pnf-border-2); background: var(--pnf-surface-alt); color: var(--pnf-text); }
 
+/* ---- Input ---- */
 .pnf-input {
   width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 0.6rem 0.8rem;
-  font-size: 0.95rem;
+  border: 1px solid var(--pnf-border);
+  border-radius: 8px;
+  padding: 0.575rem 0.875rem;
+  font-size: 0.875rem;
   outline: none;
-  background: #fff;
+  background: var(--pnf-surface);
+  color: var(--pnf-text);
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
+.pnf-input:focus { border-color: var(--pnf-accent); box-shadow: 0 0 0 3px var(--pnf-accent-dim); }
+.pnf-input::placeholder { color: var(--pnf-text-3); }
 
-.pnf-input:focus {
-  border-color: var(--pnf-primary);
-  box-shadow: 0 0 0 3px rgba(11, 92, 255, 0.12);
-}
-
+/* ---- Page enter animation ---- */
 .pnf-page-enter {
-  animation: pnfFadeIn 220ms ease;
+  animation: pnfIn 240ms cubic-bezier(0.16,1,0.3,1) both;
 }
-
-@keyframes pnfFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes pnfIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

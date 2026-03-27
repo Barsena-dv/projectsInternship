@@ -1,0 +1,268 @@
+/* ============================================================
+   OWNER — REQUEST STYLES (Light Theme)
+   ============================================================ */
+
+/* ---- Request Card ---- */
+
+.owner-req-card {
+  background: var(--surface, rgba(255, 255, 255, 0.03));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+  padding: 1.125rem 1.375rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.02) inset;
+  transition: box-shadow 0.2s, transform 0.2s;
+  margin-bottom: 0.75rem;
+}
+
+.owner-req-card:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  transform: translateY(-1px);
+}
+
+.owner-req-card:last-child { margin-bottom: 0; }
+
+.owner-req-card-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.owner-req-card-meta {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0.2rem 0 0;
+  font-weight: 400;
+}
+
+/* ---- Alert Chips ---- */
+
+.owner-req-card-alerts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.625rem;
+}
+
+.owner-alert-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid transparent;
+}
+
+.owner-alert-chip.evidence  { background: rgba(244, 63, 94, 0.15); color: #fda4af; border-color: rgba(244, 63, 94, 0.3); } /* Rose */
+.owner-alert-chip.applicant { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border-color: rgba(59, 130, 246, 0.3); } /* Blue */
+.owner-alert-chip.message   { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.3); } /* Amber */
+
+/* ---- Status Badge ---- */
+
+.owner-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.owner-status-badge .badge-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Status variants */
+.status-draft              { background: rgba(255, 255, 255, 0.1); color: #cbd5e1;  border: 1px solid rgba(255, 255, 255, 0.2); }
+.status-draft .badge-dot   { background: #94a3b8; }
+
+.status-pending            { background: rgba(245, 158, 11, 0.15); color: #fcd34d;  border: 1px solid rgba(245, 158, 11, 0.3); }
+.status-pending .badge-dot { background: #f59e0b; }
+
+.status-pending_payment            { background: rgba(245, 158, 11, 0.15); color: #fcd34d;  border: 1px solid rgba(245, 158, 11, 0.3); }
+.status-pending_payment .badge-dot { background: #f59e0b; }
+
+.status-open               { background: rgba(59, 130, 246, 0.15); color: #93c5fd;  border: 1px solid rgba(59, 130, 246, 0.3); }
+.status-open .badge-dot    { background: #60a5fa; animation: badgePulse 2.2s ease-in-out infinite; }
+
+.status-assigned               { background: rgba(139, 92, 246, 0.15); color: #c4b5fd;  border: 1px solid rgba(139, 92, 246, 0.3); }
+.status-assigned .badge-dot    { background: #a78bfa; }
+
+.status-evidence_submitted               { background: rgba(168, 85, 247, 0.15); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.3); }
+.status-evidence_submitted .badge-dot    { background: #c084fc; }
+
+.status-verified               { background: rgba(16, 185, 129, 0.15); color: #6ee7b7;  border: 1px solid rgba(16, 185, 129, 0.3); }
+.status-verified .badge-dot    { background: #34d399; }
+
+.status-completed               { background: rgba(16, 185, 129, 0.15); color: #6ee7b7;  border: 1px solid rgba(16, 185, 129, 0.3); }
+.status-completed .badge-dot    { background: #34d399; }
+
+.status-failed               { background: rgba(239, 68, 68, 0.15); color: #fca5a5;  border: 1px solid rgba(239, 68, 68, 0.3); }
+.status-failed .badge-dot    { background: #f87171; }
+
+.status-expired              { background: rgba(239, 68, 68, 0.15); color: #fca5a5;  border: 1px solid rgba(239, 68, 68, 0.3); }
+.status-expired .badge-dot   { background: #f87171; }
+
+.status-cancelled              { background: rgba(255, 255, 255, 0.1); color: #cbd5e1;  border: 1px solid rgba(255, 255, 255, 0.2); }
+.status-cancelled .badge-dot   { background: #94a3b8; }
+
+.status-inactive               { background: rgba(245, 158, 11, 0.15); color: #fcd34d;  border: 1px solid rgba(245, 158, 11, 0.3); }
+.status-inactive .badge-dot    { background: #f59e0b; }
+
+.status-released               { background: rgba(20, 184, 166, 0.15); color: #5eead4;  border: 1px solid rgba(20, 184, 166, 0.3); }
+.status-released .badge-dot    { background: #2dd4bf; }
+
+.status-refunded               { background: rgba(139, 92, 246, 0.15); color: #c4b5fd;  border: 1px solid rgba(139, 92, 246, 0.3); }
+.status-refunded .badge-dot    { background: #a78bfa; }
+
+.status-rejected               { background: rgba(239, 68, 68, 0.15); color: #fca5a5;  border: 1px solid rgba(239, 68, 68, 0.3); }
+.status-rejected .badge-dot    { background: #f87171; }
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* ---- Search Bar ---- */
+
+.owner-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.owner-search-input {
+  padding: 0.5rem 0.875rem 0.5rem 2.25rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  font-size: 0.83rem;
+  color: #f8fafc;
+  background: rgba(0,0,0,0.2);
+  outline: none;
+  width: 220px;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.owner-search-input:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.owner-search-icon {
+  position: absolute;
+  left: 0.7rem;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+/* ---- Filter Bar ---- */
+
+.owner-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.owner-filter-chip {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.2);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.owner-filter-chip:hover { border-color: rgba(255,255,255,0.3); color: #e2e8f0; background: rgba(255,255,255,0.05); }
+
+.owner-filter-chip.active {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fde68a;
+  font-weight: 600;
+}
+
+/* ---- Request Actions ---- */
+
+.owner-req-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.875rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.owner-req-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.325rem 0.75rem;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  font-family: inherit;
+}
+.owner-req-btn:active { transform: scale(0.97); }
+
+.owner-req-btn.primary {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+.owner-req-btn.primary:hover { background: rgba(59, 130, 246, 0.25); }
+
+.owner-req-btn.danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.owner-req-btn.danger:hover { background: rgba(239, 68, 68, 0.25); }
+
+.owner-req-btn.outline {
+  background: rgba(0,0,0,0.2);
+  color: #cbd5e1;
+  border-color: rgba(255,255,255,0.1);
+}
+.owner-req-btn.outline:hover { color: #f8fafc; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+
+.owner-req-btn.pay {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+.owner-req-btn.pay:hover { background: rgba(245, 158, 11, 0.25); }
+
+.owner-req-btn.view {
+  background: transparent;
+  color: #fbbf24;
+  border: none;
+  font-weight: 700;
+  padding-left: 0;
+}
+.owner-req-btn.view:hover { text-decoration: underline; }

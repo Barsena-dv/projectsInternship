@@ -5,6 +5,8 @@ import DashboardLayout from '../layouts/DashboardLayout';
 
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 
 import NotFoundPage from '../pages/common/NotFoundPage';
 import ChatPage from '../pages/common/ChatPage';
@@ -14,6 +16,7 @@ import UnauthorizedPage from '../pages/common/UnauthorizedPage';
 
 import OwnerCreateRequestPage from '../pages/owner/OwnerCreateRequestPage';
 import OwnerDashboardPage from '../pages/owner/OwnerDashboardPage';
+import OwnerProfilePage from '../pages/owner/OwnerProfilePage';
 import OwnerRequestDetailsPage from '../pages/owner/OwnerRequestDetailsPage';
 import OwnerRequestsPage from '../pages/owner/OwnerRequestsPage';
 
@@ -38,6 +41,8 @@ const AppRoutes = () => {
 			<Route path="/" element={<HomeRedirect />} />
 			<Route path="/login" element={<LoginPage />} />
 			<Route path="/register" element={<RegisterPage />} />
+			<Route path="/forgot-password" element={<ForgotPasswordPage />} />
+			<Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 			<Route path="/unauthorized" element={<UnauthorizedPage />} />
 
 			<Route element={<ProtectedRoute allowedRoles={['owner', 'finder', 'admin']} />}>
@@ -60,6 +65,7 @@ const AppRoutes = () => {
 					<Route path="/owner/create-request" element={<OwnerCreateRequestPage />} />
 					<Route path="/owner/requests" element={<OwnerRequestsPage />} />
 					<Route path="/owner/requests/:id" element={<OwnerRequestDetailsPage />} />
+					<Route path="/owner/profile" element={<OwnerProfilePage />} />
 					<Route path="/owner/*" element={<Navigate to="/owner/dashboard" replace />} />
 				</Route>
 			</Route>

@@ -1,30 +1,24 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { FiArrowRight, FiCheckCircle, FiLock, FiShield } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getRoleHomePath } from '../../contexts/AuthContext';
 import { useAuth } from '../../hooks/useAuth';
+import '../../styles/auth.css';
 import { getErrorMessage } from '../../utils/helpers';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: { email: '', password: '' },
   });
 
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (values) => {
     setLoading(true);
-
     try {
       const user = await login(values);
       toast.success('Welcome back!');
@@ -37,57 +31,80 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-275 items-center px-4 py-6">
-      <div className="grid w-full gap-6 md:grid-cols-2">
-        <section className="pnf-card hidden p-8 md:block">
-          <h1 className="text-4xl font-bold text-slate-900">PostNFind</h1>
-          <p className="mt-4 text-slate-600">
-            A lifecycle-driven lost item workflow platform for owners, finders, and admins.
-          </p>
+    <div className="pnf-auth-layout">
+      <div className="pnf-auth-bg" />
+      
+      <div className="pnf-auth-glass-card wide">
+        <section className="pnf-auth-brand-side">
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3rem' }}>
+            <span style={{ background: 'linear-gradient(135deg,#818cf8,#a5b4fc)', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem', fontWeight: 900, boxShadow: '0 4px 14px rgba(99,102,241,0.5)' }}>P</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em' }}>
+              Post<span style={{ color: '#818cf8' }}>N</span>Find
+            </span>
+          </Link>
+
+          <h1 className="pnf-auth-title" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Welcome Back</h1>
+          <p className="pnf-auth-subtitle" style={{ fontSize: '1rem' }}>Manage your lost items, evidence, and payouts with intelligent lifecycle tracking.</p>
+
+          <div style={{ marginTop: '1rem' }}>
+            <div className="pnf-auth-feature">
+              <div className="pnf-auth-feature-icon"><FiShield /></div>
+              <div>
+                <p className="pnf-auth-feature-title">Secure & Transparent</p>
+                <p className="pnf-auth-feature-desc">All tracking steps are recorded and secure.</p>
+              </div>
+            </div>
+            <div className="pnf-auth-feature">
+              <div className="pnf-auth-feature-icon"><FiCheckCircle /></div>
+              <div>
+                <p className="pnf-auth-feature-title">Role-based Access</p>
+                <p className="pnf-auth-feature-desc">Smart dashboards tailored for Owners, Finders, and Admin.</p>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <section className="pnf-card p-6 md:p-8">
-          <h2 className="text-2xl font-semibold text-slate-900">Login</h2>
-          <p className="mt-1 text-sm text-slate-500">Access your dashboard by role.</p>
+        <section className="pnf-auth-form-side">
+          <h2 className="pnf-auth-title">Sign in</h2>
+          <p className="pnf-auth-subtitle">Welcome back! Please enter your details.</p>
 
-          <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
-            <div>
-              <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">Email</label>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="pnf-auth-input-group">
+              <label htmlFor="email" className="pnf-auth-label">Email</label>
               <input
                 id="email"
                 type="email"
-                className="pnf-input"
+                className={`pnf-auth-input ${errors.email ? 'error' : ''}`}
+                placeholder="Enter your email"
                 {...register('email', { required: 'Email is required' })}
               />
-              {errors.email ? <p className="mt-1 text-xs text-rose-600">{errors.email.message}</p> : null}
+              {errors.email && <span className="pnf-auth-error-msg">{errors.email.message}</span>}
             </div>
 
-            <div>
-              <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700">Password</label>
+            <div className="pnf-auth-input-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <label htmlFor="password" style={{ margin: 0 }} className="pnf-auth-label">Password</label>
+                <Link to="/forgot-password" style={{ fontSize: '0.75rem' }} className="pnf-auth-link">Forgot password?</Link>
+              </div>
               <input
                 id="password"
                 type="password"
-                className="pnf-input"
+                className={`pnf-auth-input ${errors.password ? 'error' : ''}`}
+                placeholder="••••••••"
                 {...register('password', { required: 'Password is required' })}
               />
-              {errors.password ? <p className="mt-1 text-xs text-rose-600">{errors.password.message}</p> : null}
+              {errors.password && <span className="pnf-auth-error-msg">{errors.password.message}</span>}
             </div>
 
-            <button
-              type="submit"
-              className="pnf-btn-primary w-full rounded-lg px-4 py-2 text-sm font-medium"
-              disabled={loading}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
+            <button type="submit" className="pnf-auth-btn" disabled={loading}>
+              <FiLock style={{ opacity: 0.8 }} />
+              {loading ? 'Signing in...' : 'Sign in to dashboard'}
             </button>
           </form>
 
-          <p className="mt-4 text-sm text-slate-600">
-            New user?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:underline">
-              Create account
-            </Link>
-          </p>
+          <div className="pnf-auth-footer">
+            Don't have an account? <Link to="/register" className="pnf-auth-link" style={{ marginLeft: '0.2rem' }}>Sign up <FiArrowRight style={{ display: 'inline', verticalAlign: 'middle' }} /></Link>
+          </div>
         </section>
       </div>
     </div>

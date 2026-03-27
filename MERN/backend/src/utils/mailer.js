@@ -122,10 +122,37 @@ const sendItemConfirmedEmail = async (
   });
 };
 
+/**
+ * Send password reset email
+ */
+const sendPasswordResetEmail = async (email, fullName, resetUrl) => {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
+      <h2 style="color: #6366f1;">Reset Your Password</h2>
+      <p>Hi ${fullName},</p>
+      <p>We received a request to reset your password for your PostNFind account. If you didn't make this request, you can safely ignore this email.</p>
+      <p>To reset your password, click the button below:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
+      </div>
+      <p style="font-size: 0.9em; color: #666;">This link is valid for 10 minutes.</p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+      <p style="font-size: 0.8em; color: #999;">If the button doesn't work, copy and paste this link into your browser: <br>${resetUrl}</p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: 'PostNFind - Password Reset Request',
+    html,
+  });
+};
+
 module.exports = {
   sendEmail,
   sendRegistrationEmail,
   sendAssignmentEmail,
   sendEvidenceNotificationEmail,
   sendItemConfirmedEmail,
+  sendPasswordResetEmail,
 };

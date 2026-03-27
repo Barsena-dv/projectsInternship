@@ -14,7 +14,7 @@ const assignmentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'inactive', 'expired', 'completed', 'cancelled', 'paused'],
+      enum: ['active', 'inactive', 'expired', 'completed', 'cancelled', 'paused', 'failed'],
       default: 'active',
     },
     evidenceSubmitted: {

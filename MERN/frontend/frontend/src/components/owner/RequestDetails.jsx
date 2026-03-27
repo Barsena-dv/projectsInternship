@@ -100,7 +100,10 @@ const RequestDetails = ({
   onVerifyEvidence,
   onReleasePayment,
   onApplicationDecision,
-  onRetryExpired,
+  onRetrySameFinder,
+  onRetryDifferentFinder,
+  onDropExpired,
+  onDropFailed,
   onOpenChat,
   onRateFinder,
   onEditRequest,
@@ -124,7 +127,8 @@ const RequestDetails = ({
   const isCompleted = lifecycleState === 'completed';
   const canVerify = lifecycleState === 'evidence_submitted' && evidence?.verificationStatus === 'pending';
   const canRelease = lifecycleState === 'verified' && payment?.paymentStatus === 'locked';
-  const canRetry = (lifecycleState === 'expired' || lifecycleState === 'cancelled') && !isCompleted;
+  const showExpiredControls = lifecycleState === 'expired' && !isCompleted;
+  const showFailedControls = lifecycleState === 'failed' && !isCompleted;
   const canEditRequest = ['draft', 'pending_payment', 'open'].includes(lifecycleState);
   const canDeleteRequest = ['draft', 'pending_payment'].includes(lifecycleState);
   const canDecideApplications = lifecycleState === 'open' && !assignment;
@@ -163,6 +167,9 @@ const RequestDetails = ({
             <p><span className="font-medium">Method:</span> {payment?.paymentMethod ? String(payment.paymentMethod).replace('_', ' ') : '-'}</p>
             <p><span className="font-medium">Transaction ID:</span> {payment?.transactionId || '-'}</p>
             <p><span className="font-medium">Paid At:</span> {formatDate(payment?.paidAt)}</p>
+            <p><span className="font-medium">Refund Amount:</span> {Number(payment?.refundAmount || 0) > 0 ? `Rs ${Number(payment?.refundAmount || 0).toFixed(2)}` : '-'}</p>
+            <p><span className="font-medium">Finder Compensation:</span> {Number(payment?.finderCompensationAmount || 0) > 0 ? `Rs ${Number(payment?.finderCompensationAmount || 0).toFixed(2)}` : '-'}</p>
+            <p><span className="font-medium">Settlement Type:</span> {payment?.settlementType || '-'}</p>
           </div>
         )}
       </section>
@@ -192,7 +199,7 @@ const RequestDetails = ({
         </section>
       ) : null}
 
-      {(lifecycleState === 'open' || lifecycleState === 'assigned' || lifecycleState === 'inactive' || lifecycleState === 'expired' || lifecycleState === 'evidence_submitted' || lifecycleState === 'verified' || isCompleted) ? (
+      {(lifecycleState === 'open' || lifecycleState === 'assigned' || lifecycleState === 'inactive' || lifecycleState === 'expired' || lifecycleState === 'failed' || lifecycleState === 'evidence_submitted' || lifecycleState === 'verified' || isCompleted) ? (
         <section className="pnf-card p-5">
           <h3 className="text-base font-semibold text-slate-900">Applicants History ({applications?.length || 0})</h3>
           <p className="mt-1 text-xs text-slate-500">Pending now: {pendingApplications.length}</p>
@@ -268,15 +275,51 @@ const RequestDetails = ({
             <p><span className="font-medium">Finder:</span> {assignment?.finder?.full_name || '-'}</p>
           </div>
 
-          {canRetry ? (
-            <div className="mt-3">
-              <button
-                className="rounded-lg bg-blue-700 px-3 py-2 text-xs font-medium text-white"
-                type="button"
-                onClick={onRetryExpired}
-              >
-                Retry With New Finder
-              </button>
+          {showExpiredControls ? (
+            <div className="mt-3 space-y-2">
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                Finder deadline expired. Choose whether to retry with same finder or drop this request with settlement.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className="rounded-lg bg-blue-700 px-3 py-2 text-xs font-medium text-white"
+                  type="button"
+                  onClick={onRetrySameFinder}
+                >
+                  Retry With Same Finder
+                </button>
+                <button
+                  className="rounded-lg border border-rose-300 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-50"
+                  type="button"
+                  onClick={onDropExpired}
+                >
+                  Drop Request
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {showFailedControls ? (
+            <div className="mt-3 space-y-2">
+              <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800">
+                Owner service deadline failed. Retry with different finder will trigger refund and require fresh payment cycle.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className="rounded-lg bg-blue-700 px-3 py-2 text-xs font-medium text-white"
+                  type="button"
+                  onClick={onRetryDifferentFinder}
+                >
+                  Retry With Different Finder
+                </button>
+                <button
+                  className="rounded-lg border border-rose-300 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-50"
+                  type="button"
+                  onClick={onDropFailed}
+                >
+                  Drop Request
+                </button>
+              </div>
             </div>
           ) : null}
 

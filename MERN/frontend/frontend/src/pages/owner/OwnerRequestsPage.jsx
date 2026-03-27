@@ -4,18 +4,30 @@ import { toast } from 'react-toastify';
 import EmptyState from '../../components/common/EmptyState';
 import GlassModal from '../../components/common/GlassModal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import PageHeader from '../../components/common/PageHeader';
-import RequestCard from '../../components/owner/RequestCard';
+import OwnerRequestCard from '../../components/owner/OwnerRequestCard';
 import { assignmentApi, evidenceApi, notificationApi, paymentApi, requestApi } from '../../services/api';
 import { getErrorMessage } from '../../utils/helpers';
 import { deriveOwnerLifecycleState } from '../../utils/requestLifecycle';
+import '../../styles/owner/request.css';
+import '../../styles/owner/dashboard.css';
 
-const getId = (value) => {
-  if (!value) return null;
-  if (typeof value === 'string') return value;
-  if (typeof value === 'object' && value._id) return value._id;
+const getId = (v) => {
+  if (!v) return null;
+  if (typeof v === 'string') return v;
+  if (typeof v === 'object' && v._id) return v._id;
   return null;
 };
+
+const FILTERS = [
+  { label: 'All',        value: null },
+  { label: 'Draft',      value: 'draft' },
+  { label: 'Pending',    value: 'pending_payment' },
+  { label: 'Open',       value: 'open' },
+  { label: 'Assigned',   value: 'assigned' },
+  { label: 'Evidence',   value: 'evidence_submitted' },
+  { label: 'Completed',  value: 'completed' },
+  { label: 'Attention',  value: '__attention__' },
+];
 
 const OwnerRequestsPage = () => {
   const navigate = useNavigate();
@@ -23,6 +35,8 @@ const OwnerRequestsPage = () => {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [activeFilter, setActiveFilter] = useState(null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -35,168 +49,152 @@ const OwnerRequestsPage = () => {
           paymentApi.my().catch(() => ({ data: [] })),
           notificationApi.my({ limit: 200, unreadOnly: true }).catch(() => ({ data: [] })),
           Promise.all(
-            requests.map(async (request) => {
+            requests.map(async (req) => {
               try {
-                const assignmentRes = await assignmentApi.byRequest(request._id);
-                return [request._id, assignmentRes.data || null];
-              } catch {
-                return [request._id, null];
-              }
+                const aRes = await assignmentApi.byRequest(req._id);
+                return [req._id, aRes.data || null];
+              } catch { return [req._id, null]; }
             })
           )
         ]);
 
-        const assignmentByRequestId = Object.fromEntries(assignmentEntries);
-        const requestByAssignmentId = assignmentEntries.reduce((acc, [requestId, assignment]) => {
-          if (assignment?._id) acc[assignment._id] = requestId;
+        const assignmentByReqId = Object.fromEntries(assignmentEntries);
+        const reqByAssignmentId = assignmentEntries.reduce((acc, [rid, a]) => {
+          if (a?._id) acc[a._id] = rid;
           return acc;
         }, {});
 
-        const assignmentIds = Object.keys(requestByAssignmentId);
+        const assignmentIds = Object.keys(reqByAssignmentId);
         const evidenceEntries = await Promise.all(
-          assignmentIds.map(async (assignmentId) => {
+          assignmentIds.map(async (aid) => {
             try {
-              const evidenceRes = await evidenceApi.byAssignment(assignmentId);
-              return [assignmentId, evidenceRes.data || null];
-            } catch {
-              return [assignmentId, null];
-            }
+              const eRes = await evidenceApi.byAssignment(aid);
+              return [aid, eRes.data || null];
+            } catch { return [aid, null]; }
           })
         );
         const evidenceByAssignmentId = Object.fromEntries(evidenceEntries);
 
-        const payments = paymentsRes.data || [];
-        const paymentByRequestId = payments.reduce((acc, payment) => {
-          const requestId = getId(payment.requestId);
-          if (!requestId) return acc;
-          const existing = acc[requestId];
-          if (!existing) {
-            acc[requestId] = payment;
-            return acc;
-          }
-
-          const existingTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
-          const currentTime = new Date(payment.updatedAt || payment.createdAt || 0).getTime();
-          if (currentTime >= existingTime) acc[requestId] = payment;
+        const paymentByReqId = (paymentsRes.data || []).reduce((acc, p) => {
+          const rid = getId(p.requestId);
+          if (!rid) return acc;
+          const ex = acc[rid];
+          if (!ex || new Date(p.updatedAt || p.createdAt || 0) >= new Date(ex.updatedAt || ex.createdAt || 0)) acc[rid] = p;
           return acc;
         }, {});
 
-        const unreadNotifications = notificationsRes.data || [];
-        const alertsByRequestId = unreadNotifications.reduce((acc, notification) => {
-          const type = String(notification.notificationType || notification.type || '').toLowerCase();
-          const title = String(notification.title || '').toLowerCase();
-          const message = String(notification.message || '').toLowerCase();
-          const directRequestId = getId(notification.requestId || notification.data?.requestId);
-          const assignmentId = getId(notification.assignmentId || notification.data?.assignmentId);
-          const requestId = directRequestId || (assignmentId ? requestByAssignmentId[assignmentId] : null);
-          if (!requestId) return acc;
-
-          const current = acc[requestId] || { newEvidence: false, newApplicant: false, newMessage: false };
-          if (type.includes('evidence') || title.includes('evidence') || message.includes('evidence')) current.newEvidence = true;
-          if (
-            type.includes('finder')
-            || type.includes('assignment')
-            || type.includes('applicant')
-            || title.includes('finder')
-            || title.includes('application')
-            || message.includes('appl')
-          ) current.newApplicant = true;
-          if (
-            type.includes('message')
-            || type.includes('chat')
-            || title.includes('message')
-            || title.includes('chat')
-            || message.includes('message')
-            || message.includes('chat')
-          ) current.newMessage = true;
-
-          acc[requestId] = current;
+        const alertsByReqId = (notificationsRes.data || []).reduce((acc, n) => {
+          const type = String(n.notificationType || n.type || '').toLowerCase();
+          const title = String(n.title || '').toLowerCase();
+          const msg = String(n.message || '').toLowerCase();
+          const rid = getId(n.requestId || n.data?.requestId) || (n.assignmentId ? reqByAssignmentId[getId(n.assignmentId)] : null);
+          if (!rid) return acc;
+          const cur = acc[rid] || { newEvidence: false, newApplicant: false, newMessage: false };
+          if (type.includes('evidence') || title.includes('evidence') || msg.includes('evidence')) cur.newEvidence = true;
+          if (type.includes('finder') || type.includes('assignment') || type.includes('applicant') || title.includes('application') || msg.includes('appl')) cur.newApplicant = true;
+          if (type.includes('message') || type.includes('chat') || title.includes('message') || msg.includes('message')) cur.newMessage = true;
+          acc[rid] = cur;
           return acc;
         }, {});
 
-        const enriched = requests.map((request) => {
-          const assignment = assignmentByRequestId[request._id] || null;
-          const payment = paymentByRequestId[request._id] || null;
+        const enriched = requests.map((req) => {
+          const assignment = assignmentByReqId[req._id] || null;
+          const payment = paymentByReqId[req._id] || null;
           const evidence = assignment?._id ? evidenceByAssignmentId[assignment._id] || null : null;
-          const lifecycleState = deriveOwnerLifecycleState({
-            request,
-            payment,
-            assignment,
-            evidence
-          });
-
-          return {
-            ...request,
-            _lifecycleState: lifecycleState,
-            _alerts: alertsByRequestId[request._id] || { newEvidence: false, newApplicant: false, newMessage: false }
-          };
+          const lifecycleState = deriveOwnerLifecycleState({ request: req, payment, assignment, evidence });
+          return { ...req, _lifecycleState: lifecycleState, _alerts: alertsByReqId[req._id] || { newEvidence: false, newApplicant: false, newMessage: false } };
         });
 
         setItems(enriched);
-      } catch (error) {
-        toast.error(getErrorMessage(error));
+      } catch (err) {
+        toast.error(getErrorMessage(err));
       } finally {
         setLoading(false);
       }
     };
-
     load();
   }, []);
 
-  const handleEdit = (request) => {
-    navigate(`/owner/requests/${request._id}`);
-  };
-
-  const handleDelete = async (request) => {
-    setDeleteTarget(request);
-  };
-
   const confirmDelete = async () => {
     if (!deleteTarget?._id) return;
-
     try {
       setDeleteLoading(true);
       await requestApi.remove(deleteTarget._id);
-      setItems((prev) => prev.filter((item) => item._id !== deleteTarget._id));
+      setItems((prev) => prev.filter((i) => i._id !== deleteTarget._id));
       toast.success('Draft deleted successfully.');
       setDeleteTarget(null);
-    } catch (error) {
-      toast.error(getErrorMessage(error));
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setDeleteLoading(false);
     }
   };
 
-  const handlePay = (request) => {
-    navigate(`/owner/requests/${request._id}`);
-  };
-
-  const handleViewApplicants = (request) => {
-    navigate(`/owner/requests/${request._id}`);
-  };
+  const ATTENTION = ['inactive', 'expired', 'failed'];
+  const filtered = items.filter((item) => {
+    const matchFilter = !activeFilter
+      ? true
+      : activeFilter === '__attention__'
+        ? ATTENTION.includes(item._lifecycleState)
+        : item._lifecycleState === activeFilter;
+    const matchSearch = !search || (item.itemName || '').toLowerCase().includes(search.toLowerCase());
+    return matchFilter && matchSearch;
+  });
 
   return (
-    <div>
-      <PageHeader title="My Requests" subtitle="Track pending, open, assigned, and completed requests" />
+    <div className="owner-page-enter">
+      {/* Header */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+          My Requests
+        </h1>
+        <p style={{ margin: '0.35rem 0 0', color: '#64748b', fontSize: '0.875rem' }}>
+          Track pending, open, assigned, and completed requests
+        </p>
+      </div>
 
-      {loading ? <LoadingSpinner text="Loading requests..." /> : null}
+      {/* Filter Bar */}
+      <div className="owner-filter-bar">
+        {/* Search */}
+        <input
+          type="text"
+          placeholder="🔍 Search by name…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ padding: '0.4rem 1rem', borderRadius: '100px', border: '1.5px solid rgba(15,23,42,0.1)', fontSize: '0.82rem', outline: 'none', minWidth: '180px', transition: 'border-color 0.2s' }}
+          onFocus={(e) => { e.target.style.borderColor = '#f59e0b'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.1)'; }}
+          onBlur={(e) => { e.target.style.borderColor = 'rgba(15,23,42,0.1)'; e.target.style.boxShadow = 'none'; }}
+        />
+        {FILTERS.map((f) => (
+          <button
+            key={f.label}
+            type="button"
+            className={`owner-filter-chip${activeFilter === f.value ? ' active' : ''}`}
+            onClick={() => setActiveFilter(f.value)}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
 
-      {!loading && items.length === 0 ? (
-        <EmptyState title="No requests available" description="Create a request to start the workflow." />
+      {loading ? <LoadingSpinner text="Loading requests…" /> : null}
+
+      {!loading && filtered.length === 0 ? (
+        <EmptyState title="No requests found" description={search ? 'Try a different search.' : 'Create a request to start the workflow.'} />
       ) : null}
 
-      {!loading && items.length > 0 ? (
-        <div className="space-y-3">
-          {items.map((item) => (
-            <RequestCard
+      {!loading && filtered.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', marginTop: '0.5rem' }}>
+          {filtered.map((item) => (
+            <OwnerRequestCard
               key={item._id}
               request={item}
               lifecycleState={item._lifecycleState}
               alerts={item._alerts}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onPay={handlePay}
-              onViewApplicants={handleViewApplicants}
+              onEdit={(r) => navigate(`/owner/requests/${r._id}`)}
+              onDelete={(r) => setDeleteTarget(r)}
+              onPay={(r) => navigate(`/owner/requests/${r._id}`)}
+              onViewApplicants={(r) => navigate(`/owner/requests/${r._id}`)}
             />
           ))}
         </div>
@@ -205,7 +203,7 @@ const OwnerRequestsPage = () => {
       <GlassModal
         open={Boolean(deleteTarget)}
         title="Delete Draft Request?"
-        subtitle="This action will cancel the draft and remove it from your list."
+        subtitle="This will permanently remove this draft."
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
         confirmText="Delete Draft"

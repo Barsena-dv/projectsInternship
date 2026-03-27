@@ -133,8 +133,8 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
   const goBack = () => setStep((prev) => Math.max(prev - 1, 1));
 
   return (
-    <form className="pnf-card p-5" onSubmit={handleSubmit((values) => handleFormSubmit(values, 'draft'))}>
-      <div className="mb-5 grid gap-2 md:grid-cols-3">
+    <form className="pnf-card owner-request-form p-5" onSubmit={handleSubmit((values) => handleFormSubmit(values, 'draft'))}>
+      <div className="owner-request-step-grid mb-5 grid gap-2 md:grid-cols-3">
         {STEPS.map((item) => {
           const isActive = step === item.id;
           const isDone = step > item.id;
@@ -142,7 +142,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
           return (
             <div
               key={item.id}
-              className={`rounded-lg border p-3 ${isActive ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}
+              className={`owner-request-step-card rounded-lg border p-3 ${isActive ? 'is-active border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'} ${isDone ? 'is-done' : ''}`}
             >
               <p className={`text-xs font-semibold ${isDone ? 'text-emerald-700' : 'text-slate-600'}`}>
                 Step {item.id}
@@ -155,7 +155,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
       </div>
 
       {step === 1 ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 owner-request-form-section">
           <div>
             <label className="mb-1 block text-sm font-medium">Item Name</label>
             <input className="pnf-input" {...register('itemName', { required: 'Item name is required' })} />
@@ -168,13 +168,13 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
             {errors.itemCategory ? <p className="mt-1 text-xs text-rose-600">{errors.itemCategory.message}</p> : null}
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 owner-request-selected-location">
             <label className="mb-1 block text-sm font-medium">Description</label>
             <textarea className="pnf-input" rows={3} {...register('description', { required: 'Description is required' })} />
             {errors.description ? <p className="mt-1 text-xs text-rose-600">{errors.description.message}</p> : null}
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 owner-request-map-panel">
             <LocationSearchInput
               value={searchText}
               onChange={setSearchText}
@@ -211,7 +211,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
       ) : null}
 
       {step === 2 ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 owner-request-form-section">
           <div>
             <label className="mb-1 block text-sm font-medium">Brand</label>
             <input className="pnf-input" placeholder="e.g., Apple, Samsung" {...register('brand')} />
@@ -255,7 +255,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
       ) : null}
 
       {step === 3 ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 owner-request-form-section">
           <div>
             <label className="mb-1 block text-sm font-medium">Service Plan</label>
             <select className="pnf-input" {...register('servicePlanId', { required: 'Plan is required' })}>
@@ -276,7 +276,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
             </select>
           </div>
 
-          <div className="md:col-span-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div className="md:col-span-2 owner-request-preview rounded-lg border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-semibold text-slate-900">Request Preview</p>
             <div className="mt-2 grid gap-1 text-sm text-slate-700 md:grid-cols-2">
               <p><span className="font-medium">Item:</span> {watchedItemName || '-'}</p>
@@ -311,7 +311,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
         </div>
       ) : null}
 
-      <div className="mt-5 flex flex-wrap justify-between gap-2 border-t border-slate-200 pt-4">
+      <div className="owner-request-form-footer mt-5 flex flex-wrap justify-between gap-2 border-t border-slate-200 pt-4">
         <button className="pnf-btn-outline rounded-lg px-4 py-2 text-sm font-medium" type="button" onClick={goBack} disabled={loading || step === 1}>
           Back
         </button>

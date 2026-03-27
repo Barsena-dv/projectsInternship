@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
@@ -30,8 +30,23 @@ const ProfilePage = () => {
   const [savingPassword, setSavingPassword] = useState(false);
   const [profileErrors, setProfileErrors] = useState({});
   const [passwordErrors, setPasswordErrors] = useState({});
+  const [activeTab, setActiveTab] = useState('account');
 
   const verificationStatus = toVerificationStatus(user?.role, user?.isVerified, user?.accountStatus);
+
+  const tabItems = useMemo(() => {
+    const tabs = [
+      { id: 'account', label: 'Account' },
+      { id: 'edit', label: 'Edit Profile' },
+      { id: 'security', label: 'Security' },
+    ];
+
+    if (String(user?.role || '').toLowerCase() === 'finder') {
+      tabs.push({ id: 'verification', label: 'Verification' });
+    }
+
+    return tabs;
+  }, [user?.role]);
 
   useEffect(() => {
     setProfileForm({
@@ -43,10 +58,6 @@ const ProfilePage = () => {
     setImagePreview(existingImage);
     setImageDataUrl('');
   }, [user]);
-
-  if (!user) {
-    return <LoadingSpinner text="Loading profile..." />;
-  }
 
   const handleImageChange = (event) => {
     const file = event.target.files?.[0];
@@ -124,20 +135,37 @@ const ProfilePage = () => {
     }
   };
 
+  if (!user) {
+    return <LoadingSpinner text="Loading profile..." />;
+  }
+
   return (
-    <div>
+    <div className="finder-profile-page owner-profile-page admin-profile-page owner-profile-shell">
       <PageHeader title="Profile" subtitle="View account information and manage profile settings" />
 
+      <div className="owner-profile-tabs mb-4 flex flex-wrap gap-2">
+        {tabItems.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={`owner-profile-tab rounded-full px-4 py-2 text-sm font-semibold ${activeTab === tab.id ? 'is-active' : ''}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="pnf-card p-5">
-          <h2 className="text-base font-semibold text-slate-900">User Info</h2>
+        <section className="pnf-panel p-5 profile-block owner-profile-card">
+          <h2 className="pnf-heading text-base font-semibold">User Info</h2>
           <div className="mt-4 flex items-center gap-4">
             <img
               src={imagePreview || 'https://placehold.co/100x100?text=User'}
               alt="Profile"
-              className="h-20 w-20 rounded-full border border-slate-200 object-cover"
+              className="h-20 w-20 rounded-full border border-slate-200 object-cover owner-profile-avatar"
             />
-            <div className="space-y-1 text-sm text-slate-700">
+            <div className="pnf-muted space-y-1 text-sm">
               <p><span className="font-medium">Full Name:</span> {user.full_name || '-'}</p>
               <p><span className="font-medium">Email:</span> {user.email || '-'}</p>
               <p><span className="font-medium">Role:</span> {String(user.role || '').toUpperCase()}</p>
@@ -145,87 +173,91 @@ const ProfilePage = () => {
           </div>
         </section>
 
-        <section className="pnf-card p-5">
-          <h2 className="text-base font-semibold text-slate-900">Edit Profile</h2>
-          <form className="mt-4 grid gap-3" onSubmit={handleProfileSubmit}>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Full Name</label>
-              <input
-                className="pnf-input"
-                value={profileForm.full_name}
-                onChange={(e) => setProfileForm((prev) => ({ ...prev, full_name: e.target.value }))}
-              />
-              {profileErrors.full_name ? <p className="mt-1 text-xs text-rose-600">{profileErrors.full_name}</p> : null}
-            </div>
+        {(activeTab === 'account' || activeTab === 'edit') ? (
+          <section className="pnf-panel p-5 profile-block owner-profile-card">
+            <h2 className="pnf-heading text-base font-semibold">Edit Profile</h2>
+            <form className="mt-4 grid gap-3" onSubmit={handleProfileSubmit}>
+              <div>
+                <label className="pnf-muted mb-1 block text-sm font-semibold">Full Name</label>
+                <input
+                  className="pnf-input"
+                  value={profileForm.full_name}
+                  onChange={(e) => setProfileForm((prev) => ({ ...prev, full_name: e.target.value }))}
+                />
+                {profileErrors.full_name ? <p className="mt-1 text-xs text-rose-600">{profileErrors.full_name}</p> : null}
+              </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Phone Number</label>
-              <input
-                className="pnf-input"
-                value={profileForm.phone}
-                onChange={(e) => setProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
-              />
-              {profileErrors.phone ? <p className="mt-1 text-xs text-rose-600">{profileErrors.phone}</p> : null}
-            </div>
+              <div>
+                <label className="pnf-muted mb-1 block text-sm font-semibold">Phone Number</label>
+                <input
+                  className="pnf-input"
+                  value={profileForm.phone}
+                  onChange={(e) => setProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
+                />
+                {profileErrors.phone ? <p className="mt-1 text-xs text-rose-600">{profileErrors.phone}</p> : null}
+              </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Profile Image</label>
-              <input className="pnf-input" type="file" accept="image/*" onChange={handleImageChange} />
-              <p className="mt-1 text-xs text-slate-500">Select an image to preview before saving.</p>
-            </div>
+              <div>
+                <label className="pnf-muted mb-1 block text-sm font-semibold">Profile Image</label>
+                <input className="pnf-input" type="file" accept="image/*" onChange={handleImageChange} />
+                <p className="pnf-muted-2 mt-1 text-xs">Select an image to preview before saving.</p>
+              </div>
 
-            <button className="pnf-btn-primary rounded-lg px-4 py-2 text-sm font-medium" type="submit" disabled={savingProfile}>
-              {savingProfile ? 'Saving...' : 'Save Profile'}
-            </button>
-          </form>
-        </section>
+              <button className="pnf-btn-primary rounded-lg px-4 py-2 text-sm font-medium" type="submit" disabled={savingProfile}>
+                {savingProfile ? 'Saving...' : 'Save Profile'}
+              </button>
+            </form>
+          </section>
+        ) : null}
 
-        <section className="pnf-card p-5">
-          <h2 className="text-base font-semibold text-slate-900">Update Password</h2>
-          <form className="mt-4 grid gap-3" onSubmit={handlePasswordSubmit}>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Current Password</label>
-              <input
-                className="pnf-input"
-                type="password"
-                value={passwordForm.currentPassword}
-                onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
-              />
-              {passwordErrors.currentPassword ? <p className="mt-1 text-xs text-rose-600">{passwordErrors.currentPassword}</p> : null}
-            </div>
+        {activeTab === 'security' ? (
+          <section className="pnf-panel p-5 profile-block owner-profile-card">
+            <h2 className="pnf-heading text-base font-semibold">Update Password</h2>
+            <form className="mt-4 grid gap-3" onSubmit={handlePasswordSubmit}>
+              <div>
+                <label className="pnf-muted mb-1 block text-sm font-semibold">Current Password</label>
+                <input
+                  className="pnf-input"
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                />
+                {passwordErrors.currentPassword ? <p className="mt-1 text-xs text-rose-600">{passwordErrors.currentPassword}</p> : null}
+              </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">New Password</label>
-              <input
-                className="pnf-input"
-                type="password"
-                value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
-              />
-              {passwordErrors.newPassword ? <p className="mt-1 text-xs text-rose-600">{passwordErrors.newPassword}</p> : null}
-            </div>
+              <div>
+                <label className="pnf-muted mb-1 block text-sm font-semibold">New Password</label>
+                <input
+                  className="pnf-input"
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
+                />
+                {passwordErrors.newPassword ? <p className="mt-1 text-xs text-rose-600">{passwordErrors.newPassword}</p> : null}
+              </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Confirm Password</label>
-              <input
-                className="pnf-input"
-                type="password"
-                value={passwordForm.confirmPassword}
-                onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-              />
-              {passwordErrors.confirmPassword ? <p className="mt-1 text-xs text-rose-600">{passwordErrors.confirmPassword}</p> : null}
-            </div>
+              <div>
+                <label className="pnf-muted mb-1 block text-sm font-semibold">Confirm Password</label>
+                <input
+                  className="pnf-input"
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                />
+                {passwordErrors.confirmPassword ? <p className="mt-1 text-xs text-rose-600">{passwordErrors.confirmPassword}</p> : null}
+              </div>
 
-            <button className="pnf-btn-primary rounded-lg px-4 py-2 text-sm font-medium" type="submit" disabled={savingPassword}>
-              {savingPassword ? 'Updating...' : 'Update Password'}
-            </button>
-          </form>
-        </section>
+              <button className="pnf-btn-primary rounded-lg px-4 py-2 text-sm font-medium" type="submit" disabled={savingPassword}>
+                {savingPassword ? 'Updating...' : 'Update Password'}
+              </button>
+            </form>
+          </section>
+        ) : null}
 
-        {user.role === 'finder' ? (
-          <section className="pnf-card p-5">
-            <h2 className="text-base font-semibold text-slate-900">Finder Verification</h2>
-            <div className="mt-3 space-y-3 text-sm text-slate-700">
+        {activeTab === 'verification' && user.role === 'finder' ? (
+          <section className="pnf-panel p-5 profile-block owner-profile-card">
+            <h2 className="pnf-heading text-base font-semibold">Finder Verification</h2>
+            <div className="pnf-muted mt-3 space-y-3 text-sm">
               <p>
                 <span className="font-medium">Verification Status:</span>{' '}
                 <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusClass[verificationStatus]}`}>
@@ -234,16 +266,27 @@ const ProfilePage = () => {
               </p>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Upload ID Proof (Optional)</label>
+                <label className="mb-1 block text-sm font-semibold pnf-muted">Upload ID Proof (Optional)</label>
                 <input
                   className="pnf-input"
                   type="file"
                   accept="image/*,.pdf"
                   onChange={(e) => setIdProofFile(e.target.files?.[0] || null)}
                 />
-                {idProofFile ? <p className="mt-1 text-xs text-slate-500">Selected: {idProofFile.name}</p> : null}
-                <p className="mt-1 text-xs text-slate-500">UI is ready. Upload API can be connected when backend endpoint is available.</p>
+                {idProofFile ? <p className="pnf-muted-2 mt-1 text-xs">Selected: {idProofFile.name}</p> : null}
+                <p className="pnf-muted-2 mt-1 text-xs">UI is ready. Upload API can be connected when backend endpoint is available.</p>
               </div>
+            </div>
+          </section>
+        ) : null}
+
+        {activeTab === 'account' ? (
+          <section className="pnf-panel p-5 profile-block owner-profile-card owner-profile-account-notes lg:col-span-2">
+            <h2 className="pnf-heading text-base font-semibold">Account Summary</h2>
+            <div className="mt-3 grid gap-2 text-sm md:grid-cols-3">
+              <p><span className="font-medium">Role:</span> {String(user.role || '').toUpperCase()}</p>
+              <p><span className="font-medium">Email:</span> {user.email || '-'}</p>
+              <p><span className="font-medium">Phone:</span> {user.phone || '-'}</p>
             </div>
           </section>
         ) : null}

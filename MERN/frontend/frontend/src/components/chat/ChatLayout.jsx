@@ -10,8 +10,8 @@ const ChatLayout = ({
   const hasDetailsPanel = Boolean(details);
 
   return (
-    <section className="pnf-card overflow-hidden">
-      <div className="border-b border-slate-200 bg-white px-3 py-2 md:hidden">
+    <section className="chat-shell pnf-card overflow-hidden">
+      <div className="border-b px-3 py-2 md:hidden pnf-soft-border">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -45,14 +45,14 @@ const ChatLayout = ({
         {showMobileSidebar ? (
           <div className="absolute inset-0 z-20 md:hidden">
             <div className="absolute inset-0 bg-slate-900/30" onClick={onToggleMobileSidebar} aria-hidden="true" />
-            <div className="absolute inset-y-0 left-0 w-[85%] max-w-sm bg-white shadow-xl">{sidebar}</div>
+            <div className="absolute inset-y-0 left-0 w-[85%] max-w-sm pnf-panel shadow-xl">{sidebar}</div>
           </div>
         ) : null}
 
         {hasDetailsPanel && showMobileDetails ? (
           <div className="absolute inset-0 z-20 md:hidden">
             <div className="absolute inset-0 bg-slate-900/30" onClick={onToggleMobileDetails} aria-hidden="true" />
-            <div className="absolute inset-y-0 right-0 w-[85%] max-w-sm bg-white shadow-xl">{details}</div>
+            <div className="absolute inset-y-0 right-0 w-[85%] max-w-sm pnf-panel shadow-xl">{details}</div>
           </div>
         ) : null}
       </div>
