@@ -128,16 +128,17 @@ const FinderAssignmentDetailsPage = () => {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const assignmentData = (await assignmentApi.byId(assignmentId)).data;
-      const [timelineData, evidenceData, payoutData] = await Promise.all([
+      const res = await assignmentApi.byId(assignmentId);
+      if (res.data.success) {
+        setAssignment(res.data.data.assignment || res.data.data);
+        setPayout(res.data.data.payout);
+      }
+      const [timelineData, evidenceData] = await Promise.all([
         assignmentApi.timeline(assignmentId).catch(() => ({ data: [] })),
-        evidenceApi.byAssignment(assignmentId).catch(() => ({ data: null })),
-        payoutApi.my().catch(() => ({ data: [] }))
+        evidenceApi.byAssignment(assignmentId).catch(() => ({ data: null }))
       ]);
-      setAssignment(assignmentData);
       setTimeline(timelineData.data || []);
       setEvidence(evidenceData.data || null);
-      setPayout((payoutData.data || []).find(r => String(r.assignment) === String(assignmentId)) || null);
     } catch (error) { toast.error(getErrorMessage(error)); } finally { setLoading(false); }
   }, [assignmentId]);
 
@@ -295,7 +296,9 @@ const FinderAssignmentDetailsPage = () => {
                  </div>
                  <div className="text-right">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Target Value</span>
-                    <div className="text-2xl font-black text-emerald-500">{formatCurrency(assignment?.request?.rewardAmount)}</div>
+                    <div className="text-2xl font-black text-emerald-500">
+                       {formatCurrency(payout?.payoutAmount || assignment?.request?.rewardAmount)}
+                    </div>
                  </div>
               </div>
 
@@ -310,7 +313,9 @@ const FinderAssignmentDetailsPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
                           <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1">Total Extraction Target</span>
-                          <p className="text-lg font-black text-white">{formatCurrency(assignment?.request?.rewardAmount)}</p>
+                          <p className="text-lg font-black text-white">
+                             {formatCurrency(payout?.payoutAmount || assignment?.request?.rewardAmount)}
+                          </p>
                        </div>
                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
                           <div className="flex justify-between items-start mb-1">
@@ -318,7 +323,9 @@ const FinderAssignmentDetailsPage = () => {
                              <FiShield className="text-emerald-500/50" size={10} />
                           </div>
                           <p className="text-lg font-black text-emerald-500">
-                             {formatCurrency((assignment?.request?.rewardAmount * (assignment?.request?.planId?.finderPercent || 15)) / ((assignment?.request?.planId?.finderPercent || 15) + (assignment?.request?.planId?.refundPercent || 70)))}
+                             {formatCurrency(
+                                (assignment?.request?.rewardAmount * (assignment?.request?.planId?.finderPercent || 15)) / 100
+                              )}
                           </p>
                           <span className="text-[8px] text-emerald-500/40 font-bold uppercase">Locked regardless of outcome</span>
                        </div>
@@ -328,7 +335,9 @@ const FinderAssignmentDetailsPage = () => {
                              <FiZap className="text-sky-500/50" size={10} />
                           </div>
                           <p className="text-lg font-black text-sky-500">
-                             {formatCurrency((assignment?.request?.rewardAmount * (assignment?.request?.planId?.refundPercent || 70)) / ((assignment?.request?.planId?.finderPercent || 15) + (assignment?.request?.planId?.refundPercent || 70)))}
+                             {formatCurrency(
+                                (assignment?.request?.rewardAmount * (assignment?.request?.planId?.refundPercent || 70)) / 100
+                              )}
                           </p>
                           <span className="text-[8px] text-sky-500/40 font-bold uppercase">Released upon verification</span>
                        </div>

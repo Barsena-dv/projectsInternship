@@ -62,8 +62,7 @@ const processPayment = async (paymentId, transactionId) => {
   const request = await LostItemRequest.findById(payment.request);
   if (request) {
     const plan = await ServicePlan.findById(payment.servicePlan);
-    const rewardPercent = (plan?.finderPercent || 0) + (plan?.refundPercent || 0);
-    request.rewardAmount = round2((payment.amount * rewardPercent) / 100);
+    request.rewardAmount = payment.amount;
     request.requestStatus = 'open';
     await request.save();
   }
@@ -215,6 +214,7 @@ const releasePayment = async (paymentId, userId, reason = '') => {
 const getUserPayments = async (userId) => {
   return Payment.find({ owner: userId })
     .populate('request')
+    .populate('servicePlan')
     .sort({ createdAt: -1 });
 };
 

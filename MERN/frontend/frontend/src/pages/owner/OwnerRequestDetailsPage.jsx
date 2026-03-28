@@ -70,16 +70,21 @@ const OwnerRequestDetailsPage = () => {
       setPayment(selectedPayment || null);
 
       try {
-        const assignmentRes = await assignmentApi.byRequest(id);
-        const assignmentData = assignmentRes.data || null;
-        setAssignment(assignmentData);
+         const assignmentRes = await assignmentApi.byRequest(id);
+         const assignmentData = assignmentRes.data?.assignment || assignmentRes.data || null;
+         setAssignment(assignmentData);
+         
+         // Prioritize payment returned with assignment if available
+         if (assignmentRes.data?.payment) {
+           setPayment(assignmentRes.data.payment);
+         }
 
-        if (assignmentData?._id) {
-          const evidenceRes = await evidenceApi.byAssignment(assignmentData._id).catch(() => ({ data: null }));
-          setEvidence(evidenceRes.data || null);
-        } else {
-          setEvidence(null);
-        }
+         if (assignmentData?._id) {
+           const evidenceRes = await evidenceApi.byAssignment(assignmentData._id).catch(() => ({ data: null }));
+           setEvidence(evidenceRes.data || null);
+         } else {
+           setEvidence(null);
+         }
       } catch {
         setAssignment(null);
         setEvidence(null);
