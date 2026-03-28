@@ -9,6 +9,7 @@ import PageHeader from '../../components/common/PageHeader';
 import RequestDetails from '../../components/owner/RequestDetails';
 import { assignmentApi, evidenceApi, paymentApi, ratingApi, requestApi } from '../../services/api';
 import { getErrorMessage } from '../../utils/helpers';
+import '../../styles/owner/request-details.css';
 
 const OwnerRequestDetailsPage = () => {
   const navigate = useNavigate();

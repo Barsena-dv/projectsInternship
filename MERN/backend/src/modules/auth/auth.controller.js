@@ -60,7 +60,26 @@ const getMe = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const user = await authService.updateProfile(req.user.userId, req.body);
+    let updateData = { ...req.body };
+
+    // Handle profile image upload if file is present
+    if (req.file) {
+      const { uploadToCloudinary } = require('../../config/cloudinary');
+      const { Readable } = require('stream');
+      
+      const fileStream = new Readable();
+      fileStream.push(req.file.buffer);
+      fileStream.push(null);
+      
+      const cloudinaryResult = await uploadToCloudinary(fileStream, 'profiles', `user_${req.user.userId}`);
+      
+      updateData.profileImage = {
+        url: cloudinaryResult.secure_url,
+        cloudinaryId: cloudinaryResult.public_id,
+      };
+    }
+
+    const user = await authService.updateProfile(req.user.userId, updateData);
     res.status(200).json({
       success: true,
       message: 'Profile updated successfully',

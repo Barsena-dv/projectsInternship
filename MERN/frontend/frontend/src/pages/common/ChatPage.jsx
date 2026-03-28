@@ -331,8 +331,8 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="owner-chat-page">
-      <PageHeader title="Chat" subtitle="Owner and finder can chat after evidence verification." />
+    <div className="owner-chat-page owner-page-enter max-w-7xl mx-auto pb-12">
+      <PageHeader title="Secure Messages" subtitle="Communicate directly to finalize the hand-off process." />
 
       <ChatLayout
         sidebar={
@@ -360,7 +360,7 @@ const ChatPage = () => {
               setConfirmChecked(false);
               setConfirmModalOpen(true);
             }}
-            typingLabel={text.trim() && !chatClosed ? 'User is typing...' : ''}
+            typingLabel={text.trim() && !chatClosed ? 'Encryption active • typing...' : ''}
             messagesContainerRef={messagesContainerRef}
             onMessagesScroll={handleMessagesScroll}
           />

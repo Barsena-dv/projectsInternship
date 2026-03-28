@@ -1,5 +1,7 @@
+import { FiInfo, FiMoreVertical } from 'react-icons/fi';
 import EmptyState from '../common/EmptyState';
 import LoadingSpinner from '../common/LoadingSpinner';
+import Avatar from '../common/Avatar';
 import ChatInput from './ChatInput';
 import MessageBubble from './MessageBubble';
 
@@ -22,69 +24,81 @@ const ChatWindow = ({
 }) => {
   if (!conversation) {
     return (
-      <div className="m-auto w-full max-w-lg px-4">
-        <EmptyState title="Select a conversation" description="Choose a chat from the sidebar to start messaging." />
+      <div className="m-auto w-full max-w-lg px-4 flex flex-col items-center text-center animate-in fade-in zoom-in duration-500">
+        <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-amber-500/20 mb-6 border border-white/5">
+           <FiInfo size={40} />
+        </div>
+        <h3 className="text-xl font-black text-white mb-2">Select a conversation</h3>
+        <p className="text-stone-500 text-sm max-w-xs mx-auto">Choose a contact from the sidebar to view your messages and start collaborating.</p>
       </div>
     );
   }
 
+  const isOwner = String(conversation?.owner?._id || conversation?.owner) === String(currentUserId);
+  const peer = isOwner ? conversation?.finder : conversation?.owner;
+  const peerName = peer?.full_name || (peer?.email ? peer.email : 'External Collaborator');
+  const peerImage = peer?.profileImage?.url || peer?.profileImage;
+
   return (
-    <div className="flex h-full min-h-0 flex-col bg-(--pnf-surface)">
-      <div className="border-b bg-(--pnf-surface) px-4 py-3 pnf-soft-border">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h3 className="pnf-heading text-sm font-semibold">{conversation.requestTitle || 'Request Conversation'}</h3>
-            <p className="pnf-muted text-xs">
-              {conversation.chatUnlocked
-                ? chatClosed
-                  ? 'Last seen recently'
-                  : 'Online'
-                : 'Offline'}
-            </p>
+    <div className="flex h-full min-h-0 flex-col chat-main">
+      {/* Premium Header */}
+      <header className="chat-header px-6 py-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+             <Avatar src={peerImage} name={peerName} size="md" className="border-amber-500/10" />
+             <div className="min-w-0">
+                <h3 className="text-sm font-black text-white truncate leading-none mb-1.5">{conversation.requestTitle || 'Conversation'}</h3>
+                <div className="flex items-center gap-2">
+                   <div className={`w-1.5 h-1.5 rounded-full ${chatClosed ? 'bg-stone-600' : 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)] animate-pulse'}`} />
+                   <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">
+                     {peerName} • {chatClosed ? 'Offline' : 'Active Now'}
+                   </p>
+                </div>
+             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <span
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                chatClosed ? 'bg-(--pnf-tone-2) text-(--pnf-tone-9)' : 'bg-emerald-100 text-emerald-700'
-              }`}
-            >
-              {chatClosed ? 'Chat closed' : 'Chat active'}
-            </span>
-
-            {showCompleteButton ? (
-              <button
-                type="button"
-                className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
-                onClick={onEndChat}
-              >
-                Confirm Item Received & End Chat
-              </button>
-            ) : null}
+             {showCompleteButton && !chatClosed && (
+                <button
+                  type="button"
+                  className="hidden md:flex px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider hover:bg-emerald-500/20 transition-all duration-200"
+                  onClick={onEndChat}
+                >
+                  Mark Received
+                </button>
+             )}
+             <button className="w-10 h-10 flex items-center justify-center rounded-xl text-stone-500 hover:text-white hover:bg-white/5 transition-all">
+                <FiMoreVertical size={18} />
+             </button>
           </div>
         </div>
-      </div>
+      </header>
 
+      {/* Messages Scroll Area */}
       <div
         ref={messagesContainerRef}
         onScroll={onMessagesScroll}
-        className="min-h-0 flex-1 overflow-y-auto px-4 py-4"
-        style={{
-          backgroundColor: 'var(--pnf-tone-1)',
-          backgroundImage:
-            'radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--pnf-tone-4) 20%, transparent) 1px, transparent 0)',
-          backgroundSize: '18px 18px',
-        }}
+        className="messages-container min-h-0 flex-1 overflow-y-auto px-6 py-6 pnf-sidebar-scroll"
       >
-        {loadingMessages ? <LoadingSpinner text="Loading messages..." /> : null}
+        {loadingMessages ? (
+          <div className="flex flex-col items-center justify-center py-12">
+             <LoadingSpinner />
+             <p className="text-stone-500 text-[10px] font-black uppercase tracking-widest mt-4">Decrypting stream...</p>
+          </div>
+        ) : null}
 
         {!loadingMessages && messages.length === 0 ? (
-          <div className="pnf-muted py-10 text-center text-sm">Start the conversation</div>
+          <div className="py-20 text-center">
+             <div className="px-6 py-2 rounded-full bg-white/5 border border-white/5 inline-block text-[10px] font-black text-stone-500 uppercase tracking-widest">
+                System: Encrypted bridge established
+             </div>
+             <p className="mt-4 text-xs font-bold text-stone-600 italic">No messages yet. Send a greeting!</p>
+          </div>
         ) : null}
 
         {!loadingMessages
           ? messages.map((message, index) => {
-              const isMine = String(message?.sender?._id) === String(currentUserId);
+              const isMsgMine = String(message?.sender?._id) === String(currentUserId);
               const previousMessage = messages[index - 1];
               const sameSenderAsPrevious =
                 String(previousMessage?.sender?._id || '') === String(message?.sender?._id || '');
@@ -93,7 +107,7 @@ const ChatWindow = ({
                 <MessageBubble
                   key={message._id}
                   message={message}
-                  isMine={isMine}
+                  isMine={isMsgMine}
                   showSender={!sameSenderAsPrevious}
                   compactTop={sameSenderAsPrevious}
                 />
@@ -102,18 +116,31 @@ const ChatWindow = ({
           : null}
 
         {typingLabel ? (
-          <p className="pnf-muted mt-3 text-xs italic">{typingLabel}</p>
+          <div className="flex items-center gap-2 mt-4 ml-2 animate-pulse">
+             <div className="flex gap-1">
+                <div className="w-1 h-1 rounded-full bg-amber-500/40" />
+                <div className="w-1 h-1 rounded-full bg-amber-500/60" />
+                <div className="w-1 h-1 rounded-full bg-amber-500/80" />
+             </div>
+             <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">{typingLabel}</span>
+          </div>
         ) : null}
       </div>
 
-      <div className="border-t bg-(--pnf-surface) p-3 pnf-soft-border">
+      {/* Input / Status Footer */}
+      <footer className="chat-footer">
         {!conversation.chatUnlocked ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
-            Chat will be available after evidence verification
+          <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-center text-center">
+             <p className="text-[11px] font-black text-amber-500/80 uppercase tracking-widest leading-relaxed">
+               Security Protocol Active<br/>
+               <span className="text-stone-500 font-bold opacity-80">Awaiting evidence verification for full link</span>
+             </p>
           </div>
         ) : chatClosed ? (
-          <div className="rounded-xl border px-3 py-2 text-sm pnf-soft-border pnf-muted">
-            This chat has been closed
+          <div className="p-4 rounded-2xl bg-stone-900/50 border border-white/5 flex items-center justify-center text-center">
+             <p className="text-[11px] font-black text-stone-500 uppercase tracking-widest">
+               Communication session ended by owner
+             </p>
           </div>
         ) : (
           <ChatInput
@@ -125,7 +152,7 @@ const ChatWindow = ({
             sending={sending}
           />
         )}
-      </div>
+      </footer>
     </div>
   );
 };

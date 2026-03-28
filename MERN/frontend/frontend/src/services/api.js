@@ -21,10 +21,19 @@ export const authApi = {
   register: (payload) => unwrap(api.post('/auth/register', payload)),
   login: (payload) => unwrap(api.post('/auth/login', payload)),
   me: () => unwrap(api.get('/auth/me')),
-  updateProfile: (payload) => unwrap(api.patch('/auth/update-profile', payload)),
+  updateProfile: (payload) => {
+    const isFormData = payload instanceof FormData;
+    return unwrap(api.patch('/auth/update-profile', payload, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+    }));
+  },
   changePassword: (payload) => unwrap(api.patch('/auth/change-password', payload)),
   forgotPassword: (email) => unwrap(api.post('/auth/forgot-password', { email })),
   resetPassword: (token, password) => unwrap(api.post(`/auth/reset-password/${token}`, { password })),
+};
+
+export const auditLogApi = {
+  my: (params = {}) => unwrap(api.get('/audit-logs/my', { params })),
 };
 
 export const planApi = {

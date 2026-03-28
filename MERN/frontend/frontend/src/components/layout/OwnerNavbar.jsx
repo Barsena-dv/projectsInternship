@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FiBell, FiLogOut, FiMenu, FiMoon, FiSearch, FiSun, FiUser, FiX } from 'react-icons/fi';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import Avatar from '../common/Avatar';
 import { useAuth } from '../../hooks/useAuth';
 import { notificationApi } from '../../services/api';
 import { formatDate } from '../../utils/helpers';
@@ -69,7 +70,6 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
     } catch { /* no-op */ }
   };
 
-  const initials = (name) => name ? name.trim().split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() : 'U';
 
   const navStyle = {
     position: 'sticky',
@@ -105,13 +105,36 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        @keyframes navDropIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
-        .onav-link:hover { color: #e2e8f0 !important; background: rgba(255,255,255,0.07) !important; }
-        .onav-iconbtn:hover { background: rgba(255,255,255,0.08) !important; color: #e2e8f0 !important; }
-        .onav-profile-btn:hover { background: rgba(255,255,255,0.07) !important; }
-        .onav-dd-item:hover { background: #f9fafb; }
-        .onav-notif-row:hover { background: #f9fafb; }
-        .onav-notif-row { cursor:pointer; display:flex; align-items:flex-start; gap:0.625rem; padding:0.6rem 1rem; border:none; background:transparent; width:100%; text-align:left; transition:background 0.12s; }
+        @keyframes navDropIn { from { opacity:0; transform:translateY(-8px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+        .onav-link:hover { color: #fff !important; background: rgba(255, 255, 255, 0.05) !important; }
+        .onav-iconbtn:hover { background: rgba(255, 255, 255, 0.08) !important; color: #fbbf24 !important; }
+        .onav-profile-btn:hover { background: rgba(255, 255, 255, 0.05) !important; }
+        .onav-notif-row { 
+          cursor: pointer; 
+          display: flex; 
+          align-items: flex-start; 
+          gap: 0.75rem; 
+          padding: 0.75rem 1rem; 
+          border: none; 
+          background: transparent; 
+          width: 100%; 
+          text-align: left; 
+          transition: all 0.2s ease; 
+          border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .onav-notif-row:hover { background: rgba(255, 255, 255, 0.04); transform: translateX(2px); }
+        .onav-notif-row.unread { background: rgba(245, 158, 11, 0.03); }
+        .onav-notif-icon {
+          width: 32px; 
+          height: 32px; 
+          border-radius: 8px; 
+          background: rgba(255,255,255,0.05); 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          flex-shrink: 0; 
+          border: 1px solid rgba(255,255,255,0.05);
+        }
       `}</style>
 
       <header style={navStyle}>
@@ -200,37 +223,38 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
               {notifOpen && (
                 <div style={{ ...dropdownStyle, width: '340px', animation: 'navDropIn 180ms ease both' }}>
                   <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
-                    <p style={{ margin: 0, fontWeight: 600, fontSize: '0.85rem' }}>{user.full_name}</p>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8' }}>{user.email}</p>
+                    <p style={{ margin: 0, fontWeight: 600, fontSize: '0.85rem' }}>{user?.full_name || 'User'}</p>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8' }}>{user?.email}</p>
                   </div>
-                  <div style={{ padding: '0.875rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ padding: '0.875rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
                     <div>
-                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#f8fafc' }}>Notifications</span>
-                      {unreadCount > 0 && <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', fontWeight: 700, color: '#1c1917', background: '#f59e0b', borderRadius: '100px', padding: '1px 6px' }}>{unreadCount}</span>}
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fffbeb' }}>Notifications</span>
+                      {unreadCount > 0 && <span style={{ marginLeft: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: '#1c1917', background: '#f59e0b', borderRadius: '6px', padding: '1px 5px', verticalAlign: 'middle' }}>{unreadCount}</span>}
                     </div>
-                    <button type="button" onClick={() => { setNotifOpen(false); navigate('/notifications'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.775rem', color: '#fbbf24', fontWeight: 600, fontFamily: 'inherit' }}>
+                    <button type="button" onClick={() => { setNotifOpen(false); navigate('/notifications'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: '#f59e0b', fontWeight: 600, fontFamily: 'inherit' }}>
                       View all
                     </button>
                   </div>
-                  <div style={{ maxHeight: '360px', overflowY: 'auto' }}>
+                  <div className="pnf-sidebar-scroll" style={{ maxHeight: '400px', overflowY: 'auto' }}>
                     {loading
-                      ? <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.82rem', padding: '1.5rem 0', margin: 0 }}>Loading…</p>
+                      ? <p style={{ textAlign: 'center', color: '#78716c', fontSize: '0.8rem', padding: '2rem 0', margin: 0 }}>Discovering updates…</p>
                       : items.length === 0
-                        ? <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.82rem', padding: '1.5rem 0', margin: 0 }}>No notifications yet</p>
+                        ? <p style={{ textAlign: 'center', color: '#78716c', fontSize: '0.8rem', padding: '2rem 0', margin: 0 }}>No alerts at the moment</p>
                         : items.map((n) => (
                           <button
                             key={n._id}
                             type="button"
-                            className="onav-notif-row"
-                            style={{ background: n.isRead ? 'transparent' : '#fafafa' }}
+                            className={`onav-notif-row ${!n.isRead ? 'unread' : ''}`}
                             onClick={() => { markRead(n._id); setNotifOpen(false); navigate(resolveNotificationTarget(n, user?.role)); }}
                           >
-                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.85rem' }}>🔔</div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.title}</p>
-                              <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#9ca3af' }}>{formatDate(n.createdAt)}</p>
+                            <div className="onav-notif-icon">
+                              {n.type === 'message' ? '💬' : '🔔'}
                             </div>
-                            {!n.isRead && <span style={{ width: '6px', height: '6px', background: '#f59e0b', borderRadius: '50%', flexShrink: 0, marginTop: '6px' }} />}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: n.isRead ? 500 : 700, color: n.isRead ? '#d6d3d1' : '#fffbeb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.title}</p>
+                              <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#78716c' }}>{formatDate(n.createdAt)}</p>
+                            </div>
+                            {!n.isRead && <span style={{ width: '6px', height: '6px', background: '#f59e0b', borderRadius: '50%', flexShrink: 0, marginTop: '6px', boxShadow: '0 0 8px rgba(245,158,11,0.4)' }} />}
                           </button>
                         ))}
                   </div>
@@ -242,13 +266,15 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
             <div ref={profileRef} style={{ position: 'relative', marginLeft: '0.25rem' }}>
               <button type="button" onClick={() => { setProfileOpen((p) => !p); setNotifOpen(false); }}
                 className="onav-profile-btn"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0.5rem', borderRadius: '8px', transition: 'background 0.15s' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0.5rem', borderRadius: '10px', transition: 'all 0.2s' }}
               >
-                <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: 'rgba(245,158,11,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fde68a', fontWeight: 700, fontSize: '0.75rem', border: '1px solid rgba(245,158,11,0.3)', flexShrink: 0 }}>
-                  {initials(user?.full_name)}
-                </div>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#e2e8f0', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {(user?.full_name || user?.email || 'User').split(' ')[0]}
+                <Avatar 
+                  src={user?.profileImage?.url || user?.profileImage} 
+                  name={user?.full_name || 'User'} 
+                  size="sm" 
+                />
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                  {user?.full_name || user?.email || 'Account'}
                 </span>
               </button>
 

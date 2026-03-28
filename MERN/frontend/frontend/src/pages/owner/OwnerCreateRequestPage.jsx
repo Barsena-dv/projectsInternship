@@ -6,6 +6,7 @@ import PageHeader from '../../components/common/PageHeader';
 import RequestForm from '../../components/owner/RequestForm';
 import { paymentApi, planApi, requestApi } from '../../services/api';
 import { formatCurrency, getErrorMessage } from '../../utils/helpers';
+import '../../styles/owner/dashboard.css';
 
 const OwnerCreateRequestPage = () => {
   const navigate = useNavigate();
@@ -85,12 +86,17 @@ const OwnerCreateRequestPage = () => {
     }
   };
 
-  if (planLoading) return <LoadingSpinner text="Loading plans..." />;
+  if (planLoading) return <LoadingSpinner text="Assembling service plans..." />;
 
   return (
-    <div className="owner-create-request-page">
-      <PageHeader title="Create Request" subtitle="Post lost item details for finders" />
-      <RequestForm plans={plans} loading={loading} onSubmit={handleSubmit} />
+    <div className="owner-page-enter">
+      <PageHeader 
+        title="Create New Request" 
+        subtitle="Provide item details to help finders identify and recover your property" 
+      />
+      <div className="max-w-5xl mx-auto mt-6">
+        <RequestForm plans={plans} loading={loading} onSubmit={handleSubmit} />
+      </div>
     </div>
   );
 };

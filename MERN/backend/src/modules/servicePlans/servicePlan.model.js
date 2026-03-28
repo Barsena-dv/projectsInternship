@@ -26,6 +26,10 @@ const servicePlanSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+    price: {
+      type: Number,
+      default: 100,
+    },
     priorityLevel: {
       type: Number,
       default: 1,

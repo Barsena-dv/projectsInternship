@@ -13,7 +13,8 @@ router.post('/reset-password/:token', authLimiter, authController.resetPassword)
 
 // Private routes
 router.get('/me', verifyToken, authController.getMe);
-router.patch('/update-profile', verifyToken, authController.updateProfile);
+const { uploadSingle } = require('../../middleware/upload.middleware');
+router.patch('/update-profile', verifyToken, uploadSingle, authController.updateProfile);
 router.patch('/change-password', verifyToken, authController.changePassword);
 
 module.exports = router;

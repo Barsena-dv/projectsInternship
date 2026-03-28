@@ -30,7 +30,12 @@ const createPayout = async (paymentId, assignmentId, finderId, amount, options =
  * Process the actual payout (transfer of funds)
  */
 const processPayout = async (payoutId, transactionId) => {
-  const payout = await Payout.findById(payoutId).populate('assignment').populate('payment');
+  const payout = await Payout.findById(payoutId)
+    .populate({
+      path: 'assignment',
+      populate: { path: 'request' }
+    })
+    .populate('payment');
   if (!payout) {
     throw new Error('Payout record not found');
   }
@@ -79,7 +84,12 @@ const processPayout = async (payoutId, transactionId) => {
 };
 
 const getPayoutsByFinder = async (finderId) => {
-  return Payout.find({ finder: finderId }).sort({ createdAt: -1 });
+  return Payout.find({ finder: finderId })
+    .populate({
+      path: 'assignment',
+      populate: { path: 'request' }
+    })
+    .sort({ createdAt: -1 });
 };
 
 module.exports = {

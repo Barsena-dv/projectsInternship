@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { 
+  FiActivity, FiArrowRight, FiCheckCircle, FiClock, FiDollarSign, 
+  FiHexagon, FiInfo, FiLayers, FiMapPin, FiNavigation, FiSearch, 
+  FiShield, FiTarget, FiZap 
+} from 'react-icons/fi';
 import EmptyState from '../../components/common/EmptyState';
 import GlassModal from '../../components/common/GlassModal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -11,7 +16,6 @@ import { formatCurrency, formatDate, getErrorMessage } from '../../utils/helpers
 
 const FinderRequestDetailsPage = () => {
   const { id: requestId } = useParams();
-
   const [loading, setLoading] = useState(true);
   const [requestItem, setRequestItem] = useState(null);
   const [existingAssignment, setExistingAssignment] = useState(null);
@@ -22,28 +26,24 @@ const FinderRequestDetailsPage = () => {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [requestRes, assignmentsRes] = await Promise.all([
+      const [requestRes, assignmentsRes, applicationsRes] = await Promise.all([
         requestApi.byId(requestId),
         assignmentApi.my().catch(() => ({ data: [] })),
+        assignmentApi.myApplications().catch(() => ({ data: [] })),
       ]);
 
-      const finderApplicationsRes = await assignmentApi.myApplications().catch(() => ({ data: [] }));
-
       const requestData = requestRes?.data || null;
-      const finderAssignments = assignmentsRes?.data || [];
-      const matched = finderAssignments.find(
+      const matchedAssignment = (assignmentsRes?.data || []).find(
         (row) => String(row?.request?._id || row?.request) === String(requestId)
-      ) || null;
-
-      const hasPendingApplication = (finderApplicationsRes.data || []).some(
-        (row) =>
-          String(row?.request?._id || row?.request) === String(requestId)
-          && String(row?.status || '').toLowerCase() === 'pending'
+      );
+      const hasPendingApp = (applicationsRes?.data || []).some(
+        (row) => String(row?.request?._id || row?.request) === String(requestId) && 
+        String(row?.status || '').toLowerCase() === 'pending'
       );
 
       setRequestItem(requestData);
-      setExistingAssignment(matched);
-      setApplicationSent(hasPendingApplication);
+      setExistingAssignment(matchedAssignment || null);
+      setApplicationSent(hasPendingApp);
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -51,160 +51,189 @@ const FinderRequestDetailsPage = () => {
     }
   }, [requestId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
   const requestIsOpen = String(requestItem?.requestStatus || '').toLowerCase() === 'open';
 
   const actionState = useMemo(() => {
-    if (existingAssignment) {
-      return {
-        disabled: true,
-        label: 'Already Assigned',
-        helper: 'This request is already assigned to you. Continue from My Assignments.',
-      };
-    }
-
-    if (applicationSent) {
-      return {
-        disabled: true,
-        label: 'Application sent',
-        helper: 'Waiting for owner approval.',
-      };
-    }
-
-    if (!requestIsOpen) {
-      return {
-        disabled: true,
-        label: 'Unavailable',
-        helper: 'This request is no longer open for assignments.',
-      };
-    }
-
-    return {
-      disabled: false,
-      label: 'Apply for Assignment',
-      helper: 'Next step: submit your application for this request.',
-    };
+    if (existingAssignment) return { disabled: true, label: 'Already Assigned', helper: 'Deep link active. Tracking in progress.', icon: <FiTarget size={16} />, color: 'text-emerald-500' };
+    if (applicationSent) return { disabled: true, label: 'Signal Broadcasted', helper: 'Awaiting synchronization confirmation from owner.', icon: <FiActivity size={16} />, color: 'text-amber-500' };
+    if (!requestIsOpen) return { disabled: true, label: 'Link Offline', helper: 'Extraction window for this target is closed.', icon: <FiZap size={16} />, color: 'text-rose-500' };
+    return { disabled: false, label: 'Initialize Deployment', helper: 'Join the discovery protocol for this target.', icon: <FiNavigation size={16} />, color: 'text-emerald-500' };
   }, [applicationSent, existingAssignment, requestIsOpen]);
 
   const applyForAssignment = async () => {
     try {
       setApplying(true);
-      await assignmentApi.accept(requestId, {
-        applyReason: applyState.applyReason,
-        finderRegion: applyState.finderRegion,
-      });
+      await assignmentApi.accept(requestId, { applyReason: applyState.applyReason, finderRegion: applyState.finderRegion });
       setApplicationSent(true);
       setApplyState({ open: false, applyReason: '', finderRegion: '' });
-      toast.success('Application sent. Waiting for owner approval.');
+      toast.success('Mission proposal synchronized.');
     } catch (error) {
-      const message = getErrorMessage(error);
-      const lower = String(message || '').toLowerCase();
-
-      if (lower.includes('already applied')) {
-        setApplicationSent(true);
-        toast.info('Application already sent. Waiting for owner approval.');
-        return;
-      }
-
-      toast.error(message);
-
-      if (lower.includes('already been assigned') || lower.includes('no longer open')) {
-        await load();
-      }
+      toast.error(getErrorMessage(error));
     } finally {
       setApplying(false);
     }
   };
 
-  if (loading) {
-    return <LoadingSpinner text="Loading request details..." />;
-  }
+  if (loading) return <LoadingSpinner text="Decoding Target Signal..." />;
+  if (!requestItem) return <EmptyState title="Signal Lost" description="Target vector no longer detected on this frequency." />;
 
-  if (!requestItem) {
-    return <EmptyState title="Request not found" description="This request may have been removed or closed." />;
-  }
+  const sectionLabel = "text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.2em] mb-4 block";
 
   return (
-    <div>
+    <div className="finder-page-enter space-y-8 pb-12">
       <PageHeader
-        title="Request Details"
-        subtitle="Review complete request information before applying."
+        title="Target Intelligence"
+        subtitle="Full forensic profile and operational engagement telemetry"
         actions={(
-          <div className="flex flex-wrap gap-2">
-            <Link className="pnf-btn-outline rounded-lg px-3 py-2 text-sm" to="/finder/requests">Back to Requests</Link>
-            <Link className="pnf-btn-outline rounded-lg px-3 py-2 text-sm" to="/finder/assignments">My Assignments</Link>
+          <div className="flex gap-3">
+            <Link to="/finder/requests" className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+               Close Feed
+            </Link>
           </div>
         )}
       />
 
-      <section className="pnf-card p-5">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <StatusBadge value={requestItem.requestStatus || 'open'} />
-          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-            {requestItem?.planId?.planName || 'Service plan'}
-          </span>
+      <div className="grid lg:grid-cols-12 gap-8">
+        
+        {/* Intelligence Report Column */}
+        <div className="lg:col-span-12 xl:col-span-8 space-y-8">
+           <div className="finder-section-card f-hologram-effect">
+              <span className={sectionLabel}>Target Identification</span>
+              <div className="flex justify-between items-start mb-8">
+                 <div>
+                    <h2 className="text-3xl font-black text-white mb-2">{requestItem.itemName}</h2>
+                    <div className="flex items-center gap-3 text-emerald-500/70 text-xs font-bold">
+                       <FiMapPin size={14} /> {requestItem.lastSeenLocation}
+                    </div>
+                 </div>
+                 <div className="flex flex-col items-end gap-2">
+                    <StatusBadge value={requestItem.requestStatus} />
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-md border border-white/5">
+                       {requestItem?.planId?.planName}
+                    </span>
+                 </div>
+              </div>
+
+              <div className="p-6 rounded-3xl bg-slate-950/50 border border-white/5 space-y-6">
+                 <div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Operational Briefing</span>
+                    <p className="text-sm text-slate-300 leading-relaxed italic border-l-2 border-emerald-500/30 pl-4 bg-emerald-500/5 py-4 rounded-r-2xl">
+                       "{requestItem.itemDescription || 'Detailed profile restricted.'}"
+                    </p>
+                 </div>
+
+                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-white/5">
+                    <div className="space-y-1">
+                       <span className="text-[9px] font-bold text-slate-600 uppercase">Detection Range</span>
+                       <p className="text-xs text-white font-black">{requestItem?.planId?.searchDuration} Days Active</p>
+                    </div>
+                    <div className="space-y-1">
+                       <span className="text-[9px] font-bold text-slate-600 uppercase">Mission Category</span>
+                       <p className="text-xs text-white font-black">{requestItem.itemCategory || 'General Recovery'}</p>
+                    </div>
+                    <div className="space-y-1">
+                       <span className="text-[9px] font-bold text-slate-600 uppercase">Timestamp</span>
+                       <p className="text-xs text-white font-black">{formatDate(requestItem.createdAt)}</p>
+                    </div>
+                    <div className="space-y-1 text-right">
+                       <span className="text-[9px] font-bold text-emerald-600 uppercase">Bounty Confirmed</span>
+                       <p className="text-sm text-emerald-500 font-black">{formatCurrency(requestItem?.planId?.rewardAmount || 0)}</p>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="mt-8 p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex items-center gap-4">
+                 <FiShield size={32} className="text-emerald-500/40" />
+                 <div>
+                    <h4 className="text-xs font-black text-emerald-500 uppercase tracking-widest">Protocol Verified</h4>
+                    <p className="text-[11px] text-slate-400 italic">This target has a verified reward pool. Payment is synchronized upon forensic proof validation.</p>
+                 </div>
+              </div>
+           </div>
         </div>
 
-        <h2 className="text-lg font-semibold text-slate-900">{requestItem.itemName}</h2>
-        <p className="mt-2 text-sm text-slate-700">{requestItem.itemDescription || '-'}</p>
+        {/* Deployment Action Column */}
+        <div className="lg:col-span-12 xl:col-span-4 space-y-8">
+           <div className="finder-section-card bg-slate-950/80 !border-emerald-500/10 h-full">
+              <span className={sectionLabel}>Engagement Protocol</span>
+              <h3 className="text-xl font-black text-white mb-8">Mission Status</h3>
+              
+              <div className="p-6 rounded-2xl bg-white/5 border border-white/5 mb-8">
+                 <div className={`flex items-center gap-3 mb-4 ${actionState.color}`}>
+                    {actionState.icon}
+                    <span className="text-xs font-black uppercase tracking-widest">{actionState.label}</span>
+                 </div>
+                 <p className="text-xs text-slate-500 leading-relaxed italic">{actionState.helper}</p>
+              </div>
 
-        <div className="mt-4 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
-          <p><span className="font-medium">Category:</span> {requestItem.itemCategory || '-'}</p>
-          <p><span className="font-medium">Reward:</span> {formatCurrency(requestItem?.planId?.rewardAmount || 0)}</p>
-          <p><span className="font-medium">Last Seen:</span> {requestItem.lastSeenLocation || '-'}</p>
-          <p><span className="font-medium">Created At:</span> {formatDate(requestItem.createdAt)}</p>
-          <p><span className="font-medium">Deadline:</span> {formatDate(requestItem.serviceDeadline)}</p>
-          <p><span className="font-medium">Service Duration:</span> {requestItem?.planId?.searchDuration || '-'} days</p>
+              {!actionState.disabled ? (
+                <button 
+                  onClick={() => setApplyState(s => ({...s, open: true}))} 
+                  className="w-full py-4 bg-emerald-500 text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 hover:shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-3"
+                >
+                  <FiZap size={14} /> Initialize Deployment
+                </button>
+              ) : (
+                <div className="flex flex-col gap-3">
+                   {existingAssignment && (
+                     <Link to={`/finder/assignments/${existingAssignment._id || existingAssignment}`} className="w-full py-4 border border-emerald-500/30 text-emerald-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-center hover:bg-emerald-500/5 transition-all">
+                        Initialize Workbench
+                     </Link>
+                   )}
+                   <button disabled className="w-full py-4 bg-slate-900 text-slate-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] cursor-not-allowed">
+                      System Locked
+                   </button>
+                </div>
+              )}
+
+              <div className="mt-8 pt-8 border-t border-white/5">
+                 <div className="flex items-center gap-3 mb-4">
+                    <FiLayers size={16} className="text-slate-500" />
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Requester Reliability</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                    {[1,2,3,4,5].map(i => <FiHexagon key={i} className={i <= 4 ? "text-emerald-500" : "text-slate-800"} />)}
+                    <span className="text-[10px] font-black text-white ml-2">4.8 / 5.0</span>
+                 </div>
+              </div>
+           </div>
         </div>
-      </section>
 
-      <section className="pnf-card mt-4 p-5">
-        <h3 className="text-base font-semibold text-slate-900">Assignment Action</h3>
-        <p className="mt-2 text-sm text-slate-600">{actionState.helper}</p>
-
-        <button
-          type="button"
-          className="pnf-btn-primary mt-4 rounded-lg px-3 py-2 text-sm"
-          disabled={actionState.disabled || applying}
-          onClick={() => setApplyState((prev) => ({ ...prev, open: true }))}
-        >
-          {applying ? 'Applying...' : actionState.label}
-        </button>
-      </section>
+      </div>
 
       <GlassModal
         open={applyState.open}
-        title="Apply For Assignment"
-        subtitle="Add optional region and reason for owner review."
-        onClose={() => setApplyState({ open: false, applyReason: '', finderRegion: '' })}
+        title="Deployment Protocol"
+        subtitle="Join the discovery synchronization for this recovery mission."
+        confirmText={applying ? 'Syncing...' : 'Broadcast Application'}
+        onClose={() => !applying && setApplyState({ open: false, applyReason: '', finderRegion: '' })}
         onConfirm={applyForAssignment}
-        confirmText="Submit Application"
         loading={applying}
       >
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Region</label>
-            <input
-              className="pnf-input"
-              type="text"
-              placeholder="Your working area or city"
-              value={applyState.finderRegion}
-              onChange={(event) => setApplyState((prev) => ({ ...prev, finderRegion: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Reason</label>
-            <textarea
-              className="pnf-input"
-              rows={3}
-              placeholder="Why you should be selected"
-              value={applyState.applyReason}
-              onChange={(event) => setApplyState((prev) => ({ ...prev, applyReason: event.target.value }))}
-            />
-          </div>
+        <div className="space-y-6">
+           <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-1">Target Confirmation</span>
+              <p className="text-lg font-black text-white">{requestItem.itemName}</p>
+           </div>
+           
+           <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block ml-1">Deployment Region</label>
+              <input 
+                className="pnf-input" type="text" placeholder="Operational base area..." 
+                value={applyState.finderRegion} onChange={(e) => setApplyState((prev) => ({ ...prev, finderRegion: e.target.value }))} 
+                disabled={applying}
+              />
+           </div>
+           <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block ml-1">Mission Rationale</label>
+              <textarea 
+                className="pnf-input" rows={3} placeholder="Proximity or specialized notes..." 
+                value={applyState.applyReason} onChange={(e) => setApplyState((prev) => ({ ...prev, applyReason: e.target.value }))} 
+                disabled={applying}
+              />
+           </div>
         </div>
       </GlassModal>
     </div>

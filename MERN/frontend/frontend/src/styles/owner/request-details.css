@@ -1,0 +1,141 @@
+/* ============================================================
+   REQUEST DETAILS — MODERN LAYOUT
+   ============================================================ */
+
+.owner-details-grid {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .owner-details-grid {
+    grid-template-columns: 1fr 380px;
+  }
+}
+
+.owner-details-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.owner-details-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: sticky;
+  top: 90px;
+}
+
+.owner-details-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.owner-details-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+}
+
+.owner-details-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-4);
+  margin-bottom: 0.25rem;
+}
+
+.owner-details-value {
+  font-size: 0.9375rem;
+  color: var(--text-2);
+  margin-bottom: 1rem;
+}
+
+.owner-details-value:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================
+   TRACKING TIMELINE — SCROLL LIMITED
+   ============================================================ */
+
+.owner-details-tracking {
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  margin-top: 1rem;
+  scrollbar-width: none; /* Firefox */
+}
+
+.owner-details-tracking::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.tracking-timeline-modern {
+  display: flex;
+  flex-direction: column;
+  border-left: 2px solid var(--border-alt);
+  margin-left: 0.75rem;
+  padding-left: 1.5rem;
+  gap: 1.5rem;
+}
+
+.tracking-event-card {
+  position: relative;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+
+.tracking-event-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--accent-dim);
+  transform: translateX(4px);
+}
+
+.tracking-event-dot {
+  position: absolute;
+  left: -1.5rem;
+  top: 1.25rem;
+  width: 12px;
+  height: 12px;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 10px var(--accent-dim);
+  z-index: 2;
+}
+
+.tracking-event-time {
+  font-size: 0.7rem;
+  color: var(--text-4);
+  font-family: var(--font-mono);
+  margin-bottom: 0.25rem;
+}
+
+.tracking-event-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.tracking-event-meta {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  margin-top: 0.25rem;
+}

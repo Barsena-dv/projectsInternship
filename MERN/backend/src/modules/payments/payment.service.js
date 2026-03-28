@@ -7,6 +7,8 @@ const { createNotification } = require('../notifications/notification.service');
 const payoutService = require('../payouts/payout.service');
 const { addTimelineEvent } = require('../assignments/assignmentTimeline.service');
 
+const round2 = (value) => Number(Number(value || 0).toFixed(2));
+
 /**
  * Create a new payment record (initial state: pending)
  */
@@ -56,9 +58,12 @@ const processPayment = async (paymentId, transactionId) => {
   payment.paidAt = new Date();
   await payment.save();
 
-  // CRITICAL: Unlock request for finders
+  // CRITICAL: Unlock request for finders and set reward amount
   const request = await LostItemRequest.findById(payment.request);
   if (request) {
+    const plan = await ServicePlan.findById(payment.servicePlan);
+    const rewardPercent = (plan?.finderPercent || 0) + (plan?.refundPercent || 0);
+    request.rewardAmount = round2((payment.amount * rewardPercent) / 100);
     request.requestStatus = 'open';
     await request.save();
   }
@@ -147,19 +152,34 @@ const releasePayment = async (paymentId, userId, reason = '') => {
     await request.save();
   }
 
-  // Trigger Payout Record (Internal system transfer)
+  // Finalize Payout Record (Update existing pending payout to processed)
   try {
-    const plan = await ServicePlan.findById(payment.servicePlan);
-    const finderReward = (payment.amount * (plan?.finderPercent || 90)) / 100;
+    const assignmentService = require('../assignments/assignment.service');
+    // Ensure servicePlan is populated for calculation
+    const paymentWithPlan = await Payment.findById(payment._id).populate('servicePlan');
+    const { successRewardAmount } = assignmentService.calculateSettlementAmounts(paymentWithPlan, 'success');
     
-    await payoutService.createPayout(
-      payment._id,
-      assignment._id,
-      assignment.finder,
-      finderReward
-    );
+    const Payout = require('../payouts/payout.model');
+    const existingPayout = await Payout.findOne({ payment: payment._id });
+    
+    if (existingPayout) {
+      existingPayout.payoutAmount = successRewardAmount;
+      existingPayout.payoutStatus = 'processed';
+      existingPayout.processedAt = new Date();
+      existingPayout.transactionId = 'SYSTEM_SUCCESS_RELEASE_' + Date.now();
+      await existingPayout.save();
+    } else {
+      // Fallback: Create if missing
+      await payoutService.createPayout(
+        payment._id,
+        assignment._id,
+        assignment.finder,
+        successRewardAmount,
+        { payoutStatus: 'processed', remarks: 'Success reward synthesized on release' }
+      );
+    }
   } catch (err) {
-    console.error('Payout creation failed:', err.message);
+    console.error('Payout finalization failed:', err.message);
   }
 
   // Notifications

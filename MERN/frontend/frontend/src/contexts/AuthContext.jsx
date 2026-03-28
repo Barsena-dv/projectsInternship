@@ -8,7 +8,7 @@ const normalizeUser = (rawUser) => {
 
   return {
     id: rawUser.id || rawUser._id,
-    full_name: rawUser.full_name,
+    full_name: rawUser.full_name || rawUser.fullName || rawUser.name || '',
     email: rawUser.email,
     phone: rawUser.phone,
     role: rawUser.role,

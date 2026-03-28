@@ -5,6 +5,9 @@ const { checkRole } = require('../../middleware/role.middleware');
 
 const router = express.Router();
 
+// User specific activity
+router.get('/my', verifyToken, auditLogController.getMyActivity);
+
 // Admin only route
 router.get(
   '/',

@@ -56,23 +56,29 @@ const getLockedPaymentForRequest = async (requestId, ownerId) => {
 
 const calculateSettlementAmounts = (payment, kind) => {
   const amount = Number(payment?.amount || 0);
-  const planRefundPercent = Number(payment?.servicePlan?.refundPercent || 0);
-  const planFinderPercent = Number(payment?.servicePlan?.finderPercent || 0);
+  
+  // Resolve plan even if nested or just an ID (though usually it should be populated here)
+  const plan = payment?.servicePlan;
+  const planRefundPercent = Number(plan?.refundPercent || 70);
+  const planFinderPercent = Number(plan?.finderPercent || 15);
+  const planPlatformPercent = Number(plan?.platformPercent || 15);
 
+  // Success Scenario: Finder gets (Guaranteed Search Fee + Success Bonus)
+  const successRewardAmount = round2((amount * (planFinderPercent + planRefundPercent)) / 100);
+
+  // Failure Scenario: Owner gets refund (Success Bonus portion)
   const ownerRefundAmount = round2((amount * planRefundPercent) / 100);
 
-  const rawFinderCompensation = kind === 'failed_drop'
-    ? round2((amount * planFinderPercent) / 100)
-    : round2((amount * EXPIRED_DROP_FINDER_FEE_PERCENT) / 100);
-
-  const availableForFinder = Math.max(round2(amount - ownerRefundAmount), 0);
-  const finderCompensationAmount = round2(Math.min(rawFinderCompensation, availableForFinder));
+  // Failure Scenario: Finder gets guaranteed portion only
+  const finderCompensationAmount = round2((amount * planFinderPercent) / 100);
 
   return {
     ownerRefundAmount,
     finderCompensationAmount,
+    successRewardAmount,
     planRefundPercent,
     planFinderPercent,
+    planPlatformPercent,
   };
 };
 
@@ -99,6 +105,16 @@ const applySettlement = async ({ payment, assignment, reason, kind, requestId, a
           ? 'Failed drop settlement compensation'
           : 'Expired drop goodwill compensation',
       });
+    } else {
+      // Update existing pending payout to processed compensation
+      existingPayout.payoutAmount = finderCompensationAmount;
+      existingPayout.payoutStatus = 'processed';
+      existingPayout.payoutCategory = 'compensation';
+      existingPayout.settlementReason = reason;
+      existingPayout.processedAt = new Date();
+      existingPayout.transactionId = 'SYSTEM_AUTO_SETTLEMENT';
+      existingPayout.remarks = kind === 'failed_drop' ? 'Failed drop settlement' : 'Expired drop settlement';
+      await existingPayout.save();
     }
   }
 
@@ -449,6 +465,30 @@ const decideApplication = async (requestId, applicationId, decision, reason, use
     },
   });
 
+  // NEW: Create Payout Record (Initial Pending State for Visibility)
+  try {
+    const payment = await getLockedPaymentForRequest(request._id, userId);
+    if (payment && payment.servicePlan) {
+      const plan = payment.servicePlan;
+      const finderPercent = Number(plan.finderPercent || 15);
+      const guaranteedAmount = round2((payment.amount * finderPercent) / 100);
+      
+      await payoutService.createPayout(
+        payment._id,
+        assignment._id,
+        application.finder._id,
+        guaranteedAmount,
+        { 
+          payoutStatus: 'pending',
+          payoutCategory: 'standard',
+          remarks: 'Guaranteed search fee locked'
+        }
+      );
+    }
+  } catch (pErr) {
+    console.error('Initial payout creation failed:', pErr.message);
+  }
+
   const { logAction } = require('../auditLogs/auditLog.service');
   logAction({
     userId,
@@ -503,7 +543,10 @@ const decideApplication = async (requestId, applicationId, decision, reason, use
  */
 const getMyAssignments = async (userId) => {
   return FinderAssignment.find({ finder: userId })
-    .populate('request')
+    .populate({
+      path: 'request',
+      populate: { path: 'planId' },
+    })
     .sort({ createdAt: -1 });
 };
 
@@ -729,6 +772,14 @@ const completeAssignmentByOwner = async (assignmentId, userId, reason = '') => {
     actorRole: 'owner',
     actorLabel: 'Owner',
     details: { reason: reason || '' },
+  });
+
+  // Increment Finder stats in User model
+  await User.findByIdAndUpdate(assignment.finder, {
+    $inc: { 
+      'stats.completedAssignments': 1,
+      'stats.itemsFound': 1
+    }
   });
 
   const refreshedAssignment = await FinderAssignment.findById(assignment._id)
@@ -1087,4 +1138,9 @@ module.exports = {
   dropRequestByOwner,
   pauseAssignment,
   resumeAssignment,
+  calculateSettlementAmounts,
+  createPayment,
+  processPayment,
+  releasePayment,
+  getUserPayments,
 };

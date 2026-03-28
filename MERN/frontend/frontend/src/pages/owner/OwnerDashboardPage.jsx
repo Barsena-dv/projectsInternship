@@ -37,53 +37,57 @@ const deriveTimelineItems = (requests) =>
       timestamp: r.updatedAt || r.createdAt,
     }));
 
-const divider = { borderTop: '1px solid rgba(255,255,255,0.06)', margin: '0' };
-
 const OwnerDashboardPage = () => {
   const [requests, setRequests] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = async (isManual = false) => {
+    try {
+      if (isManual) setRefreshing(true);
+      else setLoading(true);
+
+      const requestsRes = await requestApi.my();
+      const requestRows = requestsRes?.data || [];
+
+      const [paymentsRes, notificationsRes, assignmentEntries] = await Promise.all([
+        paymentApi.my().catch(() => ({ data: [] })),
+        notificationApi.my({ page: 1, limit: 30 }).catch(() => ({ data: [] })),
+        Promise.all(requestRows.map(async (req) => {
+          try { const r = await assignmentApi.byRequest(req._id); return [req._id, r.data || null]; }
+          catch { return [req._id, null]; }
+        })),
+      ]);
+
+      const assignmentMap = Object.fromEntries(assignmentEntries);
+      const paymentMap = (paymentsRes?.data || []).reduce((acc, p) => {
+        const rid = getId(p.requestId);
+        if (!rid) return acc;
+        const ex = acc[rid];
+        if (!ex || new Date(p.updatedAt || p.createdAt || 0) >= new Date(ex.updatedAt || ex.createdAt || 0)) acc[rid] = p;
+        return acc;
+      }, {});
+
+      const enriched = requestRows.map((req) => {
+        const assignment = assignmentMap[req._id] || null;
+        const payment = paymentMap[req._id] || null;
+        const lifecycle = deriveOwnerLifecycleState({ request: req, payment, assignment, evidence: null });
+        return { ...req, _assignment: assignment, _payment: payment, _lifecycle: lifecycle };
+      });
+
+      setRequests(enriched);
+      setNotifications(notificationsRes?.data || []);
+      if (isManual) toast.success('Dashboard updated.');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const requestsRes = await requestApi.my();
-        const requestRows = requestsRes?.data || [];
-
-        const [paymentsRes, notificationsRes, assignmentEntries] = await Promise.all([
-          paymentApi.my().catch(() => ({ data: [] })),
-          notificationApi.my({ page: 1, limit: 30 }).catch(() => ({ data: [] })),
-          Promise.all(requestRows.map(async (req) => {
-            try { const r = await assignmentApi.byRequest(req._id); return [req._id, r.data || null]; }
-            catch { return [req._id, null]; }
-          })),
-        ]);
-
-        const assignmentMap = Object.fromEntries(assignmentEntries);
-        const paymentMap = (paymentsRes?.data || []).reduce((acc, p) => {
-          const rid = getId(p.requestId);
-          if (!rid) return acc;
-          const ex = acc[rid];
-          if (!ex || new Date(p.updatedAt || p.createdAt || 0) >= new Date(ex.updatedAt || ex.createdAt || 0)) acc[rid] = p;
-          return acc;
-        }, {});
-
-        const enriched = requestRows.map((req) => {
-          const assignment = assignmentMap[req._id] || null;
-          const payment = paymentMap[req._id] || null;
-          const lifecycle = deriveOwnerLifecycleState({ request: req, payment, assignment, evidence: null });
-          return { ...req, _assignment: assignment, _payment: payment, _lifecycle: lifecycle };
-        });
-
-        setRequests(enriched);
-        setNotifications(notificationsRes?.data || []);
-      } catch (err) {
-        toast.error(getErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    };
     load();
   }, []);
 
@@ -94,7 +98,7 @@ const OwnerDashboardPage = () => {
     { title: 'Active',          value: requests.filter((r) => ['assigned','evidence_submitted','verified','inactive'].includes(r._lifecycle)).length, icon: '✅', helper: undefined },
     { title: 'Completed',       value: requests.filter((r) => r._lifecycle === 'completed').length,                                      icon: '🏁', helper: undefined },
     { title: 'Deadline Soon',   value: requests.filter((r) => !['completed','cancelled','failed'].includes(r._lifecycle) && isDeadlineSoon(r.serviceDeadline)).length, icon: '⏰', helper: '≤ 24h' },
-    { title: 'Needs Attention', value: requests.filter((r) => ['inactive','expired','failed'].includes(r._lifecycle)).length,            icon: '⚠️', helper: 'Inactive / expired / failed' },
+    { title: 'Needs Attention', value: requests.filter((r) => ['inactive','expired','failed'].includes(r._lifecycle)).length,            icon: '⚠️', helper: 'Check status' },
   ], [requests]);
 
   const timelineItems = useMemo(() => deriveTimelineItems(requests), [requests]);
@@ -107,121 +111,141 @@ const OwnerDashboardPage = () => {
       .slice(0, 5),
   [requests]);
 
-  if (loading) return <LoadingSpinner text="Loading…" />;
-
-  const text = (s, c = '#fffbeb', w = 400) => ({ margin: 0, fontSize: s, color: c, fontWeight: w });
+  if (loading) return <LoadingSpinner text="Assembling your dashboard..." />;
 
   return (
-    <div className="owner-page-enter" style={{ minHeight: '100%' }}>
+    <div className="owner-page-enter">
       {/* Page header */}
-      <div className="owner-page-header">
-        <h1 className="owner-page-title">Dashboard</h1>
-        <p className="owner-page-subtitle">Request overview, assignments and activity</p>
-        <QuickActions />
+      <div className="owner-page-header flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="owner-page-title">Management Dashboard</h1>
+          <p className="owner-page-subtitle">Real-time overview of your recovery operations</p>
+        </div>
+        <div className="flex items-center gap-2">
+           <button 
+             onClick={() => load(true)} 
+             className={`p-2 rounded-lg bg-white/5 border border-white/10 text-stone-400 hover:text-amber-400 transition-all ${refreshing ? 'animate-spin' : ''}`}
+             title="Refresh Dashboard"
+           >
+             🔄
+           </button>
+           <QuickActions />
+        </div>
       </div>
 
-      {/* Stats */}
-      <OwnerStatsGrid stats={stats} />
+      {/* Stats Section */}
+      <section className="mb-8">
+        <OwnerStatsGrid stats={stats} />
+      </section>
 
-      {/* Main two-col layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.25rem', marginTop: '1.5rem' }}>
-
-        {/* LEFT */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', minWidth: 0 }}>
-
-          {/* Recent requests */}
-          <div className="owner-section-card">
+      {/* Main Dashboard Grid */}
+      <div className="owner-dashboard-grid">
+        
+        {/* Recent Requests Widget */}
+        <div className="grid-span-8">
+          <div className="owner-section-card h-full">
             <div className="owner-section-header">
-              <span className="owner-section-title">Recent Requests</span>
-              <Link to="/owner/requests" className="owner-section-link">View all →</Link>
+              <span className="owner-section-title">Timeline Updates</span>
+              <Link to="/owner/requests" className="owner-section-link">Explore all requests</Link>
             </div>
-            <div className="pnf-scroll-limited">
-              {recentRequests.length === 0
-                ? <p style={text('0.825rem', '#a8a29e')}>Nothing yet — create your first request.</p>
-                : recentRequests.map((item) => (
-                  <Link key={item._id} to={`/owner/requests/${item._id}`} style={{ display: 'block', textDecoration: 'none' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', gap: '0.75rem', transition: 'all 0.15s' }}
-                      onMouseEnter={(e) => { e.currentTarget.closest('a').style.opacity = '0.8'; }}
-                      onMouseLeave={(e) => { e.currentTarget.closest('a').style.opacity = '1'; }}
-                    >
-                      <div style={{ minWidth: 0 }}>
-                        <p style={{ ...text('0.85rem', '#e8eaf0', 600), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.itemName || 'Untitled'}</p>
-                        <p style={{ ...text('0.75rem', '#a8a29e'), marginTop: '2px' }}>{item.itemCategory || '—'} · {formatDate(item.createdAt)}</p>
+            
+            <div className="pnf-scroll-limited px-1">
+              {recentRequests.length === 0 ? (
+                <div className="py-12 text-center">
+                  <p className="text-sm text-stone-500">No requests found. Start by creating one!</p>
+                  <Link to="/owner/create-request" className="mt-3 inline-block pnf-btn-primary px-4 py-2 rounded-lg text-xs">Create New Request</Link>
+                </div>
+              ) : (
+                recentRequests.map((item) => (
+                  <Link key={item._id} to={`/owner/requests/${item._id}`} className="block text-inherit no-underline">
+                    <div className="dash-list-item">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{item.itemName || 'Untitled'}</p>
+                        <p className="text-[11px] text-stone-500 mt-0.5">{item.itemCategory || 'General'} • {formatDate(item.createdAt)}</p>
                       </div>
                       <OwnerStatusBadge value={item._lifecycle} />
                     </div>
                   </Link>
-                ))}
-            </div>
-          </div>
-
-          {/* High interest */}
-          <div className="owner-section-card">
-            <div className="owner-section-header">
-              <span className="owner-section-title">High-Interest Requests</span>
-              <span style={{ fontSize: '0.72rem', color: '#a8a29e' }}>By applicant count</span>
-            </div>
-            <div className="pnf-scroll-limited">
-              {topApplicant.length === 0
-                ? <p style={text('0.825rem', '#a8a29e')}>No applicant activity yet.</p>
-                : topApplicant.map((item, idx) => (
-                  <Link key={item._id} to={`/owner/requests/${item._id}`} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.625rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', textDecoration: 'none' }}>
-                    <div style={{ width: '26px', height: '26px', borderRadius: '7px', background: 'rgba(245,158,11,0.15)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.72rem', flexShrink: 0 }}>
-                      {idx + 1}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ ...text('0.83rem', '#e8eaf0', 600), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.itemName || 'Untitled'}</p>
-                      <p style={{ ...text('0.72rem', '#a8a29e'), marginTop: '1px' }}>{item.count} applicant{item.count !== 1 ? 's' : ''}</p>
-                    </div>
-                    <OwnerStatusBadge value={item._lifecycle} />
-                  </Link>
-                ))}
+                ))
+              )}
             </div>
           </div>
         </div>
 
-        {/* RIGHT */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-
-          {/* Activity */}
-          <div className="owner-section-card">
+        {/* Activity Widget */}
+        <div className="grid-span-4">
+          <div className="owner-section-card h-full">
             <div className="owner-section-header">
-              <span className="owner-section-title">Activity</span>
+              <span className="owner-section-title">System Activity</span>
             </div>
             <div className="pnf-scroll-limited">
               <ActivityTimeline items={timelineItems} />
             </div>
           </div>
+        </div>
 
-          {/* Notifications */}
-          <div className="owner-section-card">
+        {/* High Interest Widget */}
+        <div className="grid-span-6">
+          <div className="owner-section-card h-full">
             <div className="owner-section-header">
-              <span className="owner-section-title">Notifications</span>
-              <Link to="/notifications" className="owner-section-link">All →</Link>
+              <div>
+                <span className="owner-section-title">Trending Requests</span>
+                <p className="text-[10px] text-stone-500 mt-0.5">Ranked by finder engagement</p>
+              </div>
             </div>
-            <div className="pnf-scroll-limited">
-              {notifications.length === 0
-                ? <p style={text('0.8rem', '#a8a29e')}>No recent alerts.</p>
-                : notifications.slice(0, 15).map((n) => (
-                  <div key={n._id} className={`owner-notif-item${n.isRead ? '' : ' unread'}`}>
-                    <div className="owner-notif-icon">🔔</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ ...text('0.78rem', '#e8eaf0', 600), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.title || 'Notification'}</p>
-                      <p style={{ ...text('0.7rem', '#a8a29e'), marginTop: '2px' }}>{formatDate(n.createdAt)}</p>
+            <div className="pnf-scroll-limited px-1">
+              {topApplicant.length === 0 ? (
+                <div className="py-12 text-center text-stone-500 text-sm">No engagement meta yet.</div>
+              ) : (
+                topApplicant.map((item, idx) => (
+                  <Link key={item._id} to={`/owner/requests/${item._id}`} className="dash-list-item no-underline">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center font-black text-xs border border-amber-500/20">
+                        #{idx + 1}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{item.itemName || 'Untitled'}</p>
+                        <p className="text-[11px] text-stone-500 mt-0.5">{item.count} Active Applicants</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                    <OwnerStatusBadge value={item._lifecycle} />
+                  </Link>
+                ))
+              )}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Responsive */}
-      <style>{`
-        @media (max-width: 900px) {
-          .owner-dash-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+        {/* Notifications Widget */}
+        <div className="grid-span-6">
+          <div className="owner-section-card h-full">
+            <div className="owner-section-header">
+              <span className="owner-section-title">Live Notifications</span>
+              <Link to="/notifications" className="owner-section-link">View all alerts</Link>
+            </div>
+            <div className="pnf-scroll-limited px-1">
+              {notifications.length === 0 ? (
+                <div className="py-12 text-center text-stone-500 text-sm">No recent notifications.</div>
+              ) : (
+                notifications.slice(0, 15).map((n) => (
+                  <div key={n._id} className={`dash-list-item ${n.isRead ? 'opacity-60' : 'border-l-2 border-l-amber-500 bg-amber-500/5'}`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-sm">
+                        {n.type === 'message' ? '💬' : '🔔'}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{n.title || 'Update'}</p>
+                        <p className="text-[11px] text-stone-500 mt-0.5 truncate">{n.message || formatDate(n.createdAt)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 };

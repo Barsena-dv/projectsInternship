@@ -3,16 +3,18 @@ import { Outlet } from 'react-router-dom';
 import RoleSidebar from '../components/common/RoleSidebar';
 import TopNavbar from '../components/common/TopNavbar';
 import OwnerNavbar from '../components/layout/OwnerNavbar';
+import FinderNavbar from '../components/layout/FinderNavbar';
 import { useAuth } from '../hooks/useAuth';
 
 import '../styles/auth.css'; // Import the background mesh animations
-
 import '../styles/owner/dashboard.css';
+import '../styles/finder/dashboard.css';
 
 const DashboardLayout = () => {
   const { user } = useAuth();
-  const [darkMode, setDarkMode] = useState(true); // Default dark for owner
+  const [darkMode, setDarkMode] = useState(true);
   const isOwner = user?.role === 'owner';
+  const isFinder = user?.role === 'finder';
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -34,6 +36,26 @@ const DashboardLayout = () => {
           scrolledOverride={scrolled}
         />
         <main className="owner-page-enter" style={{ position: 'relative', zIndex: 10, maxWidth: '1440px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+          <Outlet />
+        </main>
+      </div>
+    );
+  }
+
+  if (isFinder) {
+    return (
+      <div 
+        className="finder-dashboard-wrapper" 
+        onScroll={handleScroll}
+        style={{ height: '100vh', overflowY: 'auto', background: '#0f172a', color: '#f1f5f9', position: 'relative' }}
+      >
+        <div className="pnf-auth-bg" />
+        <FinderNavbar 
+          darkMode={darkMode} 
+          onToggleDark={() => setDarkMode((p) => !p)} 
+          scrolledOverride={scrolled}
+        />
+        <main className="finder-page-enter" style={{ position: 'relative', zIndex: 10, maxWidth: '1440px', margin: '0 auto', padding: '2rem 1.5rem' }}>
           <Outlet />
         </main>
       </div>

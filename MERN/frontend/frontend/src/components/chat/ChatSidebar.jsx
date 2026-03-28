@@ -1,11 +1,7 @@
 import { useMemo, useState } from 'react';
+import { FiSearch } from 'react-icons/fi';
+import Avatar from '../common/Avatar';
 import { formatDate } from '../../utils/helpers';
-
-const getInitials = (name = '') => {
-  const parts = String(name).trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return 'U';
-  return `${parts[0][0] || ''}${parts[1]?.[0] || ''}`.toUpperCase();
-};
 
 const ChatSidebar = ({
   conversations = [],
@@ -31,61 +27,75 @@ const ChatSidebar = ({
   }, [conversations, searchQuery]);
 
   return (
-    <aside className="flex h-full min-h-0 flex-col border-r pnf-soft-border bg-(--pnf-surface-2)">
-      <div className="border-b px-4 py-3 pnf-soft-border">
-        <h2 className="pnf-heading text-sm font-semibold">Chats</h2>
-        <div className="mt-2">
+    <aside className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="px-5 py-4">
+        <h2 className="text-sm font-black text-amber-500 uppercase tracking-widest mb-4">Conversations</h2>
+        <div className="relative group">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 group-focus-within:text-amber-500 transition-colors" size={14} />
           <input
-            className="pnf-input h-10"
+            className="sidebar-search w-full h-10 pl-9 pr-4 text-xs font-medium"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search chats"
+            placeholder="Search messages..."
           />
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto pnf-sidebar-scroll px-2 pb-4">
         {filteredConversations.length === 0 ? (
-          <p className="pnf-muted px-4 py-6 text-sm">No chats available.</p>
+          <div className="px-4 py-8 text-center">
+             <p className="text-stone-500 text-xs font-medium">No conversations found</p>
+          </div>
         ) : (
           filteredConversations.map((chat) => {
             const isActive = chat._id === activeConversationId;
             const isOwner = String(chat?.owner?._id || chat?.owner) === String(currentUserId);
             const peer = isOwner ? chat?.finder : chat?.owner;
-            const peerName = peer?.full_name || 'User';
+            const peerName = peer?.full_name || (peer?.email ? peer.email : 'External Collaborator');
+            const peerImage = peer?.profileImage?.url || peer?.profileImage;
 
             return (
               <button
                 key={chat._id}
                 type="button"
-                className={`w-full border-b px-4 py-3 text-left transition pnf-soft-border ${
-                  isActive ? 'bg-(--pnf-accent-soft)' : 'bg-transparent hover:bg-(--pnf-tone-1)'
+                className={`w-full flex items-center gap-3 p-3 mb-1 rounded-xl text-left chat-sidebar-item ${
+                  isActive ? 'active' : ''
                 }`}
                 onClick={() => onSelectConversation(chat)}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-(--pnf-tone-3) text-xs font-semibold text-(--pnf-tone-9)">
-                    {getInitials(peerName)}
+                <div className="relative shrink-0">
+                  <Avatar 
+                    src={peerImage} 
+                    name={peerName} 
+                    size="md" 
+                    className={isActive ? 'border-amber-500/40' : 'border-white/5'} 
+                  />
+                  {chat?.unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-amber-500 border-2 border-stone-900 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <p className={`text-sm font-bold truncate ${isActive ? 'text-amber-100' : 'text-stone-200'}`}>
+                      {chat?.requestTitle || 'Request'}
+                    </p>
+                    <span className="text-[10px] text-stone-500 font-bold shrink-0">
+                      {chat?.lastMessage?.timestamp ? formatDate(chat.lastMessage.timestamp) : ''}
+                    </span>
                   </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="pnf-heading line-clamp-1 text-sm font-semibold">{chat?.requestTitle || 'Request'}</p>
-                      <p className="pnf-muted-2 shrink-0 text-[11px]">
-                        {chat?.lastMessage?.timestamp ? formatDate(chat.lastMessage.timestamp) : ''}
-                      </p>
-                    </div>
-
-                    <p className="pnf-muted mt-0.5 line-clamp-1 text-xs">{peerName}</p>
-
-                    <div className="mt-1 flex items-center justify-between gap-2">
-                      <p className="pnf-muted line-clamp-1 text-xs">{chat?.lastMessage?.text || 'No messages yet'}</p>
-                      {chat?.unreadCount > 0 ? (
-                        <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[11px] font-semibold text-white">
-                          {chat.unreadCount}
-                        </span>
-                      ) : null}
-                    </div>
+                  <p className="text-[11px] text-amber-500/80 font-bold mb-1 truncate">{peerName}</p>
+                  
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`text-xs truncate ${isActive ? 'text-stone-300' : 'text-stone-500'}`}>
+                      {chat?.lastMessage?.text || 'No messages yet'}
+                    </p>
+                    {chat?.unreadCount > 0 && (
+                       <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-stone-900 font-black text-[9px]">
+                         {chat.unreadCount}
+                       </span>
+                    )}
                   </div>
                 </div>
               </button>

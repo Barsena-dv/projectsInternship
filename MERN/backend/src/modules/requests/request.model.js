@@ -62,6 +62,10 @@ const lostItemRequestSchema = new mongoose.Schema(
       type: Number,
       default: 4,
     },
+    rewardAmount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true, versionKey: false }
 );

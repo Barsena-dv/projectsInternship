@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { FiActivity, FiArrowRight, FiCheckCircle, FiClock, FiDollarSign, FiMapPin, FiNavigation, FiSearch, FiTarget } from 'react-icons/fi';
 import EmptyState from '../../components/common/EmptyState';
 import GlassModal from '../../components/common/GlassModal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -30,31 +31,22 @@ const FinderAvailableRequestsPage = () => {
 
   const requestCurrentLocation = () => {
     setLocationError('');
-
     if (!navigator.geolocation) {
       setLocating(false);
-      setLocationError('Geolocation is not supported on this browser.');
+      setLocationError('Geolocation protocol unsupported.');
       return;
     }
-
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setFinderLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
+        setFinderLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
         setLocating(false);
       },
       () => {
         setLocating(false);
-        setLocationError('Unable to access location. Enable location for nearby request discovery.');
+        setLocationError('Signal lost. Enable location for discovery.');
       },
-      {
-        enableHighAccuracy: false,
-        timeout: 12000,
-        maximumAge: 60 * 1000,
-      }
+      { enableHighAccuracy: false, timeout: 12000, maximumAge: 60 * 1000 }
     );
   };
 
@@ -65,16 +57,12 @@ const FinderAvailableRequestsPage = () => {
         requestApi.available(),
         assignmentApi.myApplications().catch(() => ({ data: [] })),
       ]);
-
       const rows = (res.data || []).filter((row) => String(row?.requestStatus || '').toLowerCase() === 'open');
-      const appliedRows = applicationsRes.data || [];
       const appliedSet = new Set(
-        appliedRows
+        (applicationsRes.data || [])
           .filter((row) => ['pending', 'accepted'].includes(String(row?.status || '').toLowerCase()))
           .map((row) => String(row?.request?._id || row?.request || ''))
-          .filter(Boolean)
       );
-
       setItems(rows);
       setAppliedIds(appliedSet);
     } catch (error) {
@@ -84,52 +72,24 @@ const FinderAvailableRequestsPage = () => {
     }
   };
 
-  useEffect(() => {
-    requestCurrentLocation();
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { requestCurrentLocation(); load(); }, []);
 
   const discovery = useMemo(() => {
-    if (!finderLocation) {
-      return {
-        radiusKm: null,
-        rows: items.map((item) => ({ ...item, _distanceKm: Number.POSITIVE_INFINITY })),
-      };
-    }
+    const mapped = items.map((item) => ({
+      ...item,
+      _distanceKm: finderLocation ? calculateDistanceKm(finderLocation, { lat: item?.lastSeenLat, lng: item?.lastSeenLng }) : Infinity,
+    })).sort((a, b) => a._distanceKm - b._distanceKm);
 
-    const mapped = items
-      .map((item) => ({
-        ...item,
-        _distanceKm: calculateDistanceKm(
-          finderLocation,
-          { lat: item?.lastSeenLat, lng: item?.lastSeenLng }
-        ),
-      }))
-      .sort((a, b) => a._distanceKm - b._distanceKm);
+    if (!finderLocation) return { radiusKm: null, rows: mapped };
 
     let chosenRadius = 5;
     let rows = [];
-
-    for (let radius = 1; radius <= 5; radius += 1) {
-      const inRange = mapped.filter((item) => item._distanceKm <= radius);
-      if (inRange.length > 0) {
-        chosenRadius = radius;
-        rows = inRange;
-        break;
-      }
+    for (let r = 1; r <= 5; r++) {
+      const inRange = mapped.filter(item => item._distanceKm <= r);
+      if (inRange.length > 0) { chosenRadius = r; rows = inRange; break; }
     }
-
-    if (rows.length === 0) {
-      rows = mapped.filter((item) => item._distanceKm <= 5);
-    }
-
-    return {
-      radiusKm: chosenRadius,
-      rows,
-    };
+    if (rows.length === 0) rows = mapped.filter(item => item._distanceKm <= 5);
+    return { radiusKm: chosenRadius, rows };
   }, [finderLocation, items]);
 
   const accept = async (requestId, payload = {}) => {
@@ -139,26 +99,9 @@ const FinderAvailableRequestsPage = () => {
       setAppliedIds((prev) => new Set(prev).add(String(requestId)));
       setItems((prev) => prev.filter((item) => String(item?._id) !== String(requestId)));
       setApplyState({ open: false, requestId: '', itemName: '', applyReason: '', finderRegion: '' });
-      toast.success('Application sent');
+      toast.success('Synchronization initiated. Application broadcasted.');
     } catch (error) {
-      const message = getErrorMessage(error);
-      const lower = String(message || '').toLowerCase();
-
-      if (lower.includes('already applied')) {
-        setAppliedIds((prev) => new Set(prev).add(String(requestId)));
-        toast.info('Application already sent. Waiting for owner approval.');
-        return;
-      }
-
-      toast.error(message);
-
-      if (
-        lower.includes('already been assigned')
-        || lower.includes('no longer open')
-      ) {
-        setItems((prev) => prev.filter((item) => String(item?._id) !== String(requestId)));
-        await load();
-      }
+      toast.error(getErrorMessage(error));
     } finally {
       setAcceptingId(null);
     }
@@ -168,164 +111,171 @@ const FinderAvailableRequestsPage = () => {
     setApplyState({
       open: true,
       requestId: String(item?._id || ''),
-      itemName: item?.itemName || 'Request',
+      itemName: item?.itemName || 'Target',
       applyReason: '',
       finderRegion: '',
     });
   };
 
-  const submitApply = async () => {
-    if (!applyState.requestId) return;
-    await accept(applyState.requestId, {
-      applyReason: applyState.applyReason,
-      finderRegion: applyState.finderRegion,
-    });
-  };
+  if (loading) return <LoadingSpinner text="Scanning frequencies..." />;
 
-  const openRequestDetails = () => {
-    if (!selectedRequest?._id) return;
-    navigate(`/finder/requests/${selectedRequest._id}`);
-    setSelectedRequest(null);
-  };
+  const sectionLabel = "text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.2em] mb-4 block";
 
   return (
-    <div>
+    <div className="finder-page-enter space-y-8">
       <PageHeader
-        title="Available Requests"
-        subtitle="Nearby open requests are shown in expanding bands: 1 km to 5 km."
+        title="Signal Discovery"
+        subtitle="Detection radar for nearby recovery missions within a 5km operational radius"
         actions={(
-          <button type="button" className="pnf-btn-outline rounded-lg px-3 py-2 text-sm" onClick={requestCurrentLocation}>
-            Refresh Location
+          <button onClick={requestCurrentLocation} className="pnf-btn-primary !px-5 flex items-center gap-2">
+            <FiNavigation size={14} /> <span className="uppercase text-[10px] tracking-widest">Recalibrate Radar</span>
           </button>
         )}
       />
 
-      {loading ? <LoadingSpinner text="Loading available requests..." /> : null}
-
-      {!loading ? (
-        <section className="mb-4 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-          {locating ? <p>Detecting your location...</p> : null}
-          {!locating && finderLocation && discovery.radiusKm ? (
-            <p>
-              Showing nearest requests within <span className="font-semibold">{discovery.radiusKm} km</span>
-            </p>
-          ) : null}
-          {!locating && !finderLocation ? (
-            <p className="text-amber-700">{locationError || 'Location unavailable. Distance filters are disabled.'}</p>
-          ) : null}
-        </section>
-      ) : null}
-
-      {!loading && discovery.rows.length === 0 ? <EmptyState title="No nearby open requests" description="No open tasks found within 5 km right now." /> : null}
-
-      {!loading && discovery.rows.length > 0 ? (
-        <div className="space-y-3">
-          {discovery.rows.map((item) => (
-            <article className="pnf-card p-4" key={item._id}>
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="min-w-0">
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <StatusBadge value={item.requestStatus} />
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                      {item?.planId?.planName || 'Service plan'}
-                    </span>
-                  </div>
-                  <h3 className="font-semibold text-slate-900">{item.itemName}</h3>
-                  <p className="mt-1 text-sm text-slate-600">{item.itemDescription || 'No description available'}</p>
-
-                  <div className="mt-2 grid gap-1 text-xs text-slate-500 sm:grid-cols-2">
-                    <p><span className="font-medium text-slate-700">Distance:</span> {formatDistance(item._distanceKm)}</p>
-                    <p><span className="font-medium text-slate-700">Location:</span> {item.lastSeenLocation || '-'}</p>
-                    <p>
-                      <span className="font-medium text-slate-700">Reward:</span>{' '}
-                      {formatCurrency(item?.planId?.rewardAmount || 0)}
+      <div className="grid lg:grid-cols-12 gap-8">
+        
+        {/* Radar Status Side */}
+        <div className="lg:col-span-4 space-y-6">
+           <div className="finder-section-card bg-emerald-500/5 !border-emerald-500/10">
+              <span className={sectionLabel}>Radar Analytics</span>
+              <div className="space-y-6">
+                 <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-bold uppercase tracking-widest">Status</span>
+                    {locating ? <span className="text-emerald-500 animate-pulse font-black">SCANNING...</span> : <span className="text-emerald-500 font-black">ACTIVE</span>}
+                 </div>
+                 <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-bold uppercase tracking-widest">Radius</span>
+                    <span className="text-white font-black">{discovery.radiusKm || '5'} KM</span>
+                 </div>
+                 <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-bold uppercase tracking-widest">Signals Found</span>
+                    <span className="text-white font-black">{discovery.rows.length}</span>
+                 </div>
+                 <div className="pt-6 border-t border-white/5">
+                    <p className="text-[10px] text-slate-500 italic leading-relaxed">
+                      Signals are sorted by discovery proximity. Priority targets appear at the top of the interface.
                     </p>
-                    <p><span className="font-medium text-slate-700">Time:</span> {formatDate(item.createdAt)}</p>
-                    <p><span className="font-medium text-slate-700">Category:</span> {item.itemCategory || '-'}</p>
-                  </div>
-                </div>
-
-                <div className="flex min-w-40 flex-col gap-2">
-                  <button
-                    type="button"
-                    className="pnf-btn-outline rounded-lg px-3 py-2 text-sm"
-                    onClick={() => setSelectedRequest(item)}
-                  >
-                    View Request
-                  </button>
-                  <button
-                    type="button"
-                    className="pnf-btn-primary rounded-lg px-3 py-2 text-sm"
-                    onClick={() => openApplyModal(item)}
-                    disabled={acceptingId === item._id || appliedIds.has(String(item._id))}
-                  >
-                    {acceptingId === item._id
-                      ? 'Applying...'
-                      : appliedIds.has(String(item._id))
-                        ? 'Application sent'
-                        : 'Quick Apply'}
-                  </button>
-                </div>
+                 </div>
               </div>
-            </article>
-          ))}
+           </div>
+
+           <div className="p-6 rounded-3xl bg-slate-950/80 border border-white/5 relative overflow-hidden group">
+              <FiTarget className="absolute -right-4 -bottom-4 text-emerald-500/10" size={100} />
+              <div className="relative z-10">
+                 <h4 className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-2">Tactical Note</h4>
+                 <p className="text-xs text-slate-400 leading-relaxed italic">
+                    Ensure your identification is synchronized before broadcast. Requester verification is required.
+                 </p>
+              </div>
+           </div>
         </div>
-      ) : null}
+
+        {/* Discovery List */}
+        <div className="lg:col-span-8 space-y-6">
+          {discovery.rows.length === 0 ? (
+            <EmptyState title="Operational Void" description="No open recovery signals detected on this frequency." />
+          ) : (
+            <div className="grid gap-4">
+              {discovery.rows.map((item) => (
+                <article key={item._id} className="f-card-interactive p-6 relative group overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-40 group-hover:opacity-100 transition-opacity">
+                     <StatusBadge value={item.requestStatus} />
+                  </div>
+                  
+                  <div className="flex gap-6 items-start">
+                     <div className="hidden sm:flex w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 items-center justify-center text-emerald-500 flex-shrink-0 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all duration-300">
+                        <FiActivity size={32} />
+                     </div>
+                     <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-3 mb-2 pr-12">
+                           <h3 className="text-lg font-black text-white">{item.itemName}</h3>
+                           <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                             {item?.planId?.planName}
+                           </span>
+                        </div>
+                        <p className="text-xs text-slate-400 line-clamp-1 mb-4">{item.itemDescription || 'No description available'}</p>
+                        
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 pt-4 border-t border-white/5">
+                           <div className="space-y-1">
+                              <span className="text-[9px] font-bold text-slate-500 uppercase">Proximity</span>
+                              <div className="text-xs font-black text-emerald-500">{formatDistance(item._distanceKm)}</div>
+                           </div>
+                           <div className="space-y-1">
+                              <span className="text-[9px] font-bold text-slate-500 uppercase">Detection</span>
+                              <div className="text-xs font-black text-white">{formatDate(item.createdAt)}</div>
+                           </div>
+                           <div className="space-y-1">
+                              <span className="text-[9px] font-bold text-slate-500 uppercase">Extraction Reward</span>
+                              <div className="text-xs font-black text-emerald-500">{formatCurrency(item?.planId?.rewardAmount || 0)}</div>
+                           </div>
+                        </div>
+
+                        <div className="mt-8 flex justify-end gap-3">
+                           <button onClick={() => setSelectedRequest(item)} className="px-5 py-2.5 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">Details</button>
+                           <button 
+                             onClick={() => openApplyModal(item)} 
+                             disabled={appliedIds.has(String(item._id))}
+                             className="px-5 py-2.5 rounded-xl bg-emerald-500 text-slate-950 text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_5px_15px_rgba(16,185,129,0.2)] disabled:opacity-50"
+                           >
+                             {appliedIds.has(String(item._id)) ? 'Signal Sent' : 'Engage'}
+                           </button>
+                        </div>
+                     </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
 
       <GlassModal
         open={applyState.open}
-        title="Apply For Assignment"
-        subtitle="Add optional reason and your region for owner visibility."
-        confirmText="Submit Application"
+        title="Extraction Protocol"
+        subtitle="Initialize your recovery proposal for the requester review."
+        confirmText="Broadcast Proposal"
         onClose={() => setApplyState({ open: false, requestId: '', itemName: '', applyReason: '', finderRegion: '' })}
-        onConfirm={submitApply}
+        onConfirm={() => accept(applyState.requestId, { applyReason: applyState.applyReason, finderRegion: applyState.finderRegion })}
         loading={acceptingId === applyState.requestId}
       >
-        <div className="space-y-3 text-sm text-slate-700">
-          <p>
-            Request: <span className="font-semibold">{applyState.itemName || '-'}</span>
-          </p>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Region</label>
-            <input
-              className="pnf-input"
-              type="text"
-              placeholder="Your working area or city"
-              value={applyState.finderRegion}
-              onChange={(e) => setApplyState((prev) => ({ ...prev, finderRegion: e.target.value }))}
-            />
+        <div className="space-y-6 text-sm">
+          <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 mb-6">
+             <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-1">Target Identified</span>
+             <p className="text-white font-bold">{applyState.itemName}</p>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Reason</label>
-            <textarea
-              className="pnf-input"
-              rows={3}
-              placeholder="Why are you a good fit for this request?"
-              value={applyState.applyReason}
-              onChange={(e) => setApplyState((prev) => ({ ...prev, applyReason: e.target.value }))}
-            />
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block ml-1">Deployment Region</label>
+            <input className="pnf-input" type="text" placeholder="Your operational base" value={applyState.finderRegion} onChange={(e) => setApplyState((prev) => ({ ...prev, finderRegion: e.target.value }))} />
+          </div>
+          <div>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block ml-1">Mission Rationale</label>
+            <textarea className="pnf-input" rows={3} placeholder="Experience or proximity details..." value={applyState.applyReason} onChange={(e) => setApplyState((prev) => ({ ...prev, applyReason: e.target.value }))} />
           </div>
         </div>
       </GlassModal>
 
+      {/* Simplified details modal */}
       <GlassModal
         open={Boolean(selectedRequest)}
-        title="Take This Request?"
-        subtitle="Do you want to take this request?"
-        confirmText="Yes, Open Details"
-        cancelText="Not Now"
+        title="Signal Intel"
+        confirmText="Initialize View"
+        cancelText="Stow"
         onClose={() => setSelectedRequest(null)}
-        onConfirm={openRequestDetails}
+        onConfirm={() => { navigate(`/finder/requests/${selectedRequest._id}`); setSelectedRequest(null); }}
       >
-        <div className="space-y-2 text-sm text-slate-700">
-          <p><span className="font-semibold">{selectedRequest?.itemName || '-'}</span></p>
-          <p>{selectedRequest?.itemDescription || 'No description available.'}</p>
-          <p>
-            Distance: {formatDistance(calculateDistanceKm(
-              finderLocation,
-              { lat: selectedRequest?.lastSeenLat, lng: selectedRequest?.lastSeenLng }
-            ))}
-          </p>
+        <div className="space-y-4">
+           <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/5">
+              <FiMapPin className="text-emerald-500" />
+              <div className="text-xs">
+                 <span className="block text-slate-500">Last Known Pulse</span>
+                 <span className="text-white font-bold">{selectedRequest?.lastSeenLocation}</span>
+              </div>
+           </div>
+           <p className="text-sm text-slate-400 leading-relaxed italic border-l-2 border-emerald-500/30 pl-4">
+             "{selectedRequest?.itemDescription || 'Operational summary unavailable.'}"
+           </p>
         </div>
       </GlassModal>
     </div>

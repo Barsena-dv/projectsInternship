@@ -124,6 +124,7 @@ const RequestDetails = ({
         }, new Map()).values()
       )
     : [];
+
   const isCompleted = lifecycleState === 'completed';
   const canVerify = lifecycleState === 'evidence_submitted' && evidence?.verificationStatus === 'pending';
   const canRelease = lifecycleState === 'verified' && payment?.paymentStatus === 'locked';
@@ -133,312 +134,314 @@ const RequestDetails = ({
   const canDeleteRequest = ['draft', 'pending_payment'].includes(lifecycleState);
   const canDecideApplications = lifecycleState === 'open' && !assignment;
 
+  // Most recent first for tracking
+  const sortedTimeline = [...(timelineEvents || [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
   return (
-    <div className="space-y-4">
-      <section className="owner-section-card p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-stone-100">Request Information</h2>
-          <StatusBadge value={lifecycleState} />
-        </div>
-
-        <div className="mt-4 grid gap-2 text-sm text-stone-300 md:grid-cols-2">
-          <p><span className="font-medium text-stone-400">Item Name:</span> {request.itemName}</p>
-          <p><span className="font-medium text-stone-400">Category:</span> {request.itemCategory || '-'}</p>
-          <p><span className="font-medium text-stone-400">Description:</span> {request.itemDescription || '-'}</p>
-          <p><span className="font-medium text-stone-400">Last Seen:</span> {request.lastSeenLocation || '-'}</p>
-          <p><span className="font-medium text-stone-400">Service Plan:</span> {request.planId?.planName || '-'}</p>
-          <p><span className="font-medium text-stone-400">Created:</span> {formatDate(request.createdAt)}</p>
-        </div>
-      </section>
-
-      <section className="pnf-card p-5">
-        <h3 className="text-base font-semibold text-slate-900">Payment Status</h3>
-        {lifecycleState === 'draft' || lifecycleState === 'pending_payment' ? (
-          <div className="mt-3 space-y-3">
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
-              Payment pending. This request stays in draft until payment is completed.
-            </p>
-            <PaymentButton request={request} onSuccess={onPaymentSuccess} />
+    <div className="owner-details-grid">
+      <div className="owner-details-main">
+        {/* Primary Info Card */}
+        <section className="owner-details-card">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-white tracking-tight">Request Overview</h2>
+            <StatusBadge value={lifecycleState} />
           </div>
-        ) : (
-          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-            <p><span className="font-medium">Payment Status:</span> {payment?.paymentStatus || 'not available'}</p>
-            <p><span className="font-medium">Amount:</span> {payment?.amount ? `Rs ${payment.amount}` : '-'}</p>
-            <p><span className="font-medium">Method:</span> {payment?.paymentMethod ? String(payment.paymentMethod).replace('_', ' ') : '-'}</p>
-            <p><span className="font-medium">Transaction ID:</span> {payment?.transactionId || '-'}</p>
-            <p><span className="font-medium">Paid At:</span> {formatDate(payment?.paidAt)}</p>
-            <p><span className="font-medium">Refund Amount:</span> {Number(payment?.refundAmount || 0) > 0 ? `Rs ${Number(payment?.refundAmount || 0).toFixed(2)}` : '-'}</p>
-            <p><span className="font-medium">Finder Compensation:</span> {Number(payment?.finderCompensationAmount || 0) > 0 ? `Rs ${Number(payment?.finderCompensationAmount || 0).toFixed(2)}` : '-'}</p>
-            <p><span className="font-medium">Settlement Type:</span> {payment?.settlementType || '-'}</p>
-          </div>
-        )}
-      </section>
 
-      {canEditRequest || canDeleteRequest ? (
-        <section className="pnf-card p-5">
-          <h3 className="text-base font-semibold text-slate-900">Request Actions</h3>
-          <p className="mt-2 text-sm text-slate-600">
-            Edit and delete are available before assignment. Once assigned, request details are locked.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {canEditRequest ? (
-              <button className="pnf-btn-outline rounded-lg px-3 py-2 text-sm" type="button" onClick={onEditRequest}>
-                Edit Request
-              </button>
-            ) : null}
-            {canDeleteRequest ? (
-              <button
-                className="rounded-lg border border-rose-200 px-3 py-2 text-sm text-rose-700 hover:bg-rose-50"
-                type="button"
-                onClick={onDeleteRequest}
-              >
-                Delete Draft
-              </button>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
+          <div className="grid gap-6 md:grid-cols-2">
+            <div>
+              <p className="owner-details-label">Item Identity</p>
+              <p className="owner-details-value font-semibold text-white">{request.itemName}</p>
+              
+              <p className="owner-details-label">Category</p>
+              <p className="owner-details-value">{request.itemCategory || 'General'}</p>
+              
+              <p className="owner-details-label">Description</p>
+              <p className="owner-details-value leading-relaxed text-stone-300">{request.itemDescription || 'No description provided'}</p>
+            </div>
+            <div>
+              <p className="owner-details-label">Last Seen At</p>
+              <p className="owner-details-value">{request.lastSeenLocation || '-'}</p>
 
-      {(lifecycleState === 'open' || lifecycleState === 'assigned' || lifecycleState === 'inactive' || lifecycleState === 'expired' || lifecycleState === 'failed' || lifecycleState === 'evidence_submitted' || lifecycleState === 'verified' || isCompleted) ? (
-        <section className="pnf-card p-5">
-          <h3 className="text-base font-semibold text-stone-100">Applicants History ({applications?.length || 0})</h3>
-          <p className="mt-1 text-xs text-stone-400">Pending now: {pendingApplications.length}</p>
-          {!canDecideApplications ? (
-            <p className="mt-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-stone-400">
-              Finder already assigned. Applicant decisions are locked now.
-            </p>
+              <p className="owner-details-label">Service Plan</p>
+              <p className="owner-details-value text-amber-400 font-medium">{request.planId?.planName || 'Standard'}</p>
+
+              <p className="owner-details-label">Created on</p>
+              <p className="owner-details-value text-stone-400">{formatDate(request.createdAt)}</p>
+            </div>
+          </div>
+
+          {canEditRequest || canDeleteRequest ? (
+            <div className="mt-8 pt-6 border-t border-white/5 flex gap-3">
+              {canEditRequest && (
+                <button className="pnf-btn-outline rounded-xl px-4 py-2 text-sm" onClick={onEditRequest}>
+                  Edit Details
+                </button>
+              )}
+              {canDeleteRequest && (
+                <button className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-sm text-rose-400 hover:bg-rose-500/20" onClick={onDeleteRequest}>
+                  Delete Draft
+                </button>
+              )}
+            </div>
           ) : null}
-          {pendingApplications.length === 0 && applicants.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-600">No finder has applied yet.</p>
-          ) : (
-            <div className="mt-3 space-y-2">
-              {pendingApplications.map((application) => (
-                 <article key={application._id} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm text-stone-300">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="font-medium text-stone-100">{application?.finder?.full_name || 'Finder'}</p>
-                      <p>Rating: {application?.finder?.ratingAvg || 0}</p>
-                      <p>Region: {application?.finderRegion || '-'}</p>
-                      <p>Reason: {application?.applyReason || '-'}</p>
-                      <p>
-                        Completed: {application?.finderStats?.completedAssignments || 0} /
-                        {' '}
-                        {application?.finderStats?.totalAssignments || 0}
-                        {' '}
-                        ({application?.finderStats?.completionRate || 0}% success)
-                      </p>
-                    </div>
-                    {canDecideApplications ? (
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          className="pnf-btn-outline rounded-lg px-3 py-1.5 text-xs"
-                          type="button"
-                          onClick={() => setSelectedApplicant(application)}
-                        >
-                          View Profile
-                        </button>
-                        <button
-                          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white"
-                          type="button"
-                          onClick={() => onApplicationDecision(application, 'accepted')}
-                        >
-                          Accept
-                        </button>
-                        <button
-                          className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white"
-                          type="button"
-                          onClick={() => onApplicationDecision(application, 'rejected')}
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                </article>
-              ))}
+        </section>
 
-              {applicants.map((finder) => (
-                 <article key={finder._id} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm text-stone-300">
-                  <p className="font-medium text-stone-100">{finder.full_name || 'Finder'}</p>
-                  <p>Rating: {finder.ratingAvg || 0}</p>
-                </article>
-              ))}
+        {/* Evidence & Verification Card */}
+        {(lifecycleState === 'evidence_submitted' || lifecycleState === 'verified' || isCompleted) && (
+          <section className="owner-details-card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">Evidence & Findings</h3>
+              <StatusBadge value={evidence?.verificationStatus || 'pending'} />
+            </div>
+            
+            <div className="p-4 rounded-xl bg-black/30 border border-white/5">
+              <p className="owner-details-label">Finder's Note</p>
+              <p className="text-sm text-stone-300 italic mb-4">
+                "{evidence?.verificationNotes || evidence?.description || 'No notes provided'}"
+              </p>
+              
+              <EvidenceFiles files={evidence?.files} />
+
+              {canVerify && (
+                <div className="mt-6 flex gap-3">
+                  <button className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/20" onClick={() => onVerifyEvidence(true)}>
+                    Approve Evidence
+                  </button>
+                  <button className="rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-rose-500/20" onClick={() => onVerifyEvidence(false)}>
+                    Reject
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Payment & Settlement Card */}
+        <section className="owner-details-card">
+          <h3 className="text-lg font-bold text-white mb-4">Financial Status</h3>
+          {lifecycleState === 'draft' || lifecycleState === 'pending_payment' ? (
+            <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
+              <p className="text-sm text-amber-200/80 mb-4">
+                Please complete the payment to publish this request and start receiving applications from finders.
+              </p>
+              <PaymentButton request={request} onSuccess={onPaymentSuccess} />
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 p-5 rounded-xl bg-black/40 border border-white/5 shadow-2xl">
+              <div className="space-y-4">
+                <div>
+                  <p className="owner-details-label uppercase tracking-tighter text-[9px] mb-1">Current Status</p>
+                  <p className="text-sm text-white font-bold capitalize flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${payment?.paymentStatus === 'locked' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+                    {String(payment?.paymentStatus || 'processing').replace('_', ' ')}
+                  </p>
+                </div>
+                
+                <div>
+                  <p className="owner-details-label uppercase tracking-tighter text-[9px] mb-1">Total Amount Escrowed</p>
+                  <div className="flex flex-col">
+                     <p className="text-xl font-black text-amber-400">Rs {payment?.amount || '0'}</p>
+                     {payment?.servicePlan && (
+                        <p className="text-[10px] text-emerald-500/70 font-bold mt-1">
+                          (Rs {((payment.amount * (payment.servicePlan.refundPercent || 0)) / 100).toFixed(2)} Refundable on Failure)
+                        </p>
+                     )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="owner-details-label uppercase tracking-tighter text-[9px] mb-1">Network & Discovery Fees</p>
+                  {payment?.servicePlan ? (
+                    <div className="flex flex-col">
+                       <p className="text-sm text-rose-400/80 font-bold">
+                         Rs {((payment.amount * ((payment.servicePlan.platformPercent || 0) + (payment.servicePlan.finderPercent || 0))) / 100).toFixed(2)}
+                       </p>
+                       <p className="text-[9px] text-stone-500 italic mt-0.5">Non-refundable professional service fees</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-stone-400 font-medium">-</p>
+                  )}
+                </div>
+
+                {Number(payment?.refundAmount || 0) > 0 ? (
+                  <div className="pt-2 border-t border-white/5">
+                    <p className="owner-details-label uppercase tracking-tighter text-[9px] mb-1 text-rose-500">Amount Refunded</p>
+                    <p className="text-lg font-black text-rose-500">Rs {Number(payment.refundAmount).toFixed(2)}</p>
+                  </div>
+                ) : (
+                   <div>
+                      <p className="owner-details-label uppercase tracking-tighter text-[9px] mb-1 text-stone-600">Transaction Fingerprint</p>
+                      <p className="text-[10px] font-mono text-stone-500 truncate bg-white/5 p-1.5 rounded border border-white/5">{payment?.transactionId || 'PENDING_VALIDATION'}</p>
+                   </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {(canRelease || isCompleted) && (
+            <div className="mt-6 flex flex-wrap gap-3">
+              {canRelease && (
+                <button className="pnf-btn-primary rounded-xl px-5 py-2.5 text-sm font-bold" onClick={onReleasePayment}>
+                  Release Payment to Finder
+                </button>
+              )}
+              {isCompleted && (
+                <button className="rounded-xl bg-white/10 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/20" onClick={onRateFinder}>
+                  Rate Finder Experience
+                </button>
+              )}
+              <button className="pnf-btn-outline rounded-xl px-5 py-2.5 text-sm font-semibold" onClick={onOpenChat}>
+                Open Workspace Chat
+              </button>
             </div>
           )}
         </section>
-      ) : null}
+      </div>
 
-      {assignment ? (
-        <section className="pnf-card p-5">
-          <h3 className="text-base font-semibold text-slate-900">Assigned Finder and Tracking</h3>
-          <div className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
-            <p><span className="font-medium">Finder:</span> {assignment?.finder?.full_name || '-'}</p>
-          </div>
-
-          {showExpiredControls ? (
-            <div className="mt-3 space-y-2">
-              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                Finder deadline expired. Choose whether to retry with same finder or drop this request with settlement.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  className="rounded-lg bg-blue-700 px-3 py-2 text-xs font-medium text-white"
-                  type="button"
-                  onClick={onRetrySameFinder}
-                >
-                  Retry With Same Finder
-                </button>
-                <button
-                  className="rounded-lg border border-rose-300 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-50"
-                  type="button"
-                  onClick={onDropExpired}
-                >
-                  Drop Request
-                </button>
-              </div>
-            </div>
-          ) : null}
-
-          {showFailedControls ? (
-            <div className="mt-3 space-y-2">
-              <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800">
-                Owner service deadline failed. Retry with different finder will trigger refund and require fresh payment cycle.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  className="rounded-lg bg-blue-700 px-3 py-2 text-xs font-medium text-white"
-                  type="button"
-                  onClick={onRetryDifferentFinder}
-                >
-                  Retry With Different Finder
-                </button>
-                <button
-                  className="rounded-lg border border-rose-300 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-50"
-                  type="button"
-                  onClick={onDropFailed}
-                >
-                  Drop Request
-                </button>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="mt-3 rounded-lg border border-white/10 bg-black/20 p-3">
-            <p className="text-sm font-medium text-amber-100">Assignment Tracking</p>
-            {timelineEvents?.length ? (
-              <div className="mt-3 space-y-4 border-l-2 border-white/10 pl-4">
-                {timelineEvents.map((row) => (
-                  <article key={row._id} className="relative rounded-lg border border-white/10 bg-stone-900/50 p-3 text-xs text-stone-300 shadow-sm">
-                    <div className="absolute -left-5.25 top-3 h-2 w-2 rounded-full border border-white/10 bg-stone-900" />
-                    <p className="font-semibold text-stone-100">{row.action?.replace(/_/g, ' ')}</p>
-                    <p className="text-stone-400">Actor: {row?.actor?.user?.full_name || row?.actor?.label || 'System'}</p>
-                    {row?.details?.remarks ? <p className="mt-1 italic">"{row.details.remarks}"</p> : null}
-                    {row?.details?.locationName ? <p className="mt-0.5 text-amber-400">📍 {row.details.locationName}</p> : null}
-                    <p className="mt-1 text-right text-[10px] text-stone-500 font-mono">{formatDate(row.createdAt)}</p>
+      <aside className="owner-details-aside">
+        {/* Tracking Timeline Card */}
+        <section className="owner-details-card">
+          <h3 className="text-lg font-bold text-white mb-2">Assignment Activity</h3>
+          <p className="text-xs text-stone-400 mb-4">Showing most recent updates first</p>
+          
+          <div className="owner-details-tracking">
+            {sortedTimeline.length ? (
+              <div className="tracking-timeline-modern">
+                {sortedTimeline.map((row) => (
+                  <article key={row._id} className="tracking-event-card">
+                    <div className="tracking-event-dot" />
+                    <p className="tracking-event-time">{formatDate(row.createdAt)}</p>
+                    <p className="tracking-event-title">{String(row.action || '').replace(/_/g, ' ')}</p>
+                    <p className="tracking-event-meta">By {row?.actor?.user?.full_name || row?.actor?.label || 'System'}</p>
+                    {row?.details?.locationName && (
+                      <p className="text-[10px] text-amber-500/80 mt-1 flex items-center gap-1">
+                        📍 {row.details.locationName}
+                      </p>
+                    )}
                   </article>
                 ))}
               </div>
             ) : (
-              <p className="mt-1 text-sm text-stone-400">No tracking updates yet.</p>
+              <div className="py-8 text-center">
+                <p className="text-sm text-stone-500">No activity logged yet.</p>
+              </div>
             )}
           </div>
-        </section>
-      ) : null}
 
-      {(lifecycleState === 'evidence_submitted' || lifecycleState === 'verified' || isCompleted) ? (
-        <section className="pnf-card p-5">
-          <h3 className="text-base font-semibold text-slate-900">Evidence Verification</h3>
-          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-            <p><span className="font-medium">Evidence Status:</span> {evidence?.verificationStatus || 'not submitted'}</p>
-            <p><span className="font-medium">Notes:</span> {evidence?.verificationNotes || evidence?.description || '-'}</p>
-            <EvidenceFiles files={evidence?.files} />
-            {canVerify ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white" type="button" onClick={() => onVerifyEvidence(true)}>
-                  Verify Evidence
-                </button>
-                <button className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white" type="button" onClick={() => onVerifyEvidence(false)}>
-                  Reject Evidence
+          {(showExpiredControls || showFailedControls) && (
+            <div className="mt-6 pt-6 border-t border-white/5 space-y-4">
+              <p className="text-xs text-amber-400 leading-relaxed px-3 py-2 rounded-lg bg-amber-400/5 border border-amber-400/10">
+                {showExpiredControls 
+                  ? "The finder's deadline has passed without results. You can choose to extend or drop."
+                  : "Service deadline failed. You are eligible for a refund as per plan."}
+              </p>
+              <div className="flex flex-col gap-2">
+                {showExpiredControls && (
+                  <button className="w-full rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white" onClick={onRetrySameFinder}>
+                    Keep Finder & Extend
+                  </button>
+                )}
+                {showFailedControls && (
+                  <button className="w-full rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white" onClick={onRetryDifferentFinder}>
+                    Retry with Different Finder
+                  </button>
+                )}
+                <button className="w-full rounded-xl border border-rose-500/30 px-4 py-2 text-xs font-bold text-rose-400" onClick={showExpiredControls ? onDropExpired : onDropFailed}>
+                  Drop & Settle Request
                 </button>
               </div>
-            ) : null}
-          </div>
+            </div>
+          )}
         </section>
-      ) : null}
 
-      {(lifecycleState === 'verified' || isCompleted) ? (
-        <section className="pnf-card p-5">
-          <h3 className="text-base font-semibold text-slate-900">Chat and Release</h3>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button className="pnf-btn-outline rounded-lg px-3 py-2 text-sm" type="button" onClick={onOpenChat}>
-              Open Chat
-            </button>
-            {canRelease ? (
-              <button className="pnf-btn-primary rounded-lg px-3 py-2 text-sm" type="button" onClick={onReleasePayment}>
-                Release Payment
-              </button>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
+        {/* Assigned Finder Card */}
+        {assignment && (
+          <section className="owner-details-card">
+            <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wider mb-4">Assigned Finder</h3>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold">
+                {String(assignment.finder?.full_name || 'F').charAt(0)}
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">{assignment.finder?.full_name || '-'}</p>
+                <p className="text-[11px] text-stone-400">Rating: {assignment.finder?.ratingAvg || '5.0'} / 5.0</p>
+              </div>
+            </div>
+          </section>
+        )}
 
-      {isCompleted ? (
-        <section className="pnf-card p-5">
-          <h3 className="text-base font-semibold text-slate-900">Completion and Rating</h3>
-          <p className="mt-2 text-sm text-emerald-700">This request is completed. You can now rate the finder.</p>
-          <button className="mt-3 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white" type="button" onClick={onRateFinder}>
-            Rate Finder
-          </button>
-        </section>
-      ) : null}
+        {/* Applicants History Card */}
+        {canDecideApplications && pendingApplications.length > 0 && (
+          <section className="owner-details-card">
+             <h3 className="text-lg font-bold text-white mb-4">New Applications</h3>
+             <div className="space-y-3">
+               {pendingApplications.map((app) => (
+                 <article key={app._id} className="p-3 rounded-xl bg-white/5 border border-white/5 hover:border-amber-500/30 transition-colors">
+                    <p className="text-sm font-bold text-white mb-1">{app.finder?.full_name}</p>
+                    <p className="text-xs text-stone-400 mb-3">{app.finderStats?.completionRate || 0}% Completion Rate</p>
+                    <div className="flex gap-2">
+                      <button className="flex-1 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-stone-900" onClick={() => onApplicationDecision(app, 'accepted')}>
+                        Accept
+                      </button>
+                      <button className="rounded-lg bg-stone-800 px-3 py-1.5 text-xs font-bold text-stone-400" onClick={() => setSelectedApplicant(app)}>
+                        Profile
+                      </button>
+                    </div>
+                 </article>
+               ))}
+             </div>
+          </section>
+        )}
+      </aside>
 
       <GlassModal
         open={Boolean(selectedApplicant)}
-        title="Applicant Details"
-        subtitle="Review finder profile and performance before deciding."
+        title="Finder Profile"
+        subtitle="Detailed performance history"
         onClose={() => setSelectedApplicant(null)}
         onConfirm={() => {
           if (!selectedApplicant) return;
           onApplicationDecision(selectedApplicant, 'accepted');
           setSelectedApplicant(null);
         }}
-        confirmText="Accept Finder"
+        confirmText="Confirm Selection"
         confirmDisabled={!canDecideApplications}
       >
-        <div className="space-y-2 text-sm text-slate-700">
-          <p><span className="font-medium">Name:</span> {selectedApplicant?.finder?.full_name || '-'}</p>
-          <p><span className="font-medium">Phone:</span> {selectedApplicant?.finder?.phone || '-'}</p>
-          <p><span className="font-medium">Email:</span> {selectedApplicant?.finder?.email || '-'}</p>
-          <p><span className="font-medium">Rating:</span> {selectedApplicant?.finder?.ratingAvg || 0}</p>
-          <p><span className="font-medium">Region:</span> {selectedApplicant?.finderRegion || '-'}</p>
-          <p><span className="font-medium">Reason:</span> {selectedApplicant?.applyReason || '-'}</p>
-          <p>
-            <span className="font-medium">Performance:</span>
-            {' '}
-            {selectedApplicant?.finderStats?.completedAssignments || 0}
-            /
-            {selectedApplicant?.finderStats?.totalAssignments || 0}
-            {' '}
-            completed ({selectedApplicant?.finderStats?.completionRate || 0}%)
-          </p>
-
-          {canDecideApplications ? (
-            <button
-              className="mt-2 rounded-lg border border-rose-600 bg-rose-600 px-3 py-2 text-sm font-medium text-white"
-              type="button"
-              onClick={() => {
-                if (!selectedApplicant) return;
-                onApplicationDecision(selectedApplicant, 'rejected');
-                setSelectedApplicant(null);
-              }}
-            >
-              Reject Finder
-            </button>
-          ) : null}
-        </div>
+        {selectedApplicant && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="owner-details-label">Total Assignments</p>
+                <p className="text-white font-bold">{selectedApplicant.finderStats?.totalAssignments || 0}</p>
+              </div>
+              <div>
+                <p className="owner-details-label">Avg Rating</p>
+                <p className="text-amber-400 font-bold">{selectedApplicant.finder?.ratingAvg || '0'} / 5.0</p>
+              </div>
+            </div>
+            <div>
+              <p className="owner-details-label">Application Reason</p>
+              <p className="text-sm text-stone-300 italic">"{selectedApplicant.applyReason || 'No reason provided'}"</p>
+            </div>
+            {canDecideApplications && (
+              <button 
+                className="w-full mt-4 rounded-xl border border-rose-500/30 py-2.5 text-sm font-bold text-rose-400 hover:bg-rose-500/10 transition-colors"
+                onClick={() => {
+                  onApplicationDecision(selectedApplicant, 'rejected');
+                  setSelectedApplicant(null);
+                }}
+              >
+                Reject Application
+              </button>
+            )}
+          </div>
+        )}
       </GlassModal>
     </div>
   );
 };
+
 
 export default RequestDetails;

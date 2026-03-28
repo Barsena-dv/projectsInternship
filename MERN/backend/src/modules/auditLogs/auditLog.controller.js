@@ -20,6 +20,23 @@ const getAuditLogs = async (req, res) => {
   }
 };
 
+const getMyActivity = async (req, res) => {
+  try {
+    const { page, limit } = req.query;
+    const filters = { userId: req.user.userId };
+
+    const result = await auditLogService.getLogs(filters, parseInt(page) || 1, parseInt(limit) || 20);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getAuditLogs,
+  getMyActivity,
 };
