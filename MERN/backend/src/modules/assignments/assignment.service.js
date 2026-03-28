@@ -1129,6 +1129,7 @@ module.exports = {
   getMyAssignments,
   getAssignmentByRequest,
   getAssignmentById,
+  syncAssignmentStatus,
   getAssignmentTimelineByAssignment,
   getAssignmentTimelineByRequest,
   completeAssignmentByOwner,
@@ -1139,8 +1140,4 @@ module.exports = {
   pauseAssignment,
   resumeAssignment,
   calculateSettlementAmounts,
-  createPayment,
-  processPayment,
-  releasePayment,
-  getUserPayments,
 };
