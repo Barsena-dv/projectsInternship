@@ -24,7 +24,7 @@ const normalizeUser = (rawUser) => {
 export const getRoleHomePath = (role) => {
   if (role === 'owner') return '/owner/dashboard';
   if (role === 'finder') return '/finder/dashboard';
-  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'admin') return '/admin/overview';
   return '/login';
 };
 

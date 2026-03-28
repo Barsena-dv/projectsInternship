@@ -26,7 +26,15 @@ import FinderAssignmentsPage from '../pages/finder/FinderAssignmentsPage';
 import FinderAssignmentDetailsPage from '../pages/finder/FinderAssignmentDetailsPage';
 import FinderRequestDetailsPage from '../pages/finder/FinderRequestDetailsPage';
 
-import { getRoleHomePath } from '../contexts/AuthContext';
+import AdminLayout from '../layouts/AdminLayout';
+import AdminOverviewPage from '../pages/admin/AdminOverviewPage';
+import AdminUsersPage from '../pages/admin/AdminUsersPage';
+import AdminRequestsPage from '../pages/admin/AdminRequestsPage';
+import AdminAssignmentsPage from '../pages/admin/AdminAssignmentsPage';
+import AdminDisputesPage from '../pages/admin/AdminDisputesPage';
+import AdminPaymentsPage from '../pages/admin/AdminPaymentsPage';
+import AdminLogsPage from '../pages/admin/AdminLogsPage';
+import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
 
 const HomeRedirect = () => {
@@ -82,9 +90,17 @@ const AppRoutes = () => {
 			</Route>
 
 			<Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-				<Route element={<DashboardLayout />}>
+				<Route element={<AdminLayout />}>
 					<Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-					<Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
+					<Route path="/admin/overview" element={<AdminOverviewPage />} />
+					<Route path="/admin/users" element={<AdminUsersPage />} />
+					<Route path="/admin/requests" element={<AdminRequestsPage />} />
+					<Route path="/admin/assignments" element={<AdminAssignmentsPage />} />
+					<Route path="/admin/disputes" element={<AdminDisputesPage />} />
+					<Route path="/admin/payments" element={<AdminPaymentsPage />} />
+					<Route path="/admin/logs" element={<AdminLogsPage />} />
+					<Route path="/admin/settings" element={<AdminSettingsPage />} />
+					<Route path="/admin/*" element={<Navigate to="/admin/overview" replace />} />
 				</Route>
 			</Route>
 

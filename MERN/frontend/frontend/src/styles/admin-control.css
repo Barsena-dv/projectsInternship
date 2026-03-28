@@ -1,0 +1,149 @@
+/* Admin-Control.css: Premium Indigo/Slate Layout */
+
+:root {
+  --admin-bg: #0f172a; /* Slate 900 */
+  --admin-sidebar-bg: #1e1b4b; /* Indigo 950 */
+  --admin-accent: #6366f1; /* Indigo 500 */
+  --admin-accent-hover: #818cf8; /* Indigo 400 */
+  --admin-text-primary: #f8fafc; /* Slate 50 */
+  --admin-text-secondary: #94a3b8; /* Slate 400 */
+  --admin-card-bg: rgba(30, 41, 59, 0.7); /* Slate 800/70 */
+  --admin-border: rgba(255, 255, 255, 0.05);
+}
+
+.admin-wrapper {
+  background-color: var(--admin-bg);
+  color: var(--admin-text-primary);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* Sidebar Styling */
+.admin-sidebar {
+  width: 260px;
+  background: var(--admin-sidebar-bg);
+  border-right: 1px solid var(--admin-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  z-index: 50;
+  transition: width 0.3s ease;
+}
+
+.admin-sidebar-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-sidebar-nav {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: var(--admin-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-bottom: 0.25rem;
+}
+
+.admin-nav-item:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--admin-accent);
+}
+
+.admin-nav-item.active {
+  background: var(--admin-accent);
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Page Header In Admin */
+.admin-page-header {
+  padding: 2rem 1.5rem;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 1) 0%, rgba(30, 41, 59, 0) 100%);
+  margin-bottom: 1rem;
+}
+
+.admin-stat-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.admin-card {
+  background: var(--admin-card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--admin-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: transform 0.2s ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* Custom Scrollbar for Admin */
+.admin-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+/* Table styling for Admin */
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 1rem;
+  color: var(--admin-text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-table tr {
+  background: rgba(255, 255, 255, 0.02);
+  transition: background 0.2s ease;
+}
+
+.admin-table tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-table td {
+  padding: 1rem;
+  border-top: 1px solid var(--admin-border);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-table td:first-child {
+  border-left: 1px solid var(--admin-border);
+  border-top-left-radius: 0.75rem;
+  border-bottom-left-radius: 0.75rem;
+}
+
+.admin-table td:last-child {
+  border-right: 1px solid var(--admin-border);
+  border-top-right-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+}
