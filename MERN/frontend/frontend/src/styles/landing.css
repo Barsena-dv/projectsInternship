@@ -1,0 +1,205 @@
+/* landing.css: Premium Cinematic Landing Theme */
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+@keyframes pulse-radiant {
+  0% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.1); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 0.3; }
+}
+
+/* Scroll Reveal Base Animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-in {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
+
+.reveal-in.visible {
+  opacity: 1;
+}
+
+/* Staggered Delay Utilities */
+.delay-100 { transition-delay: 100ms !important; }
+.delay-200 { transition-delay: 200ms !important; }
+.delay-300 { transition-delay: 300ms !important; }
+.delay-400 { transition-delay: 400ms !important; }
+.delay-500 { transition-delay: 500ms !important; }
+
+:root {
+  --landing-bg: #030712; /* Blue 950 Deep */
+  --landing-accent: #6366f1; /* Indigo 500 */
+}
+
+.landing-wrapper {
+  background-color: var(--landing-bg);
+  color: white;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Radiant Glow Effect */
+.landing-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: pulse-radiant 8s infinite ease-in-out;
+}
+
+.landing-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5%;
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.landing-navbar.scrolled {
+  background: rgba(3, 7, 18, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.landing-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 100px 5%;
+}
+
+.landing-hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 900px;
+}
+
+.floating-object {
+  position: absolute;
+  pointer-events: none;
+  animation: float 6s infinite ease-in-out;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 24px;
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: #94a3b8;
+  max-width: 600px;
+  margin: 0 auto 40px auto;
+  line-height: 1.6;
+}
+
+/* Glassmorphism Sections */
+.landing-section {
+  padding: 100px 5%;
+  position: relative;
+  z-index: 10;
+}
+
+.landing-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 2rem;
+  padding: 3rem;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.landing-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* CTA Buttons */
+.landing-btn-primary {
+  background: #6366f1;
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.875rem;
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+  transition: all 0.3s ease;
+}
+
+.landing-btn-primary:hover {
+  transform: scale(1.05);
+  background: #4f46e5;
+  box-shadow: 0 15px 35px rgba(99, 102, 241, 0.6);
+}
+
+.landing-btn-outline {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.landing-btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Owner Section Styling */
+.owner-gradient-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Finder Section Styling */
+.finder-gradient-text {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

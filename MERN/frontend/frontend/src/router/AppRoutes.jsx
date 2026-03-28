@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import { useAuth } from '../hooks/useAuth';
 import DashboardLayout from '../layouts/DashboardLayout';
+import { getRoleHomePath } from '../contexts/AuthContext';
 
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
@@ -36,17 +37,21 @@ import AdminPaymentsPage from '../pages/admin/AdminPaymentsPage';
 import AdminLogsPage from '../pages/admin/AdminLogsPage';
 import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+import LandingLayout from '../layouts/LandingLayout';
+import LandingPage from '../pages/public/LandingPage';
 
 const HomeRedirect = () => {
 	const { isAuthenticated, user } = useAuth();
-	if (!isAuthenticated) return <Navigate to="/login" replace />;
+	if (!isAuthenticated) return <Navigate to="/" replace />;
 	return <Navigate to={getRoleHomePath(user?.role)} replace />;
 };
 
 const AppRoutes = () => {
 	return (
 		<Routes>
-			<Route path="/" element={<HomeRedirect />} />
+			<Route element={<LandingLayout />}>
+				<Route path="/" element={<LandingPage />} />
+			</Route>
 			<Route path="/login" element={<LoginPage />} />
 			<Route path="/register" element={<RegisterPage />} />
 			<Route path="/forgot-password" element={<ForgotPasswordPage />} />
