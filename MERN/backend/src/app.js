@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const morgan = require('morgan');
+const compression = require('compression');
 require('dotenv').config();
 
 // Middleware imports
@@ -27,6 +29,7 @@ const { globalLimiter, transactionalLimiter } = require('./middleware/rateLimit.
 const auditLogRoutes = require('./modules/auditLogs/auditLog.routes');
 
 const app = express();
+app.set('trust proxy', 1);
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -65,6 +68,12 @@ app.use(globalLimiter);
 
 // Security middleware
 app.use(helmet());
+
+// Logging middleware
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// Performance middleware
+app.use(compression());
 
 // Body parsers
 app.use(express.json({ limit: '10mb' }));

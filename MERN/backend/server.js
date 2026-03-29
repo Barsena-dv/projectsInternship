@@ -14,19 +14,51 @@ const startServer = async () => {
 
     // Start the server
     const server = app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
     });
 
     startAssignmentLifecycleMonitor();
 
-    // Handle graceful shutdown
-    process.on('SIGTERM', () => {
-      console.log('SIGTERM signal received: closing HTTP server');
+    // Handle process-level errors
+    process.on('unhandledRejection', (err) => {
+      console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+      console.error(err.name, err.message);
       server.close(() => {
-        console.log('HTTP server closed');
-        process.exit(0);
+        process.exit(1);
       });
     });
+
+    process.on('uncaughtException', (err) => {
+      console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+      console.error(err.name, err.message);
+      process.exit(1);
+    });
+
+    // Handle graceful shutdown
+    const gracefulShutdown = async (signal) => {
+      console.log(`${signal} signal received: closing HTTP server`);
+      
+      const { stopAssignmentLifecycleMonitor } = require('./src/modules/assignments/assignmentLifecycle.service');
+      const mongoose = require('mongoose');
+
+      stopAssignmentLifecycleMonitor();
+
+      server.close(async () => {
+        console.log('HTTP server closed');
+        try {
+          await mongoose.disconnect();
+          console.log('MongoDB connection closed');
+          process.exit(0);
+        } catch (err) {
+          console.error('Error during MongoDB disconnection:', err.message);
+          process.exit(1);
+        }
+      });
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
   } catch (error) {
     console.error('Failed to start server:', error.message);
     process.exit(1);

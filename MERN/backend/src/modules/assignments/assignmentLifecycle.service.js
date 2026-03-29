@@ -153,7 +153,16 @@ const startAssignmentLifecycleMonitor = () => {
   }, 5 * 60 * 1000);
 };
 
+const stopAssignmentLifecycleMonitor = () => {
+  if (lifecycleTimer) {
+    clearInterval(lifecycleTimer);
+    lifecycleTimer = null;
+    console.log('Assignment lifecycle monitor stopped');
+  }
+};
+
 module.exports = {
   evaluateAssignmentsLifecycle,
   startAssignmentLifecycleMonitor,
+  stopAssignmentLifecycleMonitor,
 };
