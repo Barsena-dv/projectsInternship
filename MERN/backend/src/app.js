@@ -46,12 +46,21 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin(origin, callback) {
-    // Allow non-browser clients/tools and configured frontend origins
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow if no origin (e.g., server-to-server or non-browser)
+    if (!origin) return callback(null, true);
+
+    // Exact match in whitelist
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
-    return callback(new Error('Not allowed by CORS'));
+    // Optional: Allow any Vercel preview/branch deployments
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+
+    // Instead of Error, we return false for failed CORS checks (more browser-friendly)
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
