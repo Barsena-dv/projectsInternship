@@ -33,6 +33,7 @@ app.set('trust proxy', 1);
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  'https://projects-internship.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
