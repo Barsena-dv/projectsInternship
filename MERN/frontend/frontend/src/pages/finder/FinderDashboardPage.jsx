@@ -15,6 +15,16 @@ import { useAuth } from '../../hooks/useAuth';
 import { assignmentApi, evidenceApi, notificationApi, payoutApi, requestApi } from '../../services/api';
 import { deriveFinderLifecycleState, isDeadlineMissed } from '../../utils/finderLifecycle';
 import { formatCurrency, formatDate, getErrorMessage } from '../../utils/helpers';
+import { useScrollReveal } from '../../hooks/useScrollReveal';
+
+const RevealWrapper = ({ children, className = '', delay = '' }) => {
+  const [ref, isVisible] = useScrollReveal();
+  return (
+    <div ref={ref} className={`reveal-up ${isVisible ? 'is-visible' : ''} ${delay} ${className}`}>
+      {children}
+    </div>
+  );
+};
 
 const FinderDashboardPage = () => {
   const { user, refreshMe } = useAuth();
@@ -201,17 +211,19 @@ const FinderDashboardPage = () => {
         {activeTab === 'RADAR' && (
           <div className="space-y-8">
             {/* High-Level Pulse Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <DashboardStat title="Total Liquidity" value={formatCurrency(stats.totalEarnings)} helper={`${formatCurrency(stats.pendingPayout)} processing`} icon={<FiDollarSign size={20} />} />
-              <DashboardStat title="Discovery Accuracy" value={`${stats.successRate}%`} helper="Extraction efficiency" icon={<FiCheckCircle size={20} />} />
-              <DashboardStat title="Nearby Signals" value={stats.openRequests} helper="Active in discover radius" icon={<FiNavigation size={20} />} />
-              <DashboardStat title="Trust Protocol" value={`${Number(user?.ratingAvg || 0).toFixed(1)}`} helper="Verified credibility" icon={<FiShield size={20} />} />
-            </div>
+            <RevealWrapper delay="reveal-delay-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <DashboardStat title="Total Liquidity" value={formatCurrency(stats.totalEarnings)} helper={`${formatCurrency(stats.pendingPayout)} processing`} icon={<FiDollarSign size={20} />} />
+                <DashboardStat title="Discovery Accuracy" value={`${stats.successRate}%`} helper="Extraction efficiency" icon={<FiCheckCircle size={20} />} />
+                <DashboardStat title="Nearby Signals" value={stats.openRequests} helper="Active in discover radius" icon={<FiNavigation size={20} />} />
+                <DashboardStat title="Trust Protocol" value={`${Number(user?.ratingAvg || 0).toFixed(1)}`} helper="Verified credibility" icon={<FiShield size={20} />} />
+              </div>
+            </RevealWrapper>
 
             <div className="grid lg:grid-cols-12 gap-8">
               
               {/* Radar Visualizer Card */}
-              <div className="lg:col-span-12 xl:col-span-7">
+              <RevealWrapper className="lg:col-span-12 xl:col-span-7" delay="reveal-delay-200">
                  <div className="finder-section-card f-hologram-effect group">
                     <div className="flex justify-between items-start mb-10">
                        <div>
@@ -285,11 +297,12 @@ const FinderDashboardPage = () => {
                        </div>
                     </div>
                  </div>
-              </div>
+              </RevealWrapper>
 
               {/* Discovery Feed Column */}
               <div className="lg:col-span-12 xl:col-span-5 space-y-6">
-                 <div className="finder-section-card h-full">
+                 <RevealWrapper className="h-full" delay="reveal-delay-300">
+                    <div className="finder-section-card h-full">
                     <span className={sectionLabel}>Discovery Stream</span>
                     <h3 className="text-xl font-black text-white mb-8 flex items-center gap-3">
                        <FiZap className="text-emerald-500" /> Tactical Monitoring
@@ -319,6 +332,7 @@ const FinderDashboardPage = () => {
                       View Secure Intelligence Archive
                     </Link>
                  </div>
+                 </RevealWrapper>
               </div>
 
             </div>

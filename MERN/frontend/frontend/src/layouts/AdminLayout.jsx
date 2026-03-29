@@ -2,18 +2,20 @@ import { Outlet } from 'react-router-dom';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import { FiBell, FiSearch, FiUser } from 'react-icons/fi';
 import { useAuth } from '../hooks/useAuth';
+import RoleBackground from '../components/layout/RoleBackground';
 import '../styles/admin-control.css';
 
 const AdminLayout = () => {
   const { user } = useAuth();
 
   return (
-    <div className="admin-wrapper">
+    <div className="admin-wrapper relative z-10 min-h-screen">
+      <RoleBackground />
       <AdminSidebar />
       
-      <div className="flex-1 flex flex-col ml-[260px]">
+      <div className="flex-1 flex flex-col ml-[260px] relative z-10">
         {/* Admin Top Header */}
-        <header className="h-16 border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40 px-6 flex items-center justify-between">
+        <header className="h-16 border-b border-white/5 bg-white/5 backdrop-blur-xl sticky top-0 z-40 px-6 flex items-center justify-between">
           <div className="flex items-center gap-4 text-slate-400">
             <FiSearch size={18} className="cursor-pointer hover:text-white transition-colors" />
             <span className="text-xs font-medium uppercase tracking-widest opacity-30">Admin Control Layer</span>

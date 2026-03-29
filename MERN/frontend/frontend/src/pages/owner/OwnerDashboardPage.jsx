@@ -10,7 +10,17 @@ import EmptyState from '../../components/common/EmptyState';
 import { assignmentApi, notificationApi, paymentApi, requestApi } from '../../services/api';
 import { formatDate, getErrorMessage } from '../../utils/helpers';
 import { deriveOwnerLifecycleState } from '../../utils/requestLifecycle';
+import { useScrollReveal } from '../../hooks/useScrollReveal';
 import '../../styles/owner/dashboard.css';
+
+const RevealWrapper = ({ children, className = '', delay = '' }) => {
+  const [ref, isVisible] = useScrollReveal();
+  return (
+    <div ref={ref} className={`reveal-up ${isVisible ? 'is-visible' : ''} ${delay} ${className}`}>
+      {children}
+    </div>
+  );
+};
 
 const getId = (v) => {
   if (!v) return null;
@@ -135,7 +145,9 @@ const OwnerDashboardPage = () => {
 
       {/* Stats Section */}
       <section className="mb-8">
-        <OwnerStatsGrid stats={stats} />
+        <RevealWrapper delay="reveal-delay-100">
+          <OwnerStatsGrid stats={stats} />
+        </RevealWrapper>
       </section>
 
       {/* Main Dashboard Grid */}
@@ -143,7 +155,8 @@ const OwnerDashboardPage = () => {
         
         {/* Recent Requests Widget */}
         <div className="grid-span-8">
-          <div className="owner-section-card h-full">
+          <RevealWrapper className="h-full" delay="reveal-delay-200">
+            <div className="owner-section-card h-full">
             <div className="owner-section-header">
               <span className="owner-section-title">Timeline Updates</span>
               <Link to="/owner/requests" className="owner-section-link">Explore all requests</Link>
@@ -170,11 +183,13 @@ const OwnerDashboardPage = () => {
               )}
             </div>
           </div>
+          </RevealWrapper>
         </div>
 
-        {/* Activity Widget */}
+      {/* Activity Widget */}
         <div className="grid-span-4">
-          <div className="owner-section-card h-full">
+          <RevealWrapper className="h-full" delay="reveal-delay-300">
+            <div className="owner-section-card h-full">
             <div className="owner-section-header">
               <span className="owner-section-title">System Activity</span>
             </div>
@@ -182,11 +197,13 @@ const OwnerDashboardPage = () => {
               <ActivityTimeline items={timelineItems} />
             </div>
           </div>
+          </RevealWrapper>
         </div>
 
         {/* High Interest Widget */}
         <div className="grid-span-6">
-          <div className="owner-section-card h-full">
+          <RevealWrapper className="h-full" delay="reveal-delay-400">
+            <div className="owner-section-card h-full">
             <div className="owner-section-header">
               <div>
                 <span className="owner-section-title">Trending Requests</span>
@@ -214,11 +231,13 @@ const OwnerDashboardPage = () => {
               )}
             </div>
           </div>
+          </RevealWrapper>
         </div>
 
         {/* Notifications Widget */}
         <div className="grid-span-6">
-          <div className="owner-section-card h-full">
+          <RevealWrapper className="h-full" delay="reveal-delay-500">
+            <div className="owner-section-card h-full">
             <div className="owner-section-header">
               <span className="owner-section-title">Live Notifications</span>
               <Link to="/notifications" className="owner-section-link">View all alerts</Link>
@@ -243,6 +262,7 @@ const OwnerDashboardPage = () => {
               )}
             </div>
           </div>
+          </RevealWrapper>
         </div>
 
       </div>

@@ -50,6 +50,23 @@ html, body {
 
 #root { min-height: 100dvh; display: flex; flex-direction: column; }
 
+/* ---- Global Scrollbar Hiding (Maintains Functionality) ---- */
+html, body, #root {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Chrome, Safari and Opera */
+*::-webkit-scrollbar {
+  display: none;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+
+
+
+
 /* ---- Typography Scale ---- */
 h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
 
@@ -116,6 +133,122 @@ h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
 }
 
 /* ============================================================
+   PREMIUM ROLE-BASED GLASS BACKGROUNDS
+   ============================================================ */
+
+.pnf-role-bg-base {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: var(--role-base);
+}
+
+.pnf-glass-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: rgba(4, 8, 16, 0.55); /* Deep dark sophisticated tint */
+  backdrop-filter: blur(140px) saturate(160%);
+  -webkit-backdrop-filter: blur(140px) saturate(160%);
+  pointer-events: none;
+}
+
+/* --- Floating Glow Orbs --- */
+.pnf-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.6;
+  animation-iteration-count: infinite;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-direction: alternate;
+}
+
+.pnf-orb-1 {
+  width: 45vw; height: 45vw;
+  background: var(--role-orb-1);
+  top: -10%; left: -10%;
+  animation-name: float-orb-1;
+  animation-duration: 22s;
+}
+
+.pnf-orb-2 {
+  width: 55vw; height: 55vw;
+  background: var(--role-orb-2);
+  bottom: -20%; right: -10%;
+  animation-name: float-orb-2;
+  animation-duration: 28s;
+}
+
+.pnf-orb-3 {
+  width: 35vw; height: 35vw;
+  background: var(--role-orb-3);
+  top: 35%; left: 55%;
+  animation-name: float-orb-3;
+  animation-duration: 25s;
+  mix-blend-mode: screen;
+}
+
+.pnf-orb-4 {
+  width: 40vw; height: 40vw;
+  background: var(--role-orb-1);
+  bottom: 5%; left: 10%;
+  animation-name: float-orb-4;
+  animation-duration: 32s;
+  opacity: 0.35;
+}
+
+/* --- Animation Keyframes --- */
+@keyframes float-orb-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(15vw, 10vh) scale(1.1); }
+  100% { transform: translate(-5vw, 20vh) scale(0.9); }
+}
+
+@keyframes float-orb-2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-20vw, -15vh) scale(1.2); }
+  100% { transform: translate(5vw, -30vh) scale(0.8); }
+}
+
+@keyframes float-orb-3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-30vw, 20vh) scale(1.3); }
+  100% { transform: translate(-10vw, -5vh) scale(1); }
+}
+
+@keyframes float-orb-4 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(25vw, -20vh) scale(1.1); }
+  100% { transform: translate(10vw, -10vh) scale(0.9); }
+}
+
+/* --- Role Themes --- */
+.pnf-bg-owner {
+  --role-base: #0c0a09; /* Deep stone */
+  --role-orb-1: #f59e0b; /* Amber */
+  --role-orb-2: #ea580c; /* Orange */
+  --role-orb-3: #fbbf24; /* Warm Gold */
+}
+
+.pnf-bg-finder {
+  --role-base: #020617; /* Deep slate */
+  --role-orb-1: #10b981; /* Emerald */
+  --role-orb-2: #06b6d4; /* Cyan */
+  --role-orb-3: #047857; /* Deep Green */
+}
+
+.pnf-bg-admin,
+.pnf-bg-default {
+  --role-base: #020617; /* Deep navy */
+  --role-orb-1: #6366f1; /* Indigo */
+  --role-orb-2: #8b5cf6; /* Violet */
+  --role-orb-3: #2563eb; /* Blue */
+}
+
+/* ============================================================
    GLOBAL SCROLLBAR — THEMED
    ============================================================ */
 
@@ -141,4 +274,68 @@ h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
 * {
   scrollbar-width: thin;
   scrollbar-color: #44403c #1c1917;
-}
+}
+
+/* ============================================================
+   MODERN SCROLLING & REVEAL ANIMATIONS
+   ============================================================ */
+
+/* Base Reveal Class */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(30px);
+  will-change: opacity, transform;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Reveal Delays for cascading animations */
+.reveal-delay-100 { transition-delay: 100ms; }
+.reveal-delay-200 { transition-delay: 200ms; }
+.reveal-delay-300 { transition-delay: 300ms; }
+.reveal-delay-400 { transition-delay: 400ms; }
+.reveal-delay-500 { transition-delay: 500ms; }
+
+/* ============================================================
+   ORIENTATION-SPECIFIC NAVIGATION
+   ============================================================ */
+
+/* The toggle should ONLY be visible in Portrait mode */
+.pnf-nav-toggle {
+  display: none !important;
+}
+
+@media (orientation: portrait) {
+  .pnf-nav-toggle {
+    display: flex !important;
+    z-index: 50;
+    background: rgba(30, 41, 59, 0.4) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    color: #fff !important;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-left: 0.25rem;
+  }
+}
+
+/* The desktop links should ONLY be visible in Landscape mode */
+.pnf-nav-desktop {
+  display: flex !important;
+}
+
+@media (orientation: portrait) {
+  .pnf-nav-desktop {
+    display: none !important;
+  }
+}
+

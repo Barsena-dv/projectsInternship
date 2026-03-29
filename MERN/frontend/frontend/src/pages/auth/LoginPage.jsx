@@ -34,7 +34,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="auth-modern-layout">
+    <div className="auth-modern-layout pnf-dark-scrollbar">
       {/* Cinematic Glows */}
       <div className="auth-glow auth-glow-1" />
       <div className="auth-glow auth-glow-2" />

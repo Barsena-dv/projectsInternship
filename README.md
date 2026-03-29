@@ -11,7 +11,8 @@ A professional MERN stack application designed to facilitate secure item recover
 ## 📸 Screenshots
 
 ### 🏠 Landing Page
-![Landing Page](https://via.placeholder.com/800x400?text=PostNFind+Landing+Page)
+![Landing Page](/screnshots/image.png)
+![Landing Page](/screnshots/landing2.png)
 
 ### 👨‍💻 Admin Dashboard
 ![Admin Dashboard](https://via.placeholder.com/800x400?text=Admin+Dashboard)

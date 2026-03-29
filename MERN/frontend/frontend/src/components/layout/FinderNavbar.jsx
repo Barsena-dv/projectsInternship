@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FiBell, FiLogOut, FiMoon, FiSearch, FiSun, FiX } from 'react-icons/fi';
+import { FiBell, FiLogOut, FiMenu, FiMoon, FiSearch, FiSun, FiX } from 'react-icons/fi';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import Avatar from '../common/Avatar';
 import { useAuth } from '../../hooks/useAuth';
@@ -21,6 +21,7 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchVal, setSearchVal] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [items, setItems] = useState([]);
@@ -74,6 +75,7 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
     position: 'sticky',
     top: 0,
     zIndex: 100,
+    width: '100%',
     height: '64px',
     display: 'flex',
     alignItems: 'center',
@@ -115,14 +117,14 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
       `}</style>
 
       <header style={navStyle}>
-        <div style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center' }}>
+        <div style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
           
           <Link to="/finder/dashboard" style={{ fontWeight: 900, fontSize: '1.2rem', color: '#f1f5f9', textDecoration: 'none', marginRight: '2.5rem', display: 'flex', alignItems: 'center', gap: '8px', letterSpacing: '-0.02em' }}>
             <div style={{ background: 'linear-gradient(135deg, #10b981, #059669)', width: '24px', height: '24px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontSize: '0.75rem', fontWeight: 900 }}>F</div>
             Post<span style={{ color: '#10b981' }}>N</span>Find
           </Link>
 
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <nav className="pnf-nav-desktop items-center gap-1">
             {NAV_LINKS.map((link) => (
               <NavLink
                 key={link.to}
@@ -148,6 +150,8 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
           <div style={{ flex: 1 }} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+
+
             {/* Search */}
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                {searchOpen ? (
@@ -226,9 +230,61 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
               )}
             </div>
 
+            {/* Mobile Menu Toggle */}
+            <button 
+              type="button" 
+              className="pnf-nav-toggle fnav-iconbtn"
+              onClick={() => setMobileMenuOpen(true)}
+              style={{ border: 'none', background: 'transparent', color: 'inherit', cursor: 'pointer', transition: 'all 0.15s' }}
+            >
+              <FiMenu size={22} />
+            </button>
           </div>
         </div>
       </header>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileMenuOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex' }}>
+          {/* Backdrop */}
+          <div 
+            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', animation: 'fNavDrop 0.2s ease both' }} 
+            onClick={() => setMobileMenuOpen(false)} 
+          />
+          {/* Sidebar */}
+          <div style={{ position: 'relative', marginLeft: 'auto', width: '280px', maxWidth: '80%', height: '100%', background: 'rgba(15, 23, 42, 0.95)', borderLeft: '1px solid rgba(16, 185, 129, 0.1)', display: 'flex', flexDirection: 'column', padding: '1.5rem', animation: 'fNavDrop 0.3s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+            <div className="flex flex-col w-full h-full">
+              <div className="flex justify-between items-center mb-8">
+                <span className="font-black text-white text-lg tracking-tight">Menu</span>
+                <button onClick={() => setMobileMenuOpen(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                  <FiX size={24} />
+                </button>
+              </div>
+              <nav className="flex flex-col gap-2">
+                {NAV_LINKS.map((link) => (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={({ isActive }) => ({
+                      fontSize: '1rem',
+                      fontWeight: isActive ? 700 : 500,
+                      color: isActive ? '#fff' : '#94a3b8',
+                      textDecoration: 'none',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '12px',
+                      background: isActive ? 'rgba(16, 185, 129, 0.12)' : 'transparent',
+                      border: isActive ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent',
+                    })}
+                  >
+                    {link.label}
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

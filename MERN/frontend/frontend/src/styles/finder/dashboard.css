@@ -32,9 +32,12 @@
   overflow-y: auto;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: var(--f-bg);
+  position: relative;
+  z-index: 10;
+  background: transparent;
   color: var(--f-text-1);
   min-height: 100vh;
+  scroll-behavior: smooth;
 }
 
 /* Global Overrides for Finder Context */

@@ -5,6 +5,7 @@ import TopNavbar from '../components/common/TopNavbar';
 import OwnerNavbar from '../components/layout/OwnerNavbar';
 import FinderNavbar from '../components/layout/FinderNavbar';
 import { useAuth } from '../hooks/useAuth';
+import RoleBackground from '../components/layout/RoleBackground';
 
 import '../styles/auth.css'; // Import the background mesh animations
 import '../styles/owner/dashboard.css';
@@ -25,11 +26,11 @@ const DashboardLayout = () => {
   if (isOwner) {
     return (
       <div 
-        className="owner-dashboard-wrapper" 
+        className="owner-dashboard-wrapper pnf-dark-scrollbar" 
         onScroll={handleScroll}
-        style={{ height: '100vh', overflowY: 'auto', background: '#1c1917', color: '#fffbeb', position: 'relative' }}
+        style={{ height: '100vh', overflowY: 'auto', color: '#fffbeb', position: 'relative' }}
       >
-        <div className="pnf-auth-bg" />
+        <RoleBackground />
         <OwnerNavbar 
           darkMode={darkMode} 
           onToggleDark={() => setDarkMode((p) => !p)} 
@@ -45,11 +46,11 @@ const DashboardLayout = () => {
   if (isFinder) {
     return (
       <div 
-        className="finder-dashboard-wrapper" 
+        className="finder-dashboard-wrapper pnf-dark-scrollbar" 
         onScroll={handleScroll}
-        style={{ height: '100vh', overflowY: 'auto', background: '#0f172a', color: '#f1f5f9', position: 'relative' }}
+        style={{ height: '100vh', overflowY: 'auto', color: '#f1f5f9', position: 'relative' }}
       >
-        <div className="pnf-auth-bg" />
+        <RoleBackground />
         <FinderNavbar 
           darkMode={darkMode} 
           onToggleDark={() => setDarkMode((p) => !p)} 

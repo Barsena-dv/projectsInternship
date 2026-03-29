@@ -8,7 +8,8 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
   font-family: 'Inter', sans-serif;
   padding: 2rem 1rem;
 }

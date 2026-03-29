@@ -34,9 +34,12 @@
   overflow-y: auto;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #1c1917;
+  background: transparent;
   color: #fffbeb;
+  position: relative;
+  z-index: 10;
   min-height: 100vh;
+  scroll-behavior: smooth;
 }
 
 /* Global Overrides for Owner Context */
