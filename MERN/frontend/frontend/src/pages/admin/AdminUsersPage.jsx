@@ -122,7 +122,7 @@ const AdminUsersPage = () => {
                   <p className="text-xs text-slate-500 mb-3">{user.email}</p>
                   
                   <div className="flex gap-2" onClick={e => e.stopPropagation()}>
-                    {user.role === 'finder' && user.isFinderVerified === false && (
+                    {user.role === 'finder' && user.isVerified === false && (
                        <button onClick={() => handleVerifyFinder(user._id, true)} className="p-1 px-3 bg-emerald-500/10 text-emerald-500 rounded-lg text-[10px] font-black hover:bg-emerald-500/20 transition-all border border-emerald-500/20">VERIFY</button>
                     )}
                     <button onClick={() => handleUserStatus(user._id, user.accountStatus === 'active' ? 'suspended' : 'active')} className="p-1 px-3 bg-white/5 text-slate-400 rounded-lg text-[10px] font-black hover:bg-white/10 transition-all border border-white/5">{user.accountStatus === 'active' ? 'SUSPEND' : 'RESTORE'}</button>

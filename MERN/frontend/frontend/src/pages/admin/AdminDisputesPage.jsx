@@ -117,7 +117,7 @@ const AdminDisputesPage = () => {
                     <button onClick={() => onSelectDispute(row._id)} className="p-1 px-3 bg-amber-500/10 text-amber-500 rounded-lg text-[10px] font-black hover:bg-amber-500/20 transition-all border border-amber-500/20 flex items-center gap-2"><FiSearch /> AUDIT CASE</button>
                     {row.status === 'open' && (
                        <>
-                         <button onClick={() => handleResolveResolveDispute(row._id, 'finder_wins')} className="p-1 px-3 bg-white/5 text-emerald-400 rounded-lg text-[10px] font-black hover:bg-white/10 transition-all border border-white/5 flex items-center gap-2 font-black italic">! FINDER CORRECT</button>
+                         <button onClick={() => handleResolveDispute(row._id, 'finder_wins')} className="p-1 px-3 bg-white/5 text-emerald-400 rounded-lg text-[10px] font-black hover:bg-white/10 transition-all border border-white/5 flex items-center gap-2 font-black italic">! FINDER CORRECT</button>
                          <button onClick={() => handleResolveDispute(row._id, 'owner_wins')} className="p-1 px-3 bg-white/5 text-rose-500 rounded-lg text-[10px] font-black hover:bg-white/10 transition-all border border-white/5 flex items-center gap-2 font-black italic">! OWNER CORRECT</button>
                        </>
                     )}
