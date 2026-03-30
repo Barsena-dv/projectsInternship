@@ -8,8 +8,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
+  overflow: hidden; /* Prevent glows from causing scrollbars */
   font-family: 'Inter', sans-serif;
   padding: 2rem 1rem;
 }
@@ -172,8 +171,11 @@
 }
 
 .role-label {
-  display: block;
-  padding: 0.625rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.5rem 0.25rem;
   border-radius: 0.875rem;
   font-size: 0.8rem;
   font-weight: 800;
@@ -182,6 +184,9 @@
   color: #64748b;
   cursor: pointer;
   transition: all 0.3s ease;
+  min-height: 52px;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 .role-radio:checked + .role-label {
@@ -229,4 +234,34 @@
 
 .auth-forgot-link:hover {
   color: #94a3b8;
+}
+
+/* Mobile Responsiveness Overrides */
+@media (max-width: 480px) {
+  .auth-modern-layout {
+    padding: 1rem 0.75rem;
+    align-items: center; /* Centered as requested */
+    overflow-y: auto;
+  }
+
+  .auth-modern-card {
+    padding: 2rem 1.25rem;
+    border-radius: 1.5rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .auth-modern-title {
+    font-size: 1.5rem;
+  }
+
+  .auth-modern-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .auth-glow {
+    width: 300px;
+    height: 300px;
+    opacity: 0.5;
+  }
 }

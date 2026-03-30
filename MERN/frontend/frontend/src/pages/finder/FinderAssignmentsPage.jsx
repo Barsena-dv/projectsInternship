@@ -66,7 +66,7 @@ const FinderAssignmentsPage = () => {
   if (loading) return <LoadingSpinner text="Synchronizing Mission Data..." />;
 
   const sectionLabel = "text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.2em] mb-4 block";
-  const tabStyle = (id) => `px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+  const tabStyle = (id) => `px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
     activeFilter === id ? 'bg-emerald-500 text-slate-950 shadow-lg' : 'text-slate-500 hover:text-emerald-400 hover:bg-white/5'
   }`;
 
@@ -77,7 +77,7 @@ const FinderAssignmentsPage = () => {
           title="Mission Control" 
           subtitle="Comprehensive tracking of active discovery targets and application synchronization" 
         />
-        <div className="flex p-1.5 bg-slate-950/50 backdrop-blur-xl rounded-2xl border border-white/5">
+        <div className="flex p-1.5 bg-slate-950/50 backdrop-blur-xl rounded-2xl border border-white/5 w-full md:w-auto overflow-x-auto pnf-no-scrollbar">
            <button onClick={() => setActiveFilter('ACTIVE')} className={tabStyle('ACTIVE')}>Active</button>
            <button onClick={() => setActiveFilter('APPLIED')} className={tabStyle('APPLIED')}>Applied</button>
            <button onClick={() => setActiveFilter('HISTORY')} className={tabStyle('HISTORY')}>History</button>
@@ -93,19 +93,19 @@ const FinderAssignmentsPage = () => {
              ) : (
                <div className="grid gap-4">
                   {applications.map((item) => (
-                    <article key={item._id} className="f-card-interactive p-6 flex flex-wrap items-center justify-between gap-6 border-l-4 border-l-emerald-500/30">
-                       <div className="flex gap-4 items-center">
-                          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <article key={item._id} className="f-card-interactive p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 border-l-4 border-l-emerald-500/30">
+                       <div className="flex gap-4 items-center text-left">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
                              <FiZap size={20} />
                           </div>
                           <div>
-                             <h4 className="text-base font-black text-white">{item?.request?.itemName || 'Operational Task'}</h4>
-                             <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Applied: {formatDate(item.createdAt)}</p>
+                             <h4 className="text-sm sm:text-base font-black text-white">{item?.request?.itemName || 'Operational Task'}</h4>
+                             <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase font-black tracking-widest">Applied: {formatDate(item.createdAt)}</p>
                           </div>
                        </div>
-                       <div className="flex items-center gap-6">
+                       <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 sm:gap-6 pt-3 sm:pt-0 border-t sm:border-0 border-white/5">
                           <StatusBadge value="pending" />
-                          <Link to={`/finder/requests/${item?.request?._id || item?.request}`} className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-emerald-500/10 transition-all text-emerald-500">
+                          <Link to={`/finder/requests/${item?.request?._id || item?.request}`} className="p-2 sm:p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-emerald-500/10 transition-all text-emerald-500">
                              <FiArrowRight size={18} />
                           </Link>
                        </div>
@@ -129,24 +129,24 @@ const FinderAssignmentsPage = () => {
                   {filteredItems.map((item) => {
                     const lifecycle = deriveFinderLifecycleState({ assignment: item, evidence: item.__evidence });
                     return (
-                      <article key={item._id} className="f-card-interactive p-6 flex flex-wrap items-center justify-between gap-6">
-                         <div className="flex gap-4 items-center">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${activeFilter === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500 pulse' : 'bg-slate-800 text-slate-400'}`}>
+                      <article key={item._id} className="f-card-interactive p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+                         <div className="flex gap-4 items-center text-left">
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 ${activeFilter === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500 pulse' : 'bg-slate-800 text-slate-400'}`}>
                                {activeFilter === 'ACTIVE' ? <FiActivity size={20} /> : <FiCheckCircle size={20} />}
                             </div>
                             <div>
-                               <h4 className="text-base font-black text-white">{item.request?.itemName || 'Operational Task'}</h4>
-                               <div className="flex items-center gap-4 mt-1">
-                                  <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">Assigned: {formatDate(item.assignedAt || item.createdAt)}</p>
-                                  <div className="flex items-center gap-1.5 text-[9px] font-black text-emerald-500/80 uppercase">
+                               <h4 className="text-sm sm:text-base font-black text-white">{item.request?.itemName || 'Operational Task'}</h4>
+                               <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-1">
+                                  <p className="text-[8px] sm:text-[9px] text-slate-500 uppercase font-black tracking-widest">Assigned: {formatDate(item.assignedAt || item.createdAt)}</p>
+                                  <div className="flex items-center gap-1.5 text-[8px] sm:text-[9px] font-black text-emerald-500/80 uppercase">
                                      <FiClock size={10} /> {getFinderLifecycleMessage(lifecycle)}
                                   </div>
                                </div>
                             </div>
                          </div>
-                         <div className="flex items-center gap-6">
+                         <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 sm:gap-6 pt-3 sm:pt-0 border-t sm:border-0 border-white/5">
                             <StatusBadge value={lifecycle} />
-                            <Link to={`/finder/assignments/${item._id}`} className="px-5 py-3 bg-emerald-500 text-slate-950 font-black text-[10px] uppercase tracking-widest rounded-xl hover:scale-110 transition-all shadow-lg">
+                            <Link to={`/finder/assignments/${item._id}`} className="px-5 py-3 bg-emerald-500 text-slate-950 font-black text-[10px] uppercase tracking-widest rounded-xl hover:scale-110 transition-all shadow-lg text-center flex-1 sm:flex-none">
                                Initialize Workbench
                             </Link>
                          </div>
@@ -160,16 +160,16 @@ const FinderAssignmentsPage = () => {
       </div>
 
       {/* Discovery Prompt Footer */}
-      <div className="mt-12 p-8 rounded-[2.5rem] bg-emerald-500 text-slate-950 relative overflow-hidden group shadow-[0_20px_50px_rgba(16,185,129,0.2)]">
-         <FiLayers className="absolute -right-6 -bottom-6 text-slate-950/10" size={180} />
-         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+      <div className="mt-8 sm:mt-12 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-emerald-500 text-slate-950 relative overflow-hidden group shadow-[0_20px_50px_rgba(16,185,129,0.2)]">
+         <FiLayers className="absolute -right-6 -bottom-6 text-slate-950/10 hidden sm:block" size={180} />
+         <div className="relative z-10 flex flex-col xl:flex-row items-center justify-between gap-6 sm:gap-8 text-center xl:text-left">
             <div className="max-w-md">
-               <h3 className="text-2xl font-black mb-2 uppercase tracking-tighter">Expand Your Discovery Range</h3>
-               <p className="text-sm font-bold opacity-80 leading-relaxed italic">
+               <h3 className="text-xl sm:text-2xl font-black mb-2 uppercase tracking-tighter">Expand Your Discovery Range</h3>
+               <p className="text-xs sm:text-sm font-bold opacity-80 leading-relaxed italic">
                  New signals are detected in real-time. Keep your operational radar synchronized for priority extraction rewards.
                </p>
             </div>
-            <Link to="/finder/requests" className="px-8 py-4 bg-slate-950 text-emerald-500 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-900 transition-all whitespace-nowrap">
+            <Link to="/finder/requests" className="px-6 sm:px-8 py-3 sm:py-4 bg-slate-950 text-emerald-500 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] hover:bg-slate-900 transition-all whitespace-nowrap w-full sm:w-auto">
                Scan Available Signals
             </Link>
          </div>

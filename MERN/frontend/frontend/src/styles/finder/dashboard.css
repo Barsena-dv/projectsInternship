@@ -42,14 +42,18 @@
 
 /* Global Overrides for Finder Context */
 .finder-dashboard-wrapper .pnf-input {
-  background: rgba(0,0,0,0.4) !important;
+  background: rgba(0,0,0,0.55) !important; /* Darker more solid background for contrast */
   border: 1px solid var(--f-border) !important;
   color: var(--f-text-1) !important;
   border-radius: 12px !important;
+  font-weight: 500;
 }
 .finder-dashboard-wrapper .pnf-input:focus {
   border-color: var(--f-accent) !important;
   box-shadow: 0 0 0 3px var(--f-accent-glow) !important;
+}
+.finder-dashboard-wrapper .pnf-input::placeholder {
+  color: #94a3b8 !important; /* Brighter slate for high-contrast placeholder */
 }
 
 .finder-dashboard-wrapper .pnf-btn-primary {

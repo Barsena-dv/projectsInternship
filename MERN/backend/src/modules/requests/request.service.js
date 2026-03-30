@@ -26,6 +26,7 @@ const createRequest = async (requestData, user) => {
     lastSeenDatetime,
     serviceDeadline,
     planId,
+    rewardAmount,
   } = requestData;
 
   if (!itemName || !itemCategory || !itemDescription || !lastSeenLat || !lastSeenLng || !planId) {
@@ -57,6 +58,7 @@ const createRequest = async (requestData, user) => {
     serviceDeadline,
     planId,
     expiryDate,
+    rewardAmount: rewardAmount || servicePlan.price || 0,
     requestStatus: 'pending_payment',
   });
 

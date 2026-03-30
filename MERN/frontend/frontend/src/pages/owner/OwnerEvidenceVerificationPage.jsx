@@ -107,8 +107,11 @@ const OwnerEvidenceVerificationPage = () => {
       const items = await Promise.all(
         requests.map(async (request) => {
           try {
-            const assignment = (await assignmentApi.byRequest(request._id)).data;
-            const evidence = (await evidenceApi.byAssignment(assignment._id).catch(() => ({ data: null }))).data;
+            const assignmentRes = await assignmentApi.byRequest(request._id);
+            const assignment = assignmentRes?.data?.assignment || assignmentRes?.data || assignmentRes || null;
+            if (!assignment?._id) return null;
+            const evidenceRes = await evidenceApi.byAssignment(assignment._id).catch(() => ({ data: null }));
+            const evidence = evidenceRes?.data || evidenceRes || null;
             return { request, assignment, evidence };
           } catch {
             return null;

@@ -32,61 +32,74 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="pnf-auth-layout">
-      <div className="pnf-auth-bg" />
-      
-      <div className="pnf-auth-glass-card" style={{ maxWidth: '420px', padding: '3rem 2.5rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#818cf8', fontSize: '1.5rem', margin: '0 auto 1.25rem' }}>
-            {success ? <FiCheckCircle color="#34d399" /> : <FiLock />}
+    <div className="auth-modern-layout pnf-dark-scrollbar">
+      {/* Cinematic Glows */}
+      <div className="auth-glow auth-glow-1" />
+      <div className="auth-glow auth-glow-2" />
+
+      <div className="auth-modern-card reveal">
+        <header className="auth-modern-header">
+          <div className="auth-brand-pill bg-indigo-500 shadow-indigo-500/20">
+            {success ? <FiCheckCircle className="text-white" size={24} /> : <FiLock className="text-white" size={24} />}
           </div>
-          <h1 className="pnf-auth-title" style={{ fontSize: '1.75rem' }}>Set new password</h1>
-          <p className="pnf-auth-subtitle" style={{ margin: '0.5rem 0 0', fontSize: '0.9rem' }}>
-            Your new password must be at least 6 characters.
+          <h1 className="auth-modern-title">Set new entropy</h1>
+          <p className="auth-modern-subtitle">
+            Define your new access encryption key. Must be at least 6 characters.
           </p>
-        </div>
+        </header>
 
         {success ? (
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ color: '#34d399', fontSize: '0.95rem', fontWeight: 500, background: 'rgba(52,211,153,0.1)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(52,211,153,0.2)', marginBottom: '1.5rem' }}>
-              Your password has been successfully reset. Redirecting to login...
+          <div className="text-center">
+            <p className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm font-medium mb-6">
+              Access key successfully updated. Redirecting to secure portal...
             </p>
-            <Link to="/login" className="pnf-auth-btn" style={{ textDecoration: 'none' }}>
-              Go to login now
+            <Link to="/login" className="auth-submit-btn no-underline">
+              Initialize Portal Access
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="pnf-auth-input-group">
-              <label htmlFor="password" className="pnf-auth-label">New Password</label>
+            <div className="auth-input-container">
+              <label htmlFor="password" title="password" className="auth-input-label">New Access Key</label>
               <input
                 id="password"
+                title="password"
                 type="password"
-                className={`pnf-auth-input ${errors.password ? 'error' : ''}`}
+                className={`auth-input-field ${errors.password ? 'error' : ''}`}
                 placeholder="••••••••"
                 {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Min 6 characters' } })}
               />
-              {errors.password && <span className="pnf-auth-error-msg">{errors.password.message}</span>}
+              {errors.password && <p className="auth-error-text">{errors.password.message}</p>}
             </div>
 
-            <div className="pnf-auth-input-group">
-              <label htmlFor="confirmPassword" className="pnf-auth-label">Confirm Password</label>
+            <div className="auth-input-container">
+              <label htmlFor="confirmPassword" title="confirmPassword" className="auth-input-label">Confirm Access Key</label>
               <input
                 id="confirmPassword"
+                title="confirmPassword"
                 type="password"
-                className={`pnf-auth-input ${errors.confirmPassword ? 'error' : ''}`}
+                className={`auth-input-field ${errors.confirmPassword ? 'error' : ''}`}
                 placeholder="••••••••"
                 {...register('confirmPassword', { 
                   required: 'Please confirm your password',
-                  validate: (val) => val === password || 'Passwords do not match' 
+                  validate: (val) => val === password || 'Keys do not match' 
                 })}
               />
-              {errors.confirmPassword && <span className="pnf-auth-error-msg">{errors.confirmPassword.message}</span>}
+              {errors.confirmPassword && <p className="auth-error-text">{errors.confirmPassword.message}</p>}
             </div>
 
-            <button type="submit" className="pnf-auth-btn" disabled={loading} style={{ marginTop: '1.5rem' }}>
-              <FiLock style={{ opacity: 0.8 }} />
-              {loading ? 'Saving...' : 'Reset password'}
+            <button type="submit" className="auth-submit-btn" disabled={loading}>
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Updating Registry...
+                </span>
+              ) : (
+                <>
+                  <FiLock size={18} />
+                  Update Security Key
+                </>
+              )}
             </button>
           </form>
         )}

@@ -12,6 +12,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Check if it's a 401 Unauthorized error
+    if (error.response && error.response.status === 401) {
+      // Clear local storage session data
+      localStorage.removeItem('pnf_token');
+      localStorage.removeItem('pnf_user');
+
+      // Redirect to login page only if the user is not already there
+      // This prevents infinite redirection loops on the login page itself
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/login' && currentPath !== '/register') {
+        window.location.href = '/login?session_expired=true';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 const unwrap = async (request) => {
   const response = await request;
   return response.data;

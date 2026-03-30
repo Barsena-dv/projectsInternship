@@ -129,16 +129,16 @@ const FinderAssignmentDetailsPage = () => {
     try {
       setLoading(true);
       const res = await assignmentApi.byId(assignmentId);
-      if (res.data.success) {
-        setAssignment(res.data.data.assignment || res.data.data);
-        setPayout(res.data.data.payout);
+      if (res.success) {
+        setAssignment(res.data?.assignment || res.data);
+        setPayout(res.data?.payout);
       }
-      const [timelineData, evidenceData] = await Promise.all([
+      const [timelineRes, evidenceRes] = await Promise.all([
         assignmentApi.timeline(assignmentId).catch(() => ({ data: [] })),
         evidenceApi.byAssignment(assignmentId).catch(() => ({ data: null }))
       ]);
-      setTimeline(timelineData.data || []);
-      setEvidence(evidenceData.data || null);
+      setTimeline(timelineRes.data || []);
+      setEvidence(evidenceRes.data || null);
     } catch (error) { toast.error(getErrorMessage(error)); } finally { setLoading(false); }
   }, [assignmentId]);
 
@@ -207,14 +207,14 @@ const FinderAssignmentDetailsPage = () => {
   const sectionLabel = "text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.2em] mb-4 block";
 
   return (
-    <div className="finder-page-enter space-y-8 pb-12">
+    <div className="finder-page-enter space-y-8 pb-12 overflow-x-hidden">
       <PageHeader
         title="Mission Workbench"
         subtitle={getFinderLifecycleMessage(lifecycleState)}
         actions={(
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <StatusBadge value={lifecycleState} />
-            <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${finderDeadlineMissed ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+            <div className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 sm:gap-2 ${finderDeadlineMissed ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
                <FiClock size={12} /> {formatDuration(remainingMs)}
             </div>
           </div>
@@ -223,14 +223,14 @@ const FinderAssignmentDetailsPage = () => {
 
       <div className="grid lg:grid-cols-12 gap-8 relative items-start">
         
-        {/* Left Column: Tactical Timeline (STICKY) */}
-        <div className="lg:col-span-4 sticky lg:top-24 space-y-8 order-2 lg:order-1">
+        {/* Left Column: Tactical Timeline (STACKS BELOW INTEL ON MOBILE) */}
+        <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-6 sm:space-y-8 order-2 lg:order-1">
            <div className="finder-section-card !p-0 overflow-hidden border-emerald-500/10 shadow-[0_0_50px_rgba(16,185,129,0.05)]">
-              <div className="p-8 border-b border-white/5 bg-white/[0.02]">
+              <div className="p-6 sm:p-8 border-b border-white/5 bg-white/[0.02]">
                 <span className={sectionLabel}>Missions Timeline</span>
-                <h3 className="text-xl font-black text-white">Extraction Logs</h3>
+                <h3 className="text-lg sm:text-xl font-black text-white">Extraction Logs</h3>
               </div>
-              <div className="p-8 max-h-[60vh] overflow-y-auto pnf-sidebar-scroll">
+              <div className="p-6 sm:p-8 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pnf-sidebar-scroll">
                 {timeline.length === 0 ? (
                   <p className="text-xs text-slate-500 italic">Static feedback. No events recorded.</p>
                 ) : (
@@ -252,7 +252,7 @@ const FinderAssignmentDetailsPage = () => {
                 )}
               </div>
               <div className="p-4 bg-emerald-500/5 border-t border-white/5 text-center">
-                 <span className="text-[9px] font-black text-emerald-500/40 uppercase tracking-widest italic">Encrypted Log Stream Active</span>
+                 <span className="text-[9px] font-black text-emerald-500/40 uppercase tracking-widest italic font-mono">Encrypted Stream Active</span>
               </div>
            </div>
 
@@ -260,20 +260,20 @@ const FinderAssignmentDetailsPage = () => {
            {lifecycleState === 'completed' && payout && (
              <div className="finder-section-card bg-emerald-500/10 !border-emerald-500/20">
                 <span className={sectionLabel}>Rewards System</span>
-                <h3 className="text-xl font-black text-white mb-6 underline decoration-emerald-500/30">Payout Synchronized</h3>
+                <h3 className="text-lg sm:text-xl font-black text-white mb-6 underline decoration-emerald-500/30">Payout Synchronized</h3>
                 <div className="space-y-4">
                    <div className="flex justify-between items-center bg-slate-950/40 p-4 rounded-xl border border-white/5">
-                      <span className="text-[11px] font-black text-slate-500 uppercase">Disbursed Amount</span>
-                      <span className="text-xl font-black text-emerald-500">{formatCurrency(payout.payoutAmount)}</span>
+                      <span className="text-[10px] sm:text-[11px] font-black text-slate-500 uppercase">Disbursed</span>
+                      <span className="text-lg sm:text-xl font-black text-emerald-500">{formatCurrency(payout.payoutAmount)}</span>
                    </div>
-                   <div className="grid grid-cols-2 gap-4">
+                   <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <div className="p-3 bg-white/5 rounded-xl text-center">
-                         <span className="text-[9px] font-black text-slate-600 uppercase block mb-1">Status</span>
+                         <span className="text-[8px] font-black text-slate-600 uppercase block mb-1">Status</span>
                          <StatusBadge value={payout.payoutStatus} />
                       </div>
                       <div className="p-3 bg-white/5 rounded-xl text-center">
-                         <span className="text-[9px] font-black text-slate-600 uppercase block mb-1">Timestamp</span>
-                         <span className="text-[10px] text-white font-bold">{formatDate(payout.processedAt || payout.createdAt)}</span>
+                         <span className="text-[8px] font-black text-slate-600 uppercase block mb-1">Timestamp</span>
+                         <span className="text-[9px] sm:text-[10px] text-white font-bold">{formatDate(payout.processedAt || payout.createdAt)}</span>
                       </div>
                    </div>
                 </div>
@@ -285,77 +285,75 @@ const FinderAssignmentDetailsPage = () => {
         <div className="lg:col-span-8 space-y-8 order-1 lg:order-2">
            
            {/* Tactical Information Card */}
-           <div className="finder-section-card f-hologram-effect !bg-slate-900/40">
+           <div className="finder-section-card f-hologram-effect !bg-slate-900/40 overflow-hidden">
               <span className={sectionLabel}>Mission Intelligence</span>
-              <div className="flex justify-between items-start mb-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-8">
                  <div>
-                    <h2 className="text-3xl font-black text-white mb-2">{assignment?.request?.itemName}</h2>
-                    <div className="flex items-center gap-3 text-emerald-500/70 text-xs font-bold">
-                       <FiMapPin size={14} /> {assignment?.request?.lastSeenLocation}
+                    <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 leading-tight">{assignment?.request?.itemName}</h2>
+                    <div className="flex items-center gap-3 text-emerald-500/70 text-[10px] sm:text-xs font-bold">
+                       <FiMapPin size={14} className="shrink-0" /> {assignment?.request?.lastSeenLocation}
                     </div>
                  </div>
-                 <div className="text-right">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Target Value</span>
-                    <div className="text-2xl font-black text-emerald-500">
+                 <div className="sm:text-right bg-emerald-500/5 sm:bg-transparent p-4 sm:p-0 rounded-2xl border border-emerald-500/10 sm:border-0 w-full sm:w-auto">
+                    <span className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Target Value</span>
+                    <div className="text-xl sm:text-2xl font-black text-emerald-500">
                        {formatCurrency(payout?.payoutAmount || assignment?.request?.rewardAmount)}
                     </div>
                  </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-950/50 border border-white/5 space-y-4">
-                 <p className="text-sm text-slate-400 leading-relaxed italic border-l-2 border-emerald-500/30 pl-4">
+              <div className="p-4 sm:p-6 rounded-2xl bg-slate-950/50 border border-white/5 space-y-6">
+                 <p className="text-xs sm:text-sm text-slate-400 leading-relaxed italic border-l-2 border-emerald-500/30 pl-4">
                    "{assignment?.request?.itemDescription || 'Mission description restricted.'}"
                  </p>
                  
                  {/* Reward Breakdown Section */}
                  <div className="mt-6 pt-6 border-t border-white/5">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Financial Protocol Breakdown</span>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <span className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Financial Protocol Breakdown</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
-                          <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1">Total Extraction Target</span>
-                          <p className="text-lg font-black text-white">
+                          <span className="text-[8px] font-bold text-slate-500 uppercase block mb-1">Total Target</span>
+                          <p className="text-base sm:text-lg font-black text-white">
                              {formatCurrency(payout?.payoutAmount || assignment?.request?.rewardAmount)}
                           </p>
                        </div>
                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
                           <div className="flex justify-between items-start mb-1">
-                             <span className="text-[9px] font-black text-emerald-500 uppercase">Guaranteed Search Fee</span>
+                             <span className="text-[8px] font-black text-emerald-500 uppercase">Search Fee</span>
                              <FiShield className="text-emerald-500/50" size={10} />
                           </div>
-                          <p className="text-lg font-black text-emerald-500">
+                          <p className="text-base sm:text-lg font-black text-emerald-500">
                              {formatCurrency(
                                 (assignment?.request?.rewardAmount * (assignment?.request?.planId?.finderPercent || 15)) / 100
                               )}
                           </p>
-                          <span className="text-[8px] text-emerald-500/40 font-bold uppercase">Locked regardless of outcome</span>
                        </div>
                        <div className="p-4 rounded-xl bg-sky-500/5 border border-sky-500/10">
                           <div className="flex justify-between items-start mb-1">
-                             <span className="text-[9px] font-black text-sky-500 uppercase">Success Capture Bonus</span>
+                             <span className="text-[8px] font-black text-sky-500 uppercase">Success Bonus</span>
                              <FiZap className="text-sky-500/50" size={10} />
                           </div>
-                          <p className="text-lg font-black text-sky-500">
+                          <p className="text-base sm:text-lg font-black text-sky-500">
                              {formatCurrency(
                                 (assignment?.request?.rewardAmount * (assignment?.request?.planId?.refundPercent || 70)) / 100
                               )}
                           </p>
-                          <span className="text-[8px] text-sky-500/40 font-bold uppercase">Released upon verification</span>
                        </div>
                     </div>
                  </div>
 
-                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-white/5">
+                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 pt-6 border-t border-white/5">
                     <div>
-                       <span className="text-[9px] font-bold text-slate-600 uppercase block mb-1">Detection Date</span>
-                       <p className="text-xs text-white font-black">{formatDate(assignment?.request?.createdAt)}</p>
+                       <span className="text-[8px] sm:text-[9px] font-bold text-slate-600 uppercase block mb-1">Detection</span>
+                       <p className="text-[10px] sm:text-xs text-white font-black">{formatDate(assignment?.request?.createdAt)}</p>
                     </div>
                     <div>
-                       <span className="text-[9px] font-bold text-slate-600 uppercase block mb-1">Mission Category</span>
-                       <p className="text-xs text-white font-black">{assignment?.request?.itemCategory || 'General Recovery'}</p>
+                       <span className="text-[8px] sm:text-[9px] font-bold text-slate-600 uppercase block mb-1">Category</span>
+                       <p className="text-[10px] sm:text-xs text-white font-black truncate">{assignment?.request?.itemCategory || 'General'}</p>
                     </div>
                     <div className="lg:col-span-2 text-right">
-                       <span className="text-[9px] font-bold text-rose-500 uppercase block mb-1">Synchronization Window</span>
-                       <p className="text-xs text-rose-400 font-black">{formatDate(finderDeadlineValue)}</p>
+                       <span className="text-[8px] sm:text-[9px] font-bold text-rose-500 uppercase block mb-1">Sync Window</span>
+                       <p className="text-[10px] sm:text-xs text-rose-400 font-black">{formatDate(finderDeadlineValue)}</p>
                     </div>
                  </div>
               </div>
@@ -363,75 +361,75 @@ const FinderAssignmentDetailsPage = () => {
               {/* Status Specific Alerts */}
               <div className="mt-6 flex flex-col gap-3">
                  {finderDeadlineMissed && (
-                   <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-bold flex items-center gap-3">
-                      <FiZap size={16} /> SIGNAL LOST: Tactical deadline exceeded. Protocol offline.
+                   <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] sm:text-xs font-bold flex items-center gap-3 animate-pulse">
+                      <FiZap size={16} className="shrink-0" /> SIGNAL LOST: Tactical deadline exceeded.
                    </div>
                  )}
                  {String(assignment?.status).toLowerCase() === 'paused' && (
-                   <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold flex items-center gap-3">
-                      <FiActivity size={16} /> PROTOCOL STALLED: Tactical break active.
+                   <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] sm:text-xs font-bold flex items-center gap-3">
+                      <FiActivity size={16} className="shrink-0" /> PROTOCOL STALLED: Tactical break active.
                    </div>
                  )}
               </div>
 
               {/* Action Toolbar */}
-              <div className="mt-8 pt-8 border-t border-white/5 flex flex-wrap gap-4 items-center">
+              <div className="mt-8 pt-8 border-t border-white/5 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
                  {!finderDeadlineMissed && !['completed', 'cancelled', 'expired', 'failed'].includes(lifecycleState) && (
-                   <>
-                     {String(assignment?.status).toLowerCase() === 'paused' ? (
-                       <button onClick={() => handleStatusAction('resume')} disabled={pauseLoading} className="px-8 py-3 bg-emerald-500 text-slate-950 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-all">
-                          <FiZap size={14} /> Resume Protocol
-                       </button>
-                     ) : (
-                       <button onClick={() => handleStatusAction('pause')} disabled={pauseLoading} className="px-6 py-3 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all text-[10px] font-black uppercase tracking-widest">
-                          Protocol Break
-                       </button>
-                     )}
-                     <button onClick={() => setTrackingModalOpen(true)} className="px-6 py-3 bg-emerald-500/5 text-emerald-500 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/10 transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                        <FiNavigation size={14} /> Broadcast Observation
-                     </button>
-                   </>
+                   <div className="flex flex-col sm:flex-row gap-4 w-full">
+                      {String(assignment?.status).toLowerCase() === 'paused' ? (
+                        <button onClick={() => handleStatusAction('resume')} disabled={pauseLoading} className="px-8 py-3 bg-emerald-500 text-slate-950 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-105 transition-all">
+                           <FiZap size={14} /> Resume Protocol
+                        </button>
+                      ) : (
+                        <button onClick={() => handleStatusAction('pause')} disabled={pauseLoading} className="px-6 py-3 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all text-[10px] font-black uppercase tracking-widest text-center">
+                           Protocol Break
+                        </button>
+                      )}
+                      <button onClick={() => setTrackingModalOpen(true)} className="px-6 py-3 bg-emerald-500/5 text-emerald-500 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/10 transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                         <FiNavigation size={14} /> Broadcast Observation
+                      </button>
+                   </div>
                  )}
                  {chatEnabled && (
-                   <Link to={`/chat/${assignmentId}`} className="px-6 py-3 rounded-xl bg-sky-500 text-slate-950 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 ml-auto hover:bg-sky-400 transition-all">
-                      <FiActivity size={14} /> Intelligence Uplink
-                   </Link>
+                    <Link to={`/chat/${assignmentId}`} className={`px-6 py-3 rounded-xl bg-sky-500 text-slate-950 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all hover:bg-sky-400 ${!finderDeadlineMissed && !['completed', 'cancelled', 'expired', 'failed'].includes(lifecycleState) ? 'sm:ml-auto' : 'w-full'}`}>
+                       <FiActivity size={14} /> Intelligence Uplink
+                    </Link>
                  )}
               </div>
            </div>
 
            {/* Evidence Section */}
-           <div className="finder-section-card !bg-slate-900/40">
-              <div className="flex justify-between items-center mb-10">
+           <div className="finder-section-card !bg-slate-900/40 overflow-hidden">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
                  <div>
                     <span className={sectionLabel}>Forensic Documentation</span>
-                    <h3 className="text-2xl font-black text-white">Evidence Stream</h3>
+                    <h3 className="text-xl sm:text-2xl font-black text-white">Evidence Stream</h3>
                  </div>
                  {canUploadEvidence && (
-                   <button onClick={() => setEvidenceModalOpen(true)} className="px-6 py-3 bg-emerald-500 text-slate-950 rounded-xl hover:scale-105 transition-all shadow-[0_10px_30px_rgba(16,185,129,0.2)] flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
+                   <button onClick={() => setEvidenceModalOpen(true)} className="w-full sm:w-auto px-6 py-3 bg-emerald-500 text-slate-950 rounded-xl hover:scale-105 transition-all shadow-[0_10px_30px_rgba(16,185,129,0.2)] flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest">
                       <FiPlus size={16} /> Submit Forensic Package
                    </button>
                  )}
               </div>
 
               {(!evidence && !canUploadEvidence) && (
-                <EmptyState title="Operational Void" description="Target forensics not yet acquired or mission status offline." />
+                <EmptyState title="Operational Void" description="Target forensics not yet acquired or mission offline." />
               )}
 
               {evidence && (
                 <div className="space-y-8">
-                   <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/5 border-l-4 border-l-emerald-500">
-                      <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-3">Transmission Remarks</span>
-                      <p className="text-sm text-slate-300 italic leading-relaxed">"{evidence.description}"</p>
-                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between gap-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.1em]">
-                       <div className="flex items-center gap-6">
-                          <span className="flex items-center gap-2"><FiCloud size={14} className="text-emerald-500/50" /> Uplinked: {formatDate(evidence.createdAt)}</span>
-                          <span className="flex items-center gap-2"><FiShield size={14} className="text-emerald-500/50" /> Protocol Status: <span className={evidenceStatus === 'verified' ? 'text-emerald-400' : 'text-amber-400'}>{evidenceStatus.toUpperCase()}</span></span>
+                   <div className="p-4 sm:p-6 rounded-2xl bg-white/[0.03] border border-white/5 border-l-4 border-l-emerald-500">
+                      <span className="text-[9px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-3">Transmission Remarks</span>
+                      <p className="text-xs sm:text-sm text-slate-300 italic leading-relaxed">"{evidence.description}"</p>
+                    <div className="mt-4 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-[0.1em]">
+                       <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                          <span className="flex items-center gap-2"><FiCloud size={14} className="text-emerald-500/50" /> {formatDate(evidence.createdAt)}</span>
+                          <span className="flex items-center gap-2"><FiShield size={14} className="text-emerald-500/50" /> <span className={evidenceStatus === 'verified' ? 'text-emerald-400' : 'text-amber-400'}>{evidenceStatus.toUpperCase()}</span></span>
                        </div>
                     </div>
                    </div>
 
-                   <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                       {Array.isArray(evidence?.files) && evidence.files.map((file, i) => (
                         <div key={i} className="aspect-video rounded-2xl bg-slate-950 border border-white/5 overflow-hidden group relative shadow-2xl">
                            {String(file?.fileType).toLowerCase() === 'video' ? (

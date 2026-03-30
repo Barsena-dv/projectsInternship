@@ -54,13 +54,13 @@ const OwnerRequestDetailsPage = () => {
       const requestData = requestRes.data;
       setRequest(requestData);
 
-      const requestTimelineRes = await assignmentApi.requestTimeline(id).catch(() => ({ data: [] }));
-      setTimelineEvents(requestTimelineRes.data || []);
-
-      const applicationsRes = await assignmentApi.applicationsByRequest(id).catch(() => ({ data: [] }));
+      const [timelineRes, applicationsRes, paymentsRes] = await Promise.all([
+        assignmentApi.requestTimeline(id).catch(() => ({ data: [] })),
+        assignmentApi.applicationsByRequest(id).catch(() => ({ data: [] })),
+        paymentApi.my().catch(() => ({ data: [] }))
+      ]);
+      setTimelineEvents(timelineRes.data || []);
       setApplications(applicationsRes.data || []);
-
-      const paymentsRes = await paymentApi.my().catch(() => ({ data: [] }));
       const payments = paymentsRes.data || [];
       const selectedPayment = payments.find((p) => {
         const requestRef = p.requestId || p.request;
@@ -69,23 +69,23 @@ const OwnerRequestDetailsPage = () => {
       });
       setPayment(selectedPayment || null);
 
-      try {
-         const assignmentRes = await assignmentApi.byRequest(id);
-         const assignmentData = assignmentRes.data?.assignment || assignmentRes.data || null;
-         setAssignment(assignmentData);
-         
-         // Prioritize payment returned with assignment if available
-         if (assignmentRes.data?.payment) {
-           setPayment(assignmentRes.data.payment);
-         }
+        try {
+          const assignmentRes = await assignmentApi.byRequest(id);
+          const assignmentData = assignmentRes?.data?.assignment || assignmentRes?.data || assignmentRes || null;
+          setAssignment(assignmentData);
+          
+          if (assignmentRes?.data?.payment || assignmentRes?.payment) {
+            setPayment(assignmentRes?.data?.payment || assignmentRes?.payment);
+          }
 
-         if (assignmentData?._id) {
-           const evidenceRes = await evidenceApi.byAssignment(assignmentData._id).catch(() => ({ data: null }));
-           setEvidence(evidenceRes.data || null);
-         } else {
-           setEvidence(null);
-         }
-      } catch {
+          if (assignmentData?._id) {
+            const evidenceRes = await evidenceApi.byAssignment(assignmentData._id).catch(() => ({ data: null }));
+            const evidence = evidenceRes?.data || evidenceRes || null;
+            setEvidence(evidence);
+          } else {
+            setEvidence(null);
+          }
+        } catch (err) {
         setAssignment(null);
         setEvidence(null);
       }
@@ -154,7 +154,7 @@ const OwnerRequestDetailsPage = () => {
 
     try {
       setModalLoading(true);
-      await paymentApi.release(payment._id, { reason });
+      await paymentApi.release(payment._id, reason);
       toast.success('Payment released successfully. Request completed.');
       setReleaseState({ open: false, reason: '' });
       await loadDetails();

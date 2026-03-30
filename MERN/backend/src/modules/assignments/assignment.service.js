@@ -6,7 +6,6 @@ const Payment = require('../payments/payment.model');
 const ServicePlan = require('../servicePlans/servicePlan.model');
 const Payout = require('../payouts/payout.model');
 const { createNotification } = require('../notifications/notification.service');
-const paymentService = require('../payments/payment.service');
 const payoutService = require('../payouts/payout.service');
 const { addTimelineEvent, getTimelineByAssignment, getTimelineByRequest } = require('./assignmentTimeline.service');
 
@@ -141,6 +140,9 @@ const applySettlement = async ({ payment, assignment, reason, kind, requestId, a
     finderCompensationAmount,
   };
 };
+
+const mongoose = require('mongoose');
+const { logAction } = require('../auditLogs/auditLog.service');
 
 /**
  * Finder applies for an open lost item request.
@@ -551,7 +553,7 @@ const getAssignmentByRequest = async (requestId, userId) => {
     throw new Error('Unauthorized access to request assignment');
   }
 
-  const assignment = await FinderAssignment.findOne({ request: requestId });
+  const assignment = await FinderAssignment.findOne({ request: requestId }).sort({ createdAt: -1 });
 
   if (!assignment) throw new Error('No active assignment found for this request');
 
@@ -712,12 +714,10 @@ const getAssignmentById = async (assignmentId, userId) => {
   let payment = null;
 
   if (isFinder) {
-    const Payout = mongoose.model('Payout');
     payout = await Payout.findOne({ assignment: assignment._id });
   }
 
   if (isOwner) {
-    const Payment = mongoose.model('Payment');
     payment = await Payment.findOne({ 
       request: assignment.request._id,
       paymentStatus: { $in: ['locked', 'released'] } 
@@ -768,6 +768,7 @@ const completeAssignmentByOwner = async (assignmentId, userId, reason = '') => {
     throw new Error('No locked payment found for this assignment');
   }
 
+  const paymentService = require('../payments/payment.service');
   const releasedPayment = await paymentService.releasePayment(payment._id, userId, reason);
 
   await addTimelineEvent({

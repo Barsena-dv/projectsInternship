@@ -3,12 +3,16 @@
 require('dotenv').config();
 const app = require('./src/app');
 const { connectDB } = require('./src/config/db');
+const { seedDefaultPlans } = require('./src/utils/planSeeder');
 const { startAssignmentLifecycleMonitor } = require('./src/modules/assignments/assignmentLifecycle.service');
 
 const startServer = async () => {
   try {
     // Connect to Database
     await connectDB();
+
+    // Seed default plans
+    await seedDefaultPlans();
 
     const PORT = process.env.PORT || 5000;
 

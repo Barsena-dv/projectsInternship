@@ -94,25 +94,31 @@ const releasePayment = async (paymentId, userId, reason = '') => {
     throw new Error('Unauthorized: Only the item owner can release funds');
   }
 
+  if (payment.paymentStatus === 'released') {
+    return payment; // Idempotent success if already released
+  }
+
   if (payment.paymentStatus !== 'locked') {
-    throw new Error(`Cannot release payment in ${payment.paymentStatus} state`);
+    throw new Error(`Cannot release payment: Transaction is currently in "${payment.paymentStatus}" state. (Must be "locked" for release)`);
   }
 
   // Find active assignment
   const assignment = await FinderAssignment.findOne({
     request: payment.request,
     status: { $in: ['active', 'inactive'] },
-  });
+  }).sort({ createdAt: -1 });
 
-  if (!assignment) throw new Error('No active assignment found to release funds to');
+  if (!assignment) {
+    throw new Error('Release blocked: No active assignment is currently linked to this request for payout.');
+  }
 
   // CRITICAL VALIDATIONS
   if (!assignment.evidenceVerified) {
-    throw new Error('Verification required: You must verify the finder\'s proof before releasing payment');
+    throw new Error(`Verification required: The Finder's proof of discovery has not been verified yet. (Current Status: ${assignment.status})`);
   }
 
   if (assignment.isDisputed) {
-    throw new Error('Payment blocked: Cannot release funds while an active dispute exists');
+    throw new Error('Payment frozen: An active dispute is preventing fund release. Please resolve the dispute first.');
   }
 
   // Release funds
@@ -151,12 +157,15 @@ const releasePayment = async (paymentId, userId, reason = '') => {
     await request.save();
   }
 
-  // Finalize Payout Record (Update existing pending payout to processed)
+  // 4. Finalize Payout Record (Update existing pending payout to processed)
   try {
     const assignmentService = require('../assignments/assignment.service');
     // Ensure servicePlan is populated for calculation
     const paymentWithPlan = await Payment.findById(payment._id).populate('servicePlan');
-    const { successRewardAmount } = assignmentService.calculateSettlementAmounts(paymentWithPlan, 'success');
+    
+    // Safety: If somehow service plan is missing, use defaults in calculation
+    const settlementParams = assignmentService.calculateSettlementAmounts(paymentWithPlan || payment, 'success');
+    const successRewardAmount = round2(settlementParams.successRewardAmount || (payment.amount * 0.7)); // Default 70% if calc fails
     
     const Payout = require('../payouts/payout.model');
     const existingPayout = await Payout.findOne({ payment: payment._id });
@@ -165,7 +174,7 @@ const releasePayment = async (paymentId, userId, reason = '') => {
       existingPayout.payoutAmount = successRewardAmount;
       existingPayout.payoutStatus = 'processed';
       existingPayout.processedAt = new Date();
-      existingPayout.transactionId = 'SYSTEM_SUCCESS_RELEASE_' + Date.now();
+      existingPayout.transactionId = 'SYSTEM_AUTO_RELEASE_' + payment._id.toString().slice(-6) + '_' + Date.now();
       await existingPayout.save();
     } else {
       // Fallback: Create if missing
@@ -178,7 +187,7 @@ const releasePayment = async (paymentId, userId, reason = '') => {
       );
     }
   } catch (err) {
-    console.error('Payout finalization failed:', err.message);
+    console.error('Payout finalization failed (non-blocking):', err.message);
   }
 
   // Notifications

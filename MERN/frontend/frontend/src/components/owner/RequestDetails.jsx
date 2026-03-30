@@ -127,7 +127,8 @@ const RequestDetails = ({
 
   const isCompleted = lifecycleState === 'completed';
   const canVerify = lifecycleState === 'evidence_submitted' && evidence?.verificationStatus === 'pending';
-  const canRelease = lifecycleState === 'verified' && payment?.paymentStatus === 'locked';
+  const isVerified = lifecycleState === 'verified' || evidence?.verificationStatus === 'verified' || assignment?.evidenceVerified;
+  const canRelease = isVerified && payment?.paymentStatus === 'locked' && !isCompleted;
   const showExpiredControls = lifecycleState === 'expired' && !isCompleted;
   const showFailedControls = lifecycleState === 'failed' && !isCompleted;
   const canEditRequest = ['draft', 'pending_payment', 'open'].includes(lifecycleState);

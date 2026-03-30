@@ -26,51 +26,62 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="pnf-auth-layout">
-      <div className="pnf-auth-bg" />
-      
-      <div className="pnf-auth-glass-card" style={{ maxWidth: '420px', padding: '3rem 2.5rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#818cf8', fontSize: '1.5rem', margin: '0 auto 1.25rem' }}>
-            <FiMail />
+    <div className="auth-modern-layout pnf-dark-scrollbar">
+      {/* Cinematic Glows */}
+      <div className="auth-glow auth-glow-1" />
+      <div className="auth-glow auth-glow-2" />
+
+      <div className="auth-modern-card reveal">
+        <header className="auth-modern-header">
+          <div className="auth-brand-pill">
+            <FiMail className="text-white" size={24} />
           </div>
-          <h1 className="pnf-auth-title" style={{ fontSize: '1.75rem' }}>Forgot password?</h1>
-          <p className="pnf-auth-subtitle" style={{ margin: '0.5rem 0 0', fontSize: '0.9rem' }}>
-            No worries! Enter your email and we'll send you reset instructions.
+          <h1 className="auth-modern-title">Forgot identity key?</h1>
+          <p className="auth-modern-subtitle">
+            Enter your security identifier and we'll send instructions to recover your encryption key.
           </p>
-        </div>
+        </header>
 
         {success ? (
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ color: '#818cf8', fontSize: '0.95rem', fontWeight: 500, background: 'rgba(99,102,241,0.1)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(99,102,241,0.2)', marginBottom: '1.5rem' }}>
-              We've sent an email to your inbox with a link to reset your password.
+          <div className="text-center">
+            <p className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm font-medium mb-6">
+              A recovery link has been dispatched to your registry email. Please verify your inbox.
             </p>
-            <Link to="/login" className="pnf-auth-btn" style={{ textDecoration: 'none' }}>
-              <FiArrowLeft /> Back to log in
+            <Link to="/login" className="auth-submit-btn no-underline">
+              <FiArrowLeft /> Back to Signature Login
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="pnf-auth-input-group">
-              <label htmlFor="email" className="pnf-auth-label">Email</label>
+            <div className="auth-input-container">
+              <label htmlFor="email" className="auth-input-label">Security Identifier (Email)</label>
               <input
                 id="email"
                 type="email"
-                className={`pnf-auth-input ${errors.email ? 'error' : ''}`}
-                placeholder="you@example.com"
-                {...register('email', { required: 'Email is required' })}
+                className={`auth-input-field ${errors.email ? 'error' : ''}`}
+                placeholder="operator@postnfind.com"
+                {...register('email', { required: 'Identifier is required' })}
               />
-              {errors.email && <span className="pnf-auth-error-msg">{errors.email.message}</span>}
+              {errors.email && <p className="auth-error-text">{errors.email.message}</p>}
             </div>
 
-            <button type="submit" className="pnf-auth-btn" disabled={loading} style={{ marginTop: '1.5rem' }}>
-              <FiSend style={{ opacity: 0.8 }} />
-              {loading ? 'Sending...' : 'Reset password'}
+            <button type="submit" className="auth-submit-btn" disabled={loading}>
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Dispatching...
+                </span>
+              ) : (
+                <>
+                  <FiSend size={18} />
+                  Recover Access Key
+                </>
+              )}
             </button>
 
-            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-              <Link to="/login" className="pnf-auth-link" style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <FiArrowLeft /> Back to log in
+            <div className="text-center mt-8">
+              <Link to="/login" className="auth-footer-link text-sm inline-flex items-center gap-2">
+                <FiArrowLeft /> Return to Portal Login
               </Link>
             </div>
           </form>

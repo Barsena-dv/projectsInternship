@@ -65,7 +65,11 @@ const OwnerDashboardPage = () => {
         paymentApi.my().catch(() => ({ data: [] })),
         notificationApi.my({ page: 1, limit: 30 }).catch(() => ({ data: [] })),
         Promise.all(requestRows.map(async (req) => {
-          try { const r = await assignmentApi.byRequest(req._id); return [req._id, r.data || null]; }
+          try { 
+            const r = await assignmentApi.byRequest(req._id); 
+            const assignment = r?.data?.assignment || r?.data || r || null;
+            return [req._id, assignment]; 
+          }
           catch { return [req._id, null]; }
         })),
       ]);

@@ -39,6 +39,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
       lastSeenDatetime: '',
       serviceDeadline: '',
       servicePlanId: plans?.[0]?._id || '',
+      rewardAmount: plans?.[0]?.price || 0,
       paymentMethod: 'upi',
     },
   });
@@ -58,11 +59,30 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
     useCurrentLocation,
   } = useLocation();
 
+  const watchedLat = Number(useWatch({ control, name: 'lastSeenLat' }));
+  const watchedLng = Number(useWatch({ control, name: 'lastSeenLng' }));
+  const watchedPlanId = useWatch({ control, name: 'servicePlanId' });
+  const watchedRewardAmount = useWatch({ control, name: 'rewardAmount' });
+  const watchedItemName = useWatch({ control, name: 'itemName' });
+  const watchedItemCategory = useWatch({ control, name: 'itemCategory' });
+  const watchedDescription = useWatch({ control, name: 'description' });
+  const watchedLocation = useWatch({ control, name: 'lastSeenLocation' });
+
   useEffect(() => {
     if (plans.length > 0) {
-      setValue('servicePlanId', plans[0]._id);
+      const firstPlan = plans[0];
+      setValue('servicePlanId', firstPlan._id);
+      setValue('rewardAmount', firstPlan.price);
     }
   }, [plans, setValue]);
+
+  // Sync amount when plan selection changes
+  useEffect(() => {
+    const plan = plans.find((p) => String(p._id) === String(watchedPlanId));
+    if (plan) {
+      setValue('rewardAmount', plan.price);
+    }
+  }, [watchedPlanId, plans, setValue]);
 
   useEffect(() => {
     if (!Number.isFinite(location.lat) || !Number.isFinite(location.lng)) return;
@@ -86,13 +106,6 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
     onSubmit(values, intent);
   };
 
-  const watchedLat = Number(useWatch({ control, name: 'lastSeenLat' }));
-  const watchedLng = Number(useWatch({ control, name: 'lastSeenLng' }));
-  const watchedPlanId = useWatch({ control, name: 'servicePlanId' });
-  const watchedItemName = useWatch({ control, name: 'itemName' });
-  const watchedItemCategory = useWatch({ control, name: 'itemCategory' });
-  const watchedDescription = useWatch({ control, name: 'description' });
-  const watchedLocation = useWatch({ control, name: 'lastSeenLocation' });
 
   const mapLat = Number.isFinite(watchedLat) ? watchedLat : (location.lat || 20.5937);
   const mapLng = Number.isFinite(watchedLng) ? watchedLng : (location.lng || 78.9629);
@@ -266,9 +279,26 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
                   <label className="text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Protection Plan</label>
                   <select className="pnf-input" {...register('servicePlanId', { required: 'Plan is required' })}>
                     {plans.map((p) => (
-                      <option key={p._id} value={p._id}>{p.planName} (Rs {p.price || p.amount})</option>
+                      <option key={p._id} value={p._id}>{p.planName} (Platform Fee: Rs {p.price})</option>
                     ))}
                   </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider ml-1">Bounty Amount (Rs)</label>
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      className="pnf-input pl-10" 
+                      placeholder="e.g. 500"
+                      {...register('rewardAmount', { 
+                        required: 'Amount is required',
+                        min: { value: 100, message: 'Minimum ₹100' }
+                      })} 
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 font-bold text-sm">₹</div>
+                  </div>
+                  <p className="text-[10px] text-stone-500 ml-1 italic">This entire amount goes to the finder.</p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -304,8 +334,11 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
                   </div>
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-xs text-stone-500 font-bold uppercase">Total Due</span>
-                    <span className="text-lg font-black text-white">Rs {Number(selectedPlan?.price || selectedPlan?.amount || 0)}</span>
+                    <span className="text-lg font-black text-white">Rs {Number(watchedRewardAmount || 0) + Number(selectedPlan?.price || 0)}</span>
                   </div>
+                  <p className="text-[9px] text-stone-500 text-right opacity-60 italic mt-1">
+                    (₹{watchedRewardAmount || 0} Reward + ₹{selectedPlan?.price || 0} Plan Fee)
+                  </p>
                 </div>
               </div>
             </div>

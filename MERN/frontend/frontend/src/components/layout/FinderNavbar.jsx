@@ -114,12 +114,18 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
         .fnav-notif-row:hover { background: rgba(16, 185, 129, 0.05); transform: translateX(2px); }
         .fnav-notif-row.unread { background: rgba(16, 185, 129, 0.04); }
         .fnav-accent-dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px rgba(16,185,129,0.6); }
+        @media (max-width: 640px) {
+          .fnav-profile-name { display: none !important; }
+          .fnav-search-container { min-width: 140px !important; }
+          .fnav-header-inner { padding: 0 1rem !important; gap: 0.5rem !important; }
+          .fnav-logo-text { font-size: 1rem !important; margin-right: 0.5rem !important; }
+        }
       `}</style>
 
       <header style={navStyle}>
-        <div style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+        <div className="fnav-header-inner" style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
           
-          <Link to="/finder/dashboard" style={{ fontWeight: 900, fontSize: '1.2rem', color: '#f1f5f9', textDecoration: 'none', marginRight: '2.5rem', display: 'flex', alignItems: 'center', gap: '8px', letterSpacing: '-0.02em' }}>
+          <Link to="/finder/dashboard" className="fnav-logo-text" style={{ fontWeight: 900, fontSize: '1.2rem', color: '#f1f5f9', textDecoration: 'none', marginRight: '2.5rem', display: 'flex', alignItems: 'center', gap: '8px', letterSpacing: '-0.02em' }}>
             <div style={{ background: 'linear-gradient(135deg, #10b981, #059669)', width: '24px', height: '24px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontSize: '0.75rem', fontWeight: 900 }}>F</div>
             Post<span style={{ color: '#10b981' }}>N</span>Find
           </Link>
@@ -155,7 +161,7 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
             {/* Search */}
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                {searchOpen ? (
-                 <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '0 0.75rem', border: '1px solid rgba(16, 185, 129, 0.3)', gap: '0.5rem', height: '36px', minWidth: '220px', animation: 'fNavDrop 0.2s ease' }}>
+                 <div className="fnav-search-container" style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '0 0.75rem', border: '1px solid rgba(16, 185, 129, 0.3)', gap: '0.5rem', height: '36px', minWidth: '220px', animation: 'fNavDrop 0.2s ease' }}>
                     <FiSearch size={14} color="#10b981" />
                     <input autoFocus placeholder="Find request..." style={{ background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.85rem', width: '100%' }} value={searchVal} onChange={(e) => setSearchVal(e.target.value)} />
                     <FiX size={14} color="#64748b" style={{ cursor: 'pointer' }} onClick={() => {setSearchOpen(false); setSearchVal('');}} />
@@ -212,7 +218,7 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
             <div ref={profileRef} style={{ position: 'relative' }}>
               <button onClick={() => setProfileOpen(!profileOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Avatar src={user?.profileImage?.url || user?.profileImage} name={user?.full_name} size="sm" className="border border-emerald-500/20" />
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f1f5f9' }}>{user?.full_name?.split(' ')[0]}</span>
+                <span className="fnav-profile-name" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f1f5f9' }}>{user?.full_name?.split(' ')[0]}</span>
               </button>
               {profileOpen && (
                 <div style={{ ...dropdownStyle, width: '200px', padding: '6px', animation: 'fNavDrop 0.2s ease' }}>
@@ -281,6 +287,28 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
                   </NavLink>
                 ))}
               </nav>
+
+              <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+                <button 
+                  onClick={() => { logout(); navigate('/login'); }}
+                  style={{ 
+                    width: '100%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.75rem', 
+                    padding: '0.875rem 1rem', 
+                    fontSize: '1rem', 
+                    fontWeight: 700, 
+                    color: '#fca5a5', 
+                    background: 'rgba(239, 68, 68, 0.05)', 
+                    border: '1px solid rgba(239, 68, 68, 0.1)', 
+                    borderRadius: '12px', 
+                    cursor: 'pointer' 
+                  }}
+                >
+                  <FiLogOut size={18} /> Sign Out
+                </button>
+              </div>
             </div>
           </div>
         </div>

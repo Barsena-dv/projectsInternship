@@ -82,7 +82,7 @@ const FinderRequestDetailsPage = () => {
   const sectionLabel = "text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.2em] mb-4 block";
 
   return (
-    <div className="finder-page-enter space-y-8 pb-12">
+    <div className="finder-page-enter space-y-8 pb-12 overflow-x-hidden">
       <PageHeader
         title="Target Intelligence"
         subtitle="Full forensic profile and operational engagement telemetry"
@@ -95,83 +95,83 @@ const FinderRequestDetailsPage = () => {
         )}
       />
 
-      <div className="grid lg:grid-cols-12 gap-8">
+      <div className="grid lg:grid-cols-12 gap-8 relative items-start">
         
         {/* Intelligence Report Column */}
-        <div className="lg:col-span-12 xl:col-span-8 space-y-8">
-           <div className="finder-section-card f-hologram-effect">
+        <div className="lg:col-span-12 xl:col-span-8 space-y-8 order-2 xl:order-1">
+           <div className="finder-section-card f-hologram-effect overflow-hidden">
               <span className={sectionLabel}>Target Identification</span>
-              <div className="flex justify-between items-start mb-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-8">
                  <div>
-                    <h2 className="text-3xl font-black text-white mb-2">{requestItem.itemName}</h2>
-                    <div className="flex items-center gap-3 text-emerald-500/70 text-xs font-bold">
-                       <FiMapPin size={14} /> {requestItem.lastSeenLocation}
+                    <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 leading-tight">{requestItem.itemName}</h2>
+                    <div className="flex items-center gap-3 text-emerald-500/70 text-[10px] sm:text-xs font-bold">
+                       <FiMapPin size={14} className="shrink-0" /> {requestItem.lastSeenLocation}
                     </div>
                  </div>
-                 <div className="flex flex-col items-end gap-2">
+                 <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-2 w-full sm:w-auto">
                     <StatusBadge value={requestItem.requestStatus} />
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-md border border-white/5">
-                       {requestItem?.planId?.planName}
+                    <span className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-md border border-white/5 ml-auto sm:ml-0">
+                       {requestItem?.planId?.planName} Protocol
                     </span>
                  </div>
               </div>
 
-              <div className="p-6 rounded-3xl bg-slate-950/50 border border-white/5 space-y-6">
+              <div className="p-4 sm:p-6 rounded-3xl bg-slate-950/50 border border-white/5 space-y-6">
                  <div>
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Operational Briefing</span>
-                    <p className="text-sm text-slate-300 leading-relaxed italic border-l-2 border-emerald-500/30 pl-4 bg-emerald-500/5 py-4 rounded-r-2xl">
+                    <span className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">Operational Briefing</span>
+                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed italic border-l-2 border-emerald-500/30 pl-4 bg-emerald-500/5 py-4 rounded-r-2xl">
                        "{requestItem.itemDescription || 'Detailed profile restricted.'}"
                     </p>
                  </div>
 
-                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-white/5">
+                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 pt-6 border-t border-white/5">
                     <div className="space-y-1">
-                       <span className="text-[9px] font-bold text-slate-600 uppercase">Detection Range</span>
-                       <p className="text-xs text-white font-black">{requestItem?.planId?.searchDuration} Days Active</p>
+                       <span className="text-[8px] sm:text-[9px] font-bold text-slate-600 uppercase">Detection</span>
+                       <p className="text-[10px] sm:text-xs text-white font-black">{requestItem?.planId?.searchDuration} Days Active</p>
                     </div>
                     <div className="space-y-1">
-                       <span className="text-[9px] font-bold text-slate-600 uppercase">Mission Category</span>
-                       <p className="text-xs text-white font-black">{requestItem.itemCategory || 'General Recovery'}</p>
+                       <span className="text-[8px] sm:text-[9px] font-bold text-slate-600 uppercase">Category</span>
+                       <p className="text-[10px] sm:text-xs text-white font-black truncate">{requestItem.itemCategory || 'General'}</p>
                     </div>
                     <div className="space-y-1">
-                       <span className="text-[9px] font-bold text-slate-600 uppercase">Timestamp</span>
-                       <p className="text-xs text-white font-black">{formatDate(requestItem.createdAt)}</p>
+                       <span className="text-[8px] sm:text-[9px] font-bold text-slate-600 uppercase">Timestamp</span>
+                       <p className="text-[10px] sm:text-xs text-white font-black">{formatDate(requestItem.createdAt)}</p>
                     </div>
-                    <div className="space-y-1 text-right">
-                       <span className="text-[9px] font-bold text-emerald-600 uppercase">Bounty Confirmed</span>
-                       <p className="text-sm text-emerald-500 font-black">{formatCurrency(requestItem?.planId?.rewardAmount || 0)}</p>
+                    <div className="space-y-1 sm:text-right">
+                       <span className="text-[8px] sm:text-[9px] font-bold text-emerald-600 uppercase">Bounty Pool</span>
+                       <p className="text-xs sm:text-sm text-emerald-500 font-black">{formatCurrency(requestItem?.rewardAmount || requestItem?.planId?.rewardAmount || 0)}</p>
                     </div>
                  </div>
               </div>
 
-              <div className="mt-8 p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex items-center gap-4">
-                 <FiShield size={32} className="text-emerald-500/40" />
+              <div className="mt-8 p-4 sm:p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex items-center gap-4">
+                 <FiShield size={24} className="text-emerald-500/40 shrink-0" />
                  <div>
-                    <h4 className="text-xs font-black text-emerald-500 uppercase tracking-widest">Protocol Verified</h4>
-                    <p className="text-[11px] text-slate-400 italic">This target has a verified reward pool. Payment is synchronized upon forensic proof validation.</p>
+                    <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Protocol Verified</h4>
+                    <p className="text-[10px] sm:text-[11px] text-slate-400 italic leading-relaxed">Reward pool is locked in escrow. Payout is automated upon Forensic Sync.</p>
                  </div>
               </div>
            </div>
         </div>
 
         {/* Deployment Action Column */}
-        <div className="lg:col-span-12 xl:col-span-4 space-y-8">
-           <div className="finder-section-card bg-slate-950/80 !border-emerald-500/10 h-full">
+        <div className="lg:col-span-12 xl:col-span-4 space-y-8 order-1 xl:order-2">
+           <div className="finder-section-card bg-slate-950/80 !border-emerald-500/10 h-full overflow-hidden">
               <span className={sectionLabel}>Engagement Protocol</span>
               <h3 className="text-xl font-black text-white mb-8">Mission Status</h3>
               
-              <div className="p-6 rounded-2xl bg-white/5 border border-white/5 mb-8">
+              <div className="p-5 sm:p-6 rounded-2xl bg-white/5 border border-white/5 mb-8 transition-all hover:bg-white/10">
                  <div className={`flex items-center gap-3 mb-4 ${actionState.color}`}>
                     {actionState.icon}
-                    <span className="text-xs font-black uppercase tracking-widest">{actionState.label}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">{actionState.label}</span>
                  </div>
-                 <p className="text-xs text-slate-500 leading-relaxed italic">{actionState.helper}</p>
+                 <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed italic">{actionState.helper}</p>
               </div>
 
               {!actionState.disabled ? (
                 <button 
                   onClick={() => setApplyState(s => ({...s, open: true}))} 
-                  className="w-full py-4 bg-emerald-500 text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 hover:shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-3"
+                  className="w-full py-4 bg-emerald-500 text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 hover:shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-3"
                 >
                   <FiZap size={14} /> Initialize Deployment
                 </button>
@@ -182,7 +182,7 @@ const FinderRequestDetailsPage = () => {
                         Initialize Workbench
                      </Link>
                    )}
-                   <button disabled className="w-full py-4 bg-slate-900 text-slate-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] cursor-not-allowed">
+                   <button disabled className="w-full py-4 bg-slate-900 text-slate-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] cursor-not-allowed border border-white/5">
                       System Locked
                    </button>
                 </div>
@@ -191,7 +191,7 @@ const FinderRequestDetailsPage = () => {
               <div className="mt-8 pt-8 border-t border-white/5">
                  <div className="flex items-center gap-3 mb-4">
                     <FiLayers size={16} className="text-slate-500" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Requester Reliability</span>
+                    <span className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Requester Reliability</span>
                  </div>
                  <div className="flex items-center gap-2">
                     {[1,2,3,4,5].map(i => <FiHexagon key={i} className={i <= 4 ? "text-emerald-500" : "text-slate-800"} />)}
@@ -212,14 +212,14 @@ const FinderRequestDetailsPage = () => {
         onConfirm={applyForAssignment}
         loading={applying}
       >
-        <div className="space-y-6">
-           <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
-              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-1">Target Confirmation</span>
-              <p className="text-lg font-black text-white">{requestItem.itemName}</p>
+        <div className="space-y-6 px-1 sm:px-0">
+           <div className="p-4 sm:p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest block mb-1">Target Confirmation</span>
+              <p className="text-base sm:text-lg font-black text-white">{requestItem.itemName}</p>
            </div>
            
            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block ml-1">Deployment Region</label>
+              <label className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block ml-1">Deployment Region</label>
               <input 
                 className="pnf-input" type="text" placeholder="Operational base area..." 
                 value={applyState.finderRegion} onChange={(e) => setApplyState((prev) => ({ ...prev, finderRegion: e.target.value }))} 
@@ -227,7 +227,7 @@ const FinderRequestDetailsPage = () => {
               />
            </div>
            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block ml-1">Mission Rationale</label>
+              <label className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block ml-1">Mission Rationale</label>
               <textarea 
                 className="pnf-input" rows={3} placeholder="Proximity or specialized notes..." 
                 value={applyState.applyReason} onChange={(e) => setApplyState((prev) => ({ ...prev, applyReason: e.target.value }))} 

@@ -191,7 +191,9 @@ const ProfilePage = () => {
                </div>
                <div className="flex justify-between items-center px-2">
                   <span className="text-[10px] font-black text-stone-500 uppercase tracking-widest">Member Since</span>
-                  <span className="text-xs text-stone-300 font-bold">{new Date(user.createdAt).getFullYear()}</span>
+                  <span className="text-xs text-stone-300 font-bold">
+                    {user?.createdAt ? new Date(user.createdAt).getFullYear() : new Date().getFullYear()}
+                  </span>
                </div>
             </div>
           </div>

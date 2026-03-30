@@ -7,7 +7,7 @@ const App = () => {
 		<AuthProvider>
 			<AppRoutes />
 			<ToastContainer
-				position="bottom-right"
+				position={window.innerWidth < 640 ? "top-center" : "bottom-right"}
 				autoClose={2500}
 				hideProgressBar={false}
 				newestOnTop

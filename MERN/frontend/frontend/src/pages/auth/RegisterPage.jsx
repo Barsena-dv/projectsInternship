@@ -34,7 +34,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="auth-modern-layout pnf-dark-scrollbar flex items-start sm:items-center py-12">
+    <div className="auth-modern-layout pnf-dark-scrollbar">
       {/* Cinematic Glows */}
       <div className="auth-glow auth-glow-1" style={{ width: '800px', height: '800px', opacity: 0.15 }} />
       <div className="auth-glow auth-glow-2" style={{ bottom: '0', right: '0', opacity: 0.1 }} />

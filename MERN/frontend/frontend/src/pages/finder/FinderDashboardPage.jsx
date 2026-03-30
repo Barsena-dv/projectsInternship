@@ -183,7 +183,7 @@ const FinderDashboardPage = () => {
   );
 
   return (
-    <div className="finder-page-enter space-y-8 pb-12">
+    <div className="finder-page-enter space-y-8 pb-12 overflow-x-hidden">
       
       {/* Interactive Top Navbar/Tabs */}
       <div className="flex flex-col xl:flex-row items-center justify-between gap-6 pb-8 border-b border-white/5">
@@ -220,89 +220,89 @@ const FinderDashboardPage = () => {
               </div>
             </RevealWrapper>
 
-            <div className="grid lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
               
               {/* Radar Visualizer Card */}
               <RevealWrapper className="lg:col-span-12 xl:col-span-7" delay="reveal-delay-200">
-                 <div className="finder-section-card f-hologram-effect group">
-                    <div className="flex justify-between items-start mb-10">
-                       <div>
-                         <span className={sectionLabel}>Operational Radar</span>
-                         <h3 className="text-2xl font-black text-white">Active Signal Map</h3>
-                       </div>
-                       <div className="f-pulse-radar" />
-                    </div>
+                  <div className="finder-section-card f-hologram-effect group overflow-hidden">
+                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8 sm:mb-10">
+                        <div>
+                          <span className={sectionLabel}>Operational Radar</span>
+                          <h3 className="text-xl sm:text-2xl font-black text-white">Active Signal Map</h3>
+                        </div>
+                        <div className="f-pulse-radar hidden sm:block" />
+                     </div>
 
-                    <div className="relative aspect-video rounded-3xl bg-slate-950 border border-white/5 flex items-center justify-center overflow-hidden shadow-inner group">
-                       {/* SVG Scanned Grid Background */}
-                       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#10b981 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                       
-                       {/* Custom SVG Radar Visualizer */}
-                       <svg viewBox="0 0 400 240" className="w-full h-full">
-                          {/* Radial Rings */}
-                          <circle cx="200" cy="120" r="100" fill="none" stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 8" opacity="0.2" />
-                          <circle cx="200" cy="120" r="70" fill="none" stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 8" opacity="0.1" />
-                          <circle cx="200" cy="120" r="40" fill="none" stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 8" opacity="0.05" />
-                          
-                          {/* Axis Lines */}
-                          <line x1="100" y1="120" x2="300" y2="120" stroke="#10b981" strokeWidth="0.5" opacity="0.1" />
-                          <line x1="200" y1="20" x2="200" y2="220" stroke="#10b981" strokeWidth="0.5" opacity="0.1" />
-                          
-                          {/* Data Points (Target Points) */}
-                          {activeAssignments.map((a, i) => {
-                             const angle = (i * 137.5) % 360;
-                             const radius = 30 + (i * 15) % 80;
-                             const x = 200 + radius * Math.cos(angle * Math.PI / 180);
-                             const y = 120 + radius * Math.sin(angle * Math.PI / 180);
-                             return (
-                               <g key={a._id} className="cursor-pointer">
-                                  <circle cx={x} cy={y} r="3" fill="#10b981">
-                                     <animate attributeName="opacity" values="1;0.2;1" dur="2s" repeatCount="indefinite" begin={`${i*0.3}s`} />
-                                  </circle>
-                                  <circle cx={x} cy={y} r="8" fill="none" stroke="#10b981" strokeWidth="0.5">
-                                     <animate attributeName="r" values="8;15" dur="1.5s" repeatCount="indefinite" />
-                                     <animate attributeName="opacity" values="0.4;0" dur="1.5s" repeatCount="indefinite" />
-                                  </circle>
-                               </g>
-                             );
-                          })}
+                     <div className="relative aspect-[3/4] sm:aspect-video min-h-[350px] sm:min-h-[400px] rounded-3xl bg-slate-950 border border-white/5 flex items-center justify-center overflow-hidden group">
+                        {/* SVG Scanned Grid Background */}
+                        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#10b981 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                        
+                        {/* Custom SVG Radar Visualizer */}
+                        <svg viewBox="0 0 400 400" className="w-full h-full sm:w-[80%] sm:h-[80%] opacity-60 sm:opacity-100">
+                           {/* Radial Rings */}
+                           <circle cx="200" cy="200" r="150" fill="none" stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 8" opacity="0.2" />
+                           <circle cx="200" cy="200" r="100" fill="none" stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 8" opacity="0.1" />
+                           <circle cx="200" cy="200" r="50" fill="none" stroke="#10b981" strokeWidth="0.5" strokeDasharray="4 8" opacity="0.05" />
+                           
+                           {/* Axis Lines */}
+                           <line x1="50" y1="200" x2="350" y2="200" stroke="#10b981" strokeWidth="0.5" opacity="0.1" />
+                           <line x1="200" y1="50" x2="200" y2="350" stroke="#10b981" strokeWidth="0.5" opacity="0.1" />
+                           
+                           {/* Data Points (Target Points) */}
+                           {activeAssignments.map((a, i) => {
+                              const angle = (i * 137.5) % 360;
+                              const radius = 40 + (i * 20) % 100;
+                              const x = 200 + radius * Math.cos(angle * Math.PI / 180);
+                              const y = 200 + radius * Math.sin(angle * Math.PI / 180);
+                              return (
+                                <g key={a._id} className="cursor-pointer">
+                                   <circle cx={x} cy={y} r="3" fill="#10b981">
+                                      <animate attributeName="opacity" values="1;0.2;1" dur="2s" repeatCount="indefinite" begin={`${i*0.3}s`} />
+                                   </circle>
+                                   <circle cx={x} cy={y} r="8" fill="none" stroke="#10b981" strokeWidth="0.5">
+                                      <animate attributeName="r" values="8;15" dur="1.5s" repeatCount="indefinite" />
+                                      <animate attributeName="opacity" values="0.4;0" dur="1.5s" repeatCount="indefinite" />
+                                   </circle>
+                                </g>
+                              );
+                           })}
 
-                          {/* Radar Sweep Effect */}
-                          <circle cx="200" cy="120" r="110" fill="url(#radarGradient)" className="origin-center animate-[spin_5s_linear_infinite]" style={{ transformOrigin: '200px 120px' }} />
-                          
-                          <defs>
-                             <linearGradient id="radarGradient" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stopColor="#10b981" stopOpacity="0.15" />
-                                <stop offset="50%" stopColor="#10b981" stopOpacity="0" />
-                             </linearGradient>
-                          </defs>
-                       </svg>
+                           {/* Radar Sweep Effect */}
+                           <circle cx="200" cy="200" r="180" fill="url(#radarGradient)" className="origin-center animate-[spin_5s_linear_infinite]" style={{ transformOrigin: '200px 200px' }} />
+                           
+                           <defs>
+                              <linearGradient id="radarGradient" x1="0" y1="0" x2="1" y2="1">
+                                 <stop offset="0%" stopColor="#10b981" stopOpacity="0.15" />
+                                 <stop offset="50%" stopColor="#10b981" stopOpacity="0" />
+                              </linearGradient>
+                           </defs>
+                        </svg>
 
-                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                          <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em] mb-3 opacity-60">Discovery Node 01</p>
-                          <h4 className="text-2xl font-black text-white drop-shadow-lg">{activeAssignments.length} High Priority Signals</h4>
-                       </div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none w-full px-4 sm:px-6 z-10">
+                           <p className="text-[8px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em] mb-2 sm:mb-3 opacity-60">Discovery Node 01</p>
+                           <h4 className="text-base sm:text-2xl font-black text-white drop-shadow-lg leading-tight px-4">{activeAssignments.length} High Priority Signals</h4>
+                        </div>
 
-                       <div className="absolute top-6 left-6 text-[9px] font-black text-emerald-500/40 uppercase tracking-widest flex items-center gap-2">
-                          <FiActivity size={10} /> Live Frequency Tracking
-                       </div>
+                        <div className="absolute top-4 sm:top-6 left-4 sm:left-6 text-[8px] sm:text-[9px] font-black text-emerald-500/40 uppercase tracking-widest flex items-center gap-2">
+                           <FiActivity size={10} /> Live Frequency Tracking
+                        </div>
 
-                       <div className="absolute bottom-6 left-6 right-6 flex justify-between gap-4">
-                          <div className="px-5 py-2.5 bg-slate-900/60 backdrop-blur-xl rounded-xl border border-white/5 text-[9px] font-bold text-slate-400 font-mono tracking-tight">
-                             SECURE_LAT: 28.6° N | SECURE_LON: 77.2° E
-                          </div>
-                          <div className="px-5 py-2.5 bg-emerald-500 text-slate-950 rounded-xl text-[9px] font-black uppercase tracking-widest cursor-pointer hover:scale-105 hover:bg-emerald-400 transition-all shadow-xl">
-                             Calibrate Radar
-                          </div>
-                       </div>
-                    </div>
-                 </div>
+                        <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 flex flex-col sm:flex-row justify-between gap-2 sm:gap-4">
+                           <div className="px-3 sm:px-5 py-2 sm:py-2.5 bg-slate-900/60 backdrop-blur-xl rounded-xl border border-white/5 text-[7px] sm:text-[9px] font-bold text-slate-400 font-mono tracking-tight text-center sm:text-left overflow-hidden text-ellipsis whitespace-nowrap">
+                              SECURE_LAT: 28.6° N | SECURE_LON: 77.2° E
+                           </div>
+                           <div className="px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-500 text-slate-950 rounded-xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest cursor-pointer hover:scale-105 transition-all shadow-xl text-center">
+                              Calibrate Radar
+                           </div>
+                        </div>
+                     </div>
+                  </div>
               </RevealWrapper>
 
               {/* Discovery Feed Column */}
               <div className="lg:col-span-12 xl:col-span-5 space-y-6">
                  <RevealWrapper className="h-full" delay="reveal-delay-300">
-                    <div className="finder-section-card h-full">
+                    <div className="finder-section-card h-full overflow-hidden">
                     <span className={sectionLabel}>Discovery Stream</span>
                     <h3 className="text-xl font-black text-white mb-8 flex items-center gap-3">
                        <FiZap className="text-emerald-500" /> Tactical Monitoring
@@ -311,7 +311,7 @@ const FinderDashboardPage = () => {
                     <div className="space-y-6 pnf-sidebar-scroll max-h-[460px] pr-2 overflow-y-auto">
                        {notifications.length === 0 ? (
                          <div className="text-center py-12 opacity-30">
-                            <FiCpu size={40} className="mx-auto mb-4" />
+                            <FiCpu size={40} className="mx-auto mb-4 text-emerald-500/50" />
                             <p className="text-xs italic">No activity on this frequency</p>
                          </div>
                        ) : (
@@ -328,7 +328,7 @@ const FinderDashboardPage = () => {
                        )}
                     </div>
 
-                    <Link to="/notifications" className="mt-8 pt-6 border-t border-white/5 block text-center text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-emerald-400 transition-colors">
+                    <Link to="/notifications" className="mt-8 pt-6 border-t border-white/5 block text-center text-[10px] font-black text-emerald-500/50 uppercase tracking-widest hover:text-emerald-400 transition-colors py-3 sm:py-0 border border-emerald-500/10 sm:border-0 rounded-xl sm:rounded-none">
                       View Secure Intelligence Archive
                     </Link>
                  </div>
@@ -342,18 +342,18 @@ const FinderDashboardPage = () => {
         {/* --- MISSIONS TAB --- */}
         {activeTab === 'MISSIONS' && (
           <div className="space-y-8">
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 sm:gap-4">
                <div>
                   <span className={sectionLabel}>Mission Control</span>
-                  <h3 className="text-3xl font-black text-white">Target List</h3>
+                  <h3 className="text-xl sm:text-3xl font-black text-white">Target List</h3>
                </div>
-               <Link to="/finder/requests" className="pnf-btn-primary !px-8 text-[10px] uppercase tracking-[0.2em] font-black">Find New Targets</Link>
+               <Link to="/finder/requests" className="pnf-btn-primary !px-6 sm:!px-8 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-black w-full sm:w-auto text-center">Find New Targets</Link>
             </div>
 
             {activeAssignments.length === 0 ? (
               <EmptyState title="Operational Void" description="You have no active mission profiles. Deploy now to start reward synchronization." />
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                  {activeAssignments.map((a) => (
                    <div key={a._id} className="f-card-interactive p-6 flex flex-col group relative">
                       <div className="absolute top-4 right-4 group-hover:scale-110 transition-transform">
@@ -361,8 +361,8 @@ const FinderDashboardPage = () => {
                       </div>
                       
                       <div className="flex-1">
-                        <h4 className="text-lg font-black text-white mb-2 pr-16">{a?.request?.itemName}</h4>
-                        <p className="text-xs text-slate-500 italic mb-6">{a?.request?.lastSeenLocation}</p>
+                        <h4 className="text-base sm:text-lg font-black text-white mb-2 pr-12 sm:pr-16">{a?.request?.itemName}</h4>
+                        <p className="text-[10px] sm:text-xs text-slate-500 italic mb-4 sm:mb-6">{a?.request?.lastSeenLocation}</p>
                         
                         <div className="space-y-4 mb-8">
                            <div>
@@ -390,11 +390,11 @@ const FinderDashboardPage = () => {
                         </div>
                       </div>
 
-                      <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                      <div className="pt-4 border-t border-white/5 flex justify-between items-center bg-slate-900/20 -mx-6 -mb-6 px-6 py-4 rounded-b-3xl mt-auto">
                          <div className="flex -space-x-2">
-                            {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full bg-emerald-500/20 border border-slate-900 flex items-center justify-center text-[8px] font-black text-emerald-500">M</div>)}
+                            {[1,2,3].map(i => <div key={i} className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500/20 border border-slate-900 flex items-center justify-center text-[7px] sm:text-[8px] font-black text-emerald-500">M</div>)}
                          </div>
-                          <Link to={`/finder/assignments/${a._id}`} className="px-5 py-2.5 bg-emerald-500 text-slate-950 rounded-xl hover:scale-110 transition-all shadow-[0_5px_20px_rgba(16,185,129,0.3)] font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
+                          <Link to={`/finder/assignments/${a._id}`} className="px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-500 text-slate-950 rounded-xl hover:scale-105 sm:hover:scale-110 transition-all shadow-[0_5px_20px_rgba(16,185,129,0.3)] font-black text-[9px] sm:text-[10px] uppercase tracking-widest flex items-center gap-2">
                              Access Mission <FiArrowRight size={14} />
                           </Link>
                       </div>
@@ -441,44 +441,46 @@ const FinderDashboardPage = () => {
                 </div>
               </div>
               <div className="p-8 max-h-[60vh] overflow-y-auto pnf-sidebar-scroll">
-                  <table className="w-full">
-                     <thead>
-                        <tr className="border-b border-white/5">
-                           <th className="pb-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Transaction ID</th>
-                           <th className="pb-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Target Item</th>
-                           <th className="pb-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Amount</th>
-                           <th className="pb-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
-                           <th className="pb-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Date</th>
-                        </tr>
-                     </thead>
-                      <tbody className="divide-y divide-white/5">
-                         {payouts.length === 0 ? (
-                            <tr><td colSpan="5" className="py-20 text-center text-xs text-slate-500 italic">No financial movements detected on this sector.</td></tr>
-                         ) : (
-                            payouts.map((p) => (
-                               <tr key={p._id} className="hover:bg-emerald-500/[0.02] transition-colors group">
-                                  <td className="py-6 text-xs font-black text-slate-500 group-hover:text-emerald-500 transition-colors uppercase tracking-widest font-mono">#{(p._id || p.id || '').slice(-6).toUpperCase()}</td>
-                                  <td className="py-6 pr-4">
-                                     <p className="text-sm font-bold text-white mb-1">
-                                       {p.assignment?.request?.itemName || p.settlementReason || 'Tactical Operation'}
-                                     </p>
-                                     <div className="flex items-center gap-2">
-                                        <span className={`text-[8px] px-1.5 py-0.5 rounded border ${p.payoutCategory === 'compensation' ? 'text-amber-500 border-amber-500/30 bg-amber-500/5' : 'text-sky-500 border-sky-500/30 bg-sky-500/5'} font-black uppercase tracking-tighter`}>
-                                          {p.payoutCategory === 'compensation' ? 'Search Fee' : 'Capture Bonus'}
-                                        </span>
-                                        <span className="text-[9px] text-slate-600 font-medium uppercase tracking-widest">
-                                          {(p.payoutStatus === 'processed' || p.assignment?.status === 'completed' || p.assignment?.request?.requestStatus === 'completed') ? 'Synchronized' : 'In Transit'}
-                                        </span>
-                                     </div>
-                                  </td>
-                                  <td className="py-6 text-sm font-black text-emerald-500">{formatCurrency(p.payoutAmount)}</td>
-                                  <td className="py-6"><StatusBadge value={p.payoutStatus} /></td>
-                                  <td className="py-6 text-right text-[10px] text-slate-500 font-bold uppercase">{formatDate(p.createdAt)}</td>
-                               </tr>
-                            ))
-                         )}
-                      </tbody>
-                  </table>
+                  <div className="overflow-x-auto pnf-sidebar-scroll">
+                    <table className="w-full min-w-[600px]">
+                       <thead>
+                          <tr className="border-b border-white/5">
+                             <th className="pb-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Transaction ID</th>
+                             <th className="pb-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Target Item</th>
+                             <th className="pb-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Amount</th>
+                             <th className="pb-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                             <th className="pb-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Date</th>
+                          </tr>
+                       </thead>
+                        <tbody className="divide-y divide-white/5">
+                           {payouts.length === 0 ? (
+                              <tr><td colSpan="5" className="py-20 text-center text-xs text-slate-500 italic">No financial movements detected on this sector.</td></tr>
+                           ) : (
+                              payouts.map((p) => (
+                                 <tr key={p._id} className="hover:bg-emerald-500/[0.02] transition-colors group">
+                                    <td className="py-6 text-xs font-black text-slate-500 group-hover:text-emerald-500 transition-colors uppercase tracking-widest font-mono">#{(p._id || p.id || '').slice(-6).toUpperCase()}</td>
+                                    <td className="py-6 pr-4">
+                                       <p className="text-sm font-bold text-white mb-1">
+                                         {p.assignment?.request?.itemName || p.settlementReason || 'Tactical Operation'}
+                                       </p>
+                                       <div className="flex items-center gap-2">
+                                          <span className={`text-[8px] px-1.5 py-0.5 rounded border ${p.payoutCategory === 'compensation' ? 'text-amber-500 border-amber-500/30 bg-amber-500/5' : 'text-sky-500 border-sky-500/30 bg-sky-500/5'} font-black uppercase tracking-tighter`}>
+                                            {p.payoutCategory === 'compensation' ? 'Search Fee' : 'Capture Bonus'}
+                                          </span>
+                                          <span className="text-[9px] text-slate-600 font-medium uppercase tracking-widest">
+                                            {(p.payoutStatus === 'processed' || p.assignment?.status === 'completed' || p.assignment?.request?.requestStatus === 'completed') ? 'Synchronized' : 'In Transit'}
+                                          </span>
+                                       </div>
+                                    </td>
+                                    <td className="py-6 text-sm font-black text-emerald-500">{formatCurrency(p.payoutAmount)}</td>
+                                    <td className="py-6"><StatusBadge value={p.payoutStatus} /></td>
+                                    <td className="py-6 text-right text-[10px] text-slate-500 font-bold uppercase">{formatDate(p.createdAt)}</td>
+                                 </tr>
+                              ))
+                           )}
+                        </tbody>
+                    </table>
+                  </div>
                </div>
             </div>
           </div>

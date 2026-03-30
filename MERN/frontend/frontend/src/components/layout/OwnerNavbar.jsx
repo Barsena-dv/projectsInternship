@@ -134,16 +134,22 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
           display: flex; 
           align-items: center; 
           justify-content: center; 
-          flex-shrink: 0; 
+          flex-shrink: 1; 
           border: 1px solid rgba(255,255,255,0.05);
+        }
+        @media (max-width: 640px) {
+          .onav-profile-name { display: none !important; }
+          .onav-search-container { min-width: 140px !important; }
+          .onav-header-inner { padding: 0 1rem !important; gap: 0.5rem !important; }
+          .onav-logo-text { font-size: 0.95rem !important; margin-right: 0.5rem !important; }
         }
       `}</style>
 
       <header style={navStyle}>
-        <div style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+        <div className="onav-header-inner" style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
 
           {/* Logo */}
-          <Link to="/owner/dashboard" style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.03em', color: '#f1f5f9', textDecoration: 'none', flexShrink: 0, marginRight: '2rem', display: 'flex', alignItems: 'center', gap: '2px' }}>
+          <Link to="/owner/dashboard" className="onav-logo-text" style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.03em', color: '#f1f5f9', textDecoration: 'none', flexShrink: 0, marginRight: '2rem', display: 'flex', alignItems: 'center', gap: '2px' }}>
             <span style={{ background: 'linear-gradient(135deg,#f59e0b,#fbbf24)', borderRadius: '6px', width: '22px', height: '22px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', marginRight: '6px', fontWeight: 900, boxShadow: '0 2px 8px rgba(245,158,11,0.4)', color: '#1c1917' }}>P</span>
             Post<span style={{ color: '#fbbf24' }}>N</span>Find
           </Link>
@@ -182,7 +188,7 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
 
             {/* Search */}
             {searchOpen ? (
-              <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.08)', borderRadius: '8px', padding: '0 0.7rem', border: '1px solid rgba(245,158,11,0.4)', gap: '0.4rem', height: '34px', minWidth: '200px' }}>
+              <div className="onav-search-container" style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.08)', borderRadius: '8px', padding: '0 0.7rem', border: '1px solid rgba(245,158,11,0.4)', gap: '0.4rem', height: '34px', minWidth: '200px' }}>
                 <FiSearch size={13} color="#94a3b8" />
                 <input
                   autoFocus
@@ -277,7 +283,7 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
                   name={user?.full_name || 'User'} 
                   size="sm" 
                 />
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                <span className="onav-profile-name" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#e2e8f0', whiteSpace: 'nowrap' }}>
                   {user?.full_name || user?.email || 'Account'}
                 </span>
               </button>
@@ -349,6 +355,28 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
                   </NavLink>
                 ))}
               </nav>
+
+              <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+                <button 
+                  onClick={() => { logout(); navigate('/login'); }}
+                  style={{ 
+                    width: '100%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.75rem', 
+                    padding: '0.875rem 1rem', 
+                    fontSize: '1rem', 
+                    fontWeight: 600, 
+                    color: '#fca5a5', 
+                    background: 'rgba(239, 68, 68, 0.05)', 
+                    border: '1px solid rgba(239, 68, 68, 0.1)', 
+                    borderRadius: '12px', 
+                    cursor: 'pointer' 
+                  }}
+                >
+                  <FiLogOut size={18} /> Sign Out
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -29,11 +29,6 @@ const OwnerCreateRequestPage = () => {
     loadPlans();
   }, []);
 
-  const getPlanAmount = (planId) => {
-    const plan = plans.find((item) => String(item._id) === String(planId));
-    if (!plan) return 100;
-    return Number(plan.price || plan.amount || plan.rewardAmount || 100);
-  };
 
   const handleSubmit = async (values, intent) => {
     setLoading(true);
@@ -54,26 +49,31 @@ const OwnerCreateRequestPage = () => {
         lastSeenDatetime: values.lastSeenDatetime || undefined,
         serviceDeadline: values.serviceDeadline || undefined,
         planId: values.servicePlanId,
+        rewardAmount: Number(values.rewardAmount),
       };
 
       const requestRes = await requestApi.create(payload);
       const createdRequest = requestRes?.data;
 
       if (intent === 'pay_now') {
-        const amount = getPlanAmount(values.servicePlanId);
+        const plan = plans.find((p) => String(p._id) === String(values.servicePlanId));
+        const planFee = Number(plan?.price || 0);
+        const rewardAmount = Number(values.rewardAmount || 0);
+        const totalAmount = planFee + rewardAmount;
+        
         const paymentMethod = values.paymentMethod || 'upi';
 
         const paymentRes = await paymentApi.create({
           requestId: createdRequest?._id,
           servicePlanId: values.servicePlanId,
-          amount,
+          amount: totalAmount,
           paymentMethod,
         });
 
         const paymentId = paymentRes?.data?._id;
         const transactionId = `txn_${Date.now()}`;
         await paymentApi.process(paymentId, transactionId);
-        toast.success(`Request is live. Payment locked: ${formatCurrency(amount)}`);
+        toast.success(`Request is live. Payment locked: ${formatCurrency(totalAmount)}`);
       } else {
         toast.success('Request saved as draft');
       }

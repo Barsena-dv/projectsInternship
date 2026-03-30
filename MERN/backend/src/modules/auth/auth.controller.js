@@ -45,7 +45,18 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(401).json({ success: false, message: error.message });
+    const message = error.message;
+    let statusCode = 401; // Default for login failures
+
+    if (message.includes('Account is')) {
+      statusCode = 403; // Forbidden (Suspended/Inactive)
+    } else if (message.includes('not allowed')) {
+      statusCode = 403;
+    } else if (message.includes('not found')) {
+      statusCode = 404;
+    }
+
+    res.status(statusCode).json({ success: false, message });
   }
 };
 

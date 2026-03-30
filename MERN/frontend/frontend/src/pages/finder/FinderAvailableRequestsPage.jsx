@@ -183,40 +183,40 @@ const FinderAvailableRequestsPage = () => {
                      <StatusBadge value={item.requestStatus} />
                   </div>
                   
-                  <div className="flex gap-6 items-start">
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
                      <div className="hidden sm:flex w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 items-center justify-center text-emerald-500 flex-shrink-0 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all duration-300">
                         <FiActivity size={32} />
                      </div>
-                     <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-3 mb-2 pr-12">
-                           <h3 className="text-lg font-black text-white">{item.itemName}</h3>
-                           <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                     <div className="flex-1 w-full">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2 pr-16 sm:pr-12">
+                           <h3 className="text-base sm:text-lg font-black text-white">{item.itemName}</h3>
+                           <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest break-words max-w-full">
                              {item?.planId?.planName}
                            </span>
                         </div>
-                        <p className="text-xs text-slate-400 line-clamp-1 mb-4">{item.itemDescription || 'No description available'}</p>
+                        <p className="text-xs text-slate-400 line-clamp-2 mb-4">{item.itemDescription || 'No description available'}</p>
                         
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 pt-4 border-t border-white/5">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 pt-4 border-t border-white/5">
                            <div className="space-y-1">
-                              <span className="text-[9px] font-bold text-slate-500 uppercase">Proximity</span>
+                              <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Proximity</span>
                               <div className="text-xs font-black text-emerald-500">{formatDistance(item._distanceKm)}</div>
                            </div>
-                           <div className="space-y-1">
-                              <span className="text-[9px] font-bold text-slate-500 uppercase">Detection</span>
+                           <div className="space-y-1 hidden sm:block">
+                              <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Detection</span>
                               <div className="text-xs font-black text-white">{formatDate(item.createdAt)}</div>
                            </div>
                            <div className="space-y-1">
-                              <span className="text-[9px] font-bold text-slate-500 uppercase">Extraction Reward</span>
+                              <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Extraction Reward</span>
                               <div className="text-xs font-black text-emerald-500">{formatCurrency(item?.planId?.rewardAmount || 0)}</div>
                            </div>
                         </div>
 
-                        <div className="mt-8 flex justify-end gap-3">
-                           <button onClick={() => setSelectedRequest(item)} className="px-5 py-2.5 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">Details</button>
+                        <div className="mt-6 sm:mt-8 flex justify-end gap-2 sm:gap-3">
+                           <button onClick={() => setSelectedRequest(item)} className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl border border-white/10 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all w-full sm:w-auto text-center">Details</button>
                            <button 
                              onClick={() => openApplyModal(item)} 
                              disabled={appliedIds.has(String(item._id))}
-                             className="px-5 py-2.5 rounded-xl bg-emerald-500 text-slate-950 text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_5px_15px_rgba(16,185,129,0.2)] disabled:opacity-50"
+                             className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-emerald-500 text-slate-950 text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_5px_15px_rgba(16,185,129,0.2)] disabled:opacity-50 w-full sm:w-auto text-center"
                            >
                              {appliedIds.has(String(item._id)) ? 'Signal Sent' : 'Engage'}
                            </button>

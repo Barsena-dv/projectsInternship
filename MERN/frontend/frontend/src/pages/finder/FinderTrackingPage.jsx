@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { FiActivity, FiMapPin, FiNavigation, FiSend, FiZap } from 'react-icons/fi';
 import EmptyState from '../../components/common/EmptyState';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
@@ -30,7 +31,7 @@ const FinderTrackingPage = () => {
       try {
         setLoading(true);
         const res = await assignmentApi.my();
-        const active = (res.data || []).filter((a) => a.status === 'active');
+        const active = (res.data || []).filter((a) => a.status === 'active' || a.status === 'assigned');
         setAssignments(active);
         if (active[0]) {
           setForm((prev) => ({ ...prev, assignmentId: active[0]._id }));
@@ -49,12 +50,12 @@ const FinderTrackingPage = () => {
     e.preventDefault();
 
     if (!form.message.trim()) {
-      toast.error('Please add a progress message.');
+      toast.error('Observation log is empty.');
       return;
     }
 
     if (form.locationSource === LOCATION_MODES.MANUAL && !form.locationName.trim()) {
-      toast.error('Please enter your location manually or choose another option.');
+      toast.error('Specify tactical location text.');
       return;
     }
 
@@ -70,7 +71,7 @@ const FinderTrackingPage = () => {
         const coords = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(
             (position) => resolve(position.coords),
-            () => reject(new Error('Could not fetch current location. Try manual entry or skip.')),
+            () => reject(new Error('Location signal lost. Try manual entry.')),
             { enableHighAccuracy: false, timeout: 10000, maximumAge: 2 * 60 * 1000 }
           );
         });
@@ -91,7 +92,7 @@ const FinderTrackingPage = () => {
 
       await trackingApi.create(payload);
 
-      toast.success('Tracking update posted');
+      toast.success('Log entry synchronized.');
       setForm((prev) => ({ ...prev, message: '', locationName: '' }));
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -100,62 +101,120 @@ const FinderTrackingPage = () => {
     }
   };
 
+  const sectionLabel = "text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.2em] mb-4 block";
+
   return (
-    <div>
-      <PageHeader title="Tracking Updates" subtitle="Hybrid tracking: current location, manual location text, or skip" />
+    <div className="finder-page-enter space-y-8 pb-12 overflow-x-hidden">
+      <PageHeader 
+        title="Tactical Reporting" 
+        subtitle="Broadcast location pings and operational observations to the owner registry." 
+      />
 
-      {loading ? <LoadingSpinner text="Loading active assignments..." /> : null}
+      {loading ? <LoadingSpinner text="Synchronizing active missions..." /> : null}
 
-      {!loading && assignments.length === 0 ? <EmptyState title="No active assignments" description="Accept a request first to post updates." /> : null}
+      {!loading && assignments.length === 0 ? (
+        <EmptyState title="No Active Signals" description="Accept a mission from the Discovery Feed to start reporting." />
+      ) : null}
 
       {!loading && assignments.length > 0 ? (
-        <section className="pnf-card p-5">
-          <form className="grid gap-3 md:grid-cols-2" onSubmit={submit}>
-            <select className="pnf-input" value={form.assignmentId} onChange={(e) => setForm((prev) => ({ ...prev, assignmentId: e.target.value }))}>
-              {assignments.map((item) => (
-                <option key={item._id} value={item._id}>{item.request?.itemName || item._id}</option>
-              ))}
-            </select>
+        <div className="grid lg:grid-cols-12 gap-8 items-start">
+          
+          <div className="lg:col-span-12 xl:col-span-8">
+            <section className="finder-section-card f-hologram-effect">
+              <span className={sectionLabel}>Observation Terminal</span>
+              <h3 className="text-xl font-black text-white mb-8 flex items-center gap-3">
+                <FiActivity className="text-emerald-500" /> Synchronization Protocol
+              </h3>
 
-            <select
-              className="pnf-input"
-              value={form.locationSource}
-              onChange={(e) => setForm((prev) => ({ ...prev, locationSource: e.target.value }))}
-            >
-              <option value={LOCATION_MODES.CURRENT}>Use current location</option>
-              <option value={LOCATION_MODES.MANUAL}>Enter location manually</option>
-              <option value={LOCATION_MODES.SKIP}>Skip location for now</option>
-            </select>
+              <form className="space-y-6" onSubmit={submit}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Target Mission</label>
+                    <select className="pnf-input" value={form.assignmentId} onChange={(e) => setForm((prev) => ({ ...prev, assignmentId: e.target.value }))}>
+                      {assignments.map((item) => (
+                        <option key={item._id} value={item._id}>{item.request?.itemName || "Unknown Signal"}</option>
+                      ))}
+                    </select>
+                  </div>
 
-            {form.locationSource === LOCATION_MODES.MANUAL ? (
-              <input
-                className="pnf-input"
-                type="text"
-                placeholder="Enter location (e.g., Near City Mall)"
-                value={form.locationName}
-                onChange={(e) => setForm((prev) => ({ ...prev, locationName: e.target.value }))}
-              />
-            ) : (
-              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                {form.locationSource === LOCATION_MODES.CURRENT
-                  ? 'Location will be fetched automatically at submit time.'
-                  : 'Update will be submitted without location coordinates.'}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Location Protocol</label>
+                    <select
+                      className="pnf-input"
+                      value={form.locationSource}
+                      onChange={(e) => setForm((prev) => ({ ...prev, locationSource: e.target.value }))}
+                    >
+                      <option value={LOCATION_MODES.CURRENT}>GPS Auto-Uplink</option>
+                      <option value={LOCATION_MODES.MANUAL}>Manual Coordinate Input</option>
+                      <option value={LOCATION_MODES.SKIP}>Dark Mode (Skip Location)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  {form.locationSource === LOCATION_MODES.MANUAL ? (
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Tactical Location Text</label>
+                      <input
+                        className="pnf-input"
+                        type="text"
+                        placeholder="e.g., Tactical point near Central Park entrance"
+                        value={form.locationName}
+                        onChange={(e) => setForm((prev) => ({ ...prev, locationName: e.target.value }))}
+                      />
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 text-[11px] text-slate-500 italic flex items-center gap-3">
+                      <FiInfo className="text-emerald-500/50" />
+                      {form.locationSource === LOCATION_MODES.CURRENT
+                        ? 'System will attempt to pulse current GPS coordinates upon broadcast.'
+                        : 'Update will be transmitted without spatial telemetry.'}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Operational Observation</label>
+                  <textarea
+                    className="pnf-input"
+                    rows={4}
+                    placeholder="Log your current findings or mission progress..."
+                    value={form.message}
+                    onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
+                  />
+                </div>
+
+                <button className="w-full py-4 bg-emerald-500 text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-[0_10px_30px_rgba(16,185,129,0.2)] flex items-center justify-center gap-3" type="submit" disabled={submitting}>
+                  {submitting ? (
+                    'Synchronizing...'
+                  ) : (
+                    <>
+                      <FiSend size={14} /> Broadcast Update
+                    </>
+                  )}
+                </button>
+              </form>
+            </section>
+          </div>
+
+          <div className="lg:col-span-12 xl:col-span-4 space-y-6">
+            <div className="finder-section-card bg-slate-950/40">
+              <span className={sectionLabel}>Tactical Note</span>
+              <div className="flex gap-4">
+                 <div className="shrink-0 w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <FiNavigation size={18} />
+                 </div>
+                 <div>
+                    <h4 className="text-xs font-black text-white uppercase tracking-widest mb-2">Live Reporting</h4>
+                    <p className="text-[10px] text-slate-500 leading-relaxed italic">
+                      Regular interval updates significantly increase requester trust metrics and mission success probability.
+                    </p>
+                 </div>
               </div>
-            )}
+            </div>
+          </div>
 
-            <textarea
-              className="pnf-input md:col-span-2"
-              rows={3}
-              placeholder="Progress message"
-              value={form.message}
-              onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
-            />
-
-            <button className="pnf-btn-primary rounded-lg px-4 py-2 text-sm md:col-span-2" type="submit" disabled={submitting}>
-              {submitting ? 'Posting...' : 'Post Update'}
-            </button>
-          </form>
-        </section>
+        </div>
       ) : null}
     </div>
   );
