@@ -3,6 +3,36 @@ const ServicePlan = require('../servicePlans/servicePlan.model');
 const FinderAssignment = require('../assignments/assignment.model');
 const AssignmentApplication = require('../assignments/assignmentApplication.model');
 
+const hasValue = (value) => String(value || '').trim().length > 0;
+
+const toFiniteNumber = (value) => {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+};
+
+const validatePublishReady = async (request) => {
+  const missing = [];
+
+  if (!hasValue(request.itemName)) missing.push('itemName');
+  if (!hasValue(request.itemCategory)) missing.push('itemCategory');
+  if (!hasValue(request.itemDescription)) missing.push('itemDescription');
+  if (!hasValue(request.lastSeenLocation)) missing.push('lastSeenLocation');
+  if (!Number.isFinite(Number(request.lastSeenLat))) missing.push('lastSeenLat');
+  if (!Number.isFinite(Number(request.lastSeenLng))) missing.push('lastSeenLng');
+  if (!request.planId) missing.push('planId');
+
+  if (missing.length) {
+    throw new Error(`Cannot publish request. Missing fields: ${missing.join(', ')}`);
+  }
+
+  const servicePlan = await ServicePlan.findById(request.planId);
+  if (!servicePlan) {
+    throw new Error('Service plan not found');
+  }
+
+  return servicePlan;
+};
+
 /**
  * Create a new lost item request
  */
@@ -12,6 +42,7 @@ const createRequest = async (requestData, user) => {
   }
 
   const {
+    intent,
     itemName,
     itemCategory,
     itemDescription,
@@ -29,17 +60,36 @@ const createRequest = async (requestData, user) => {
     rewardAmount,
   } = requestData;
 
-  if (!itemName || !itemCategory || !itemDescription || !lastSeenLat || !lastSeenLng || !planId) {
-    throw new Error('Missing required fields');
+  const normalizedIntent = String(intent || 'publish').toLowerCase();
+  const isDraft = normalizedIntent === 'draft';
+  const normalizedLat = toFiniteNumber(lastSeenLat);
+  const normalizedLng = toFiniteNumber(lastSeenLng);
+
+  let servicePlan = null;
+  if (planId) {
+    servicePlan = await ServicePlan.findById(planId);
+    if (!servicePlan && !isDraft) {
+      throw new Error('Service plan not found');
+    }
   }
 
-  const servicePlan = await ServicePlan.findById(planId);
-  if (!servicePlan) {
-    throw new Error('Service plan not found');
+  if (!isDraft) {
+    if (!itemName || !itemCategory || !itemDescription || !lastSeenLocation || normalizedLat === null || normalizedLng === null || !planId) {
+      throw new Error('Missing required fields');
+    }
+
+    if (!servicePlan) {
+      throw new Error('Service plan not found');
+    }
   }
 
-  const expiryDate = new Date();
-  expiryDate.setDate(expiryDate.getDate() + (servicePlan.searchDuration || 30));
+  const expiryDate = servicePlan
+    ? (() => {
+      const nextExpiryDate = new Date();
+      nextExpiryDate.setDate(nextExpiryDate.getDate() + (servicePlan.searchDuration || 30));
+      return nextExpiryDate;
+    })()
+    : null;
 
   const request = await LostItemRequest.create({
     owner: user.userId,
@@ -52,14 +102,14 @@ const createRequest = async (requestData, user) => {
     uniqueIdentifiers,
     serialNumber,
     lastSeenLocation,
-    lastSeenLat,
-    lastSeenLng,
+    lastSeenLat: normalizedLat,
+    lastSeenLng: normalizedLng,
     lastSeenDatetime,
     serviceDeadline,
-    planId,
+    planId: planId || null,
     expiryDate,
-    rewardAmount: rewardAmount || servicePlan.price || 0,
-    requestStatus: 'pending_payment',
+    rewardAmount: Number(rewardAmount || servicePlan?.price || 0),
+    requestStatus: isDraft ? 'draft' : 'pending_payment',
   });
 
   // Audit Log
@@ -71,6 +121,41 @@ const createRequest = async (requestData, user) => {
     entityId: request._id,
     details: { itemName: request.itemName, planId: request.planId },
   });
+
+  return request.populate('planId');
+};
+
+const publishRequest = async (requestId, userId) => {
+  const request = await LostItemRequest.findById(requestId);
+  if (!request) throw new Error('Request not found');
+
+  if (request.owner.toString() !== userId.toString()) {
+    throw new Error('Unauthorized publish attempt');
+  }
+
+  if (!['draft', 'pending_payment'].includes(String(request.requestStatus))) {
+    throw new Error(`Request cannot be published from status: ${request.requestStatus}`);
+  }
+
+  const activeAssignment = await FinderAssignment.findOne({
+    request: request._id,
+    status: { $in: ['active', 'inactive', 'paused'] },
+  });
+  if (activeAssignment) {
+    throw new Error('Cannot publish while an active assignment exists');
+  }
+
+  const servicePlan = await validatePublishReady(request);
+
+  const expiryDate = new Date();
+  expiryDate.setDate(expiryDate.getDate() + (servicePlan.searchDuration || 30));
+
+  request.requestStatus = 'pending_payment';
+  request.expiryDate = expiryDate;
+  if (!Number(request.rewardAmount || 0)) {
+    request.rewardAmount = Number(servicePlan.price || 0);
+  }
+  await request.save();
 
   return request.populate('planId');
 };
@@ -143,8 +228,17 @@ const updateRequest = async (requestId, updateData, userId) => {
   }
 
   // Verify lifecycle status
-  if (!['pending_payment', 'open'].includes(request.requestStatus)) {
+  if (!['draft', 'pending_payment', 'open'].includes(request.requestStatus)) {
     throw new Error(`Cannot update request in current status: ${request.requestStatus}`);
+  }
+
+  const activeAssignment = await FinderAssignment.findOne({
+    request: request._id,
+    status: { $in: ['active', 'inactive', 'paused'] },
+  });
+
+  if (activeAssignment) {
+    throw new Error('Cannot update request while an assignment is active');
   }
 
   // Prevent restricted field updates
@@ -169,8 +263,16 @@ const deleteRequest = async (requestId, userId) => {
   }
 
   // Verify lifecycle status
-  if (!['pending_payment', 'open'].includes(request.requestStatus)) {
+  if (!['draft', 'pending_payment', 'open'].includes(request.requestStatus)) {
     throw new Error(`Cannot delete/cancel request after it has been assigned or processed`);
+  }
+
+  const activeAssignment = await FinderAssignment.findOne({
+    request: request._id,
+    status: { $in: ['active', 'inactive', 'paused'] },
+  });
+  if (activeAssignment) {
+    throw new Error('Cannot delete request while an assignment is active');
   }
 
   request.requestStatus = 'cancelled';
@@ -184,6 +286,7 @@ const deleteRequest = async (requestId, userId) => {
 
 module.exports = {
   createRequest,
+  publishRequest,
   getMyRequests,
   getAvailableRequests,
   getRequestById,

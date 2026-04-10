@@ -5,8 +5,8 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
 import RequestForm from '../../components/owner/RequestForm';
 import { paymentApi, planApi, requestApi } from '../../services/api';
-import { formatCurrency, getErrorMessage } from '../../utils/helpers';
 import '../../styles/owner/dashboard.css';
+import { formatCurrency, getErrorMessage } from '../../utils/helpers';
 
 const OwnerCreateRequestPage = () => {
   const navigate = useNavigate();
@@ -35,6 +35,7 @@ const OwnerCreateRequestPage = () => {
 
     try {
       const payload = {
+        intent: intent === 'pay_now' ? 'publish' : 'draft',
         itemName: values.itemName,
         itemCategory: values.itemCategory,
         itemDescription: values.description,
@@ -44,12 +45,12 @@ const OwnerCreateRequestPage = () => {
         uniqueIdentifiers: values.uniqueIdentifiers || undefined,
         serialNumber: values.serialNumber || undefined,
         lastSeenLocation: values.lastSeenLocation,
-        lastSeenLat: Number(values.lastSeenLat),
-        lastSeenLng: Number(values.lastSeenLng),
+        lastSeenLat: values.lastSeenLat === '' ? undefined : Number(values.lastSeenLat),
+        lastSeenLng: values.lastSeenLng === '' ? undefined : Number(values.lastSeenLng),
         lastSeenDatetime: values.lastSeenDatetime || undefined,
         serviceDeadline: values.serviceDeadline || undefined,
-        planId: values.servicePlanId,
-        rewardAmount: Number(values.rewardAmount),
+        planId: values.servicePlanId || undefined,
+        rewardAmount: values.rewardAmount === '' ? undefined : Number(values.rewardAmount),
       };
 
       const requestRes = await requestApi.create(payload);
@@ -75,7 +76,7 @@ const OwnerCreateRequestPage = () => {
         await paymentApi.process(paymentId, transactionId);
         toast.success(`Request is live. Payment locked: ${formatCurrency(totalAmount)}`);
       } else {
-        toast.success('Request saved as draft');
+        toast.success('Draft saved. Complete details and payment when ready.');
       }
 
       navigate('/owner/requests');

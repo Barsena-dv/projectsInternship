@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { FiFilter, FiSearch, FiShield, FiTrendingUp } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import EmptyState from '../../components/common/EmptyState';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
-import StatusBadge from '../../components/common/StatusBadge';
-import EmptyState from '../../components/common/EmptyState';
 import { adminApi } from '../../services/api';
 import { formatCurrency, getErrorMessage } from '../../utils/helpers';
-import { FiSearch, FiFilter, FiUserCheck, FiUserX, FiShield, FiTrendingUp } from 'react-icons/fi';
 
 const AdminUsersPage = () => {
   const [loading, setLoading] = useState(true);
@@ -72,7 +71,7 @@ const AdminUsersPage = () => {
 
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Users List Card */}
-        <article className="admin-card flex flex-col h-[700px]">
+        <article className="admin-card flex flex-col h-175">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Active Entities</h3>
             <div className="flex items-center gap-2">
@@ -110,7 +109,7 @@ const AdminUsersPage = () => {
                 <div 
                   key={user._id} 
                   onClick={() => onSelectUser(user._id)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedUser?.user?._id === user._id ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-white/5 border-white/5 hover:bg-white/[0.08]'}`}
+                  className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedUser?.user?._id === user._id ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-white/5 border-white/5 hover:bg-white/8'}`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <p className="font-bold text-white text-sm">{user.full_name}</p>
@@ -134,7 +133,7 @@ const AdminUsersPage = () => {
         </article>
 
         {/* User Deep View Card */}
-        <article className="admin-card h-[700px] flex flex-col">
+        <article className="admin-card h-175 flex flex-col">
           <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Deep Intelligence View</h3>
           
           {!selectedUser ? (
@@ -167,6 +166,14 @@ const AdminUsersPage = () => {
                 <div className="p-4 rounded-xl bg-white/5 border border-white/5">
                    <span className="text-[10px] font-black text-slate-500 uppercase block mb-1">Average Rating</span>
                    <span className="text-2xl font-black text-amber-500">{(selectedUser.user.ratingAvg || 0).toFixed(1)}</span>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                   <span className="text-[10px] font-black text-slate-500 uppercase block mb-1">Trust Score</span>
+                   <span className="text-2xl font-black text-sky-400">{selectedUser.user.trustScore || 0}</span>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                   <span className="text-[10px] font-black text-slate-500 uppercase block mb-1">Verification Level</span>
+                   <span className="text-xs font-black text-white uppercase tracking-wider">{(selectedUser.user.verificationLevel || 'pending_verification').replaceAll('_', ' ')}</span>
                 </div>
               </div>
 

@@ -25,9 +25,54 @@ const evidenceFileSchema = new mongoose.Schema(
     description: String,
     lat: Number,
     lng: Number,
+    hiddenData: {
+      uniqueIdentifyingMarks: {
+        type: String,
+        default: '',
+      },
+      exactPickupLocation: {
+        type: String,
+        default: '',
+      },
+      privateNotes: {
+        type: String,
+        default: '',
+      },
+      foundAt: Date,
+      foundLocationText: {
+        type: String,
+        default: '',
+      },
+    },
+    claimVerification: {
+      ownerAnswers: {
+        identifyingMarks: {
+          type: String,
+          default: '',
+        },
+        contents: {
+          type: String,
+          default: '',
+        },
+        proofReference: {
+          type: String,
+          default: '',
+        },
+      },
+      matchScore: {
+        type: Number,
+        default: 0,
+      },
+      matchOutcome: {
+        type: String,
+        enum: ['match', 'partial', 'mismatch', 'not_checked'],
+        default: 'not_checked',
+      },
+      checkedAt: Date,
+    },
     verificationStatus: {
       type: String,
-      enum: ['pending', 'verified', 'rejected'],
+      enum: ['pending', 'verified', 'rejected', 'needs_admin_review'],
       default: 'pending',
     },
     verifiedBy: {

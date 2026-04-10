@@ -48,8 +48,12 @@ export const authApi = {
     }));
   },
   changePassword: (payload) => unwrap(api.patch('/auth/change-password', payload)),
+  logoutAllDevices: () => unwrap(api.post('/auth/logout-all-devices')),
+  updatePreferences: (payload) => unwrap(api.patch('/auth/preferences', payload)),
   forgotPassword: (email) => unwrap(api.post('/auth/forgot-password', { email })),
   resetPassword: (token, password) => unwrap(api.post(`/auth/reset-password/${token}`, { password })),
+  resendFinderEmailOtp: (email) => unwrap(api.post('/auth/finder/resend-email-otp', { email })),
+  verifyFinderEmailOtp: (email, otpCode) => unwrap(api.post('/auth/finder/verify-email-otp', { email, otpCode })),
 };
 
 export const auditLogApi = {
@@ -65,6 +69,7 @@ export const requestApi = {
   my: () => unwrap(api.get('/requests/my')),
   available: () => unwrap(api.get('/requests/available')),
   byId: (requestId) => unwrap(api.get(`/requests/${requestId}`)),
+  publish: (requestId) => unwrap(api.post(`/requests/${requestId}/publish`)),
   update: (requestId, payload) => unwrap(api.patch(`/requests/${requestId}`, payload)),
   remove: (requestId) => unwrap(api.delete(`/requests/${requestId}`)),
 };
@@ -163,6 +168,7 @@ export const adminApi = {
 
   auditLogs: (params = {}) => unwrap(api.get('/admin/audit-logs', { params })),
   notifications: (params = {}) => unwrap(api.get('/admin/notifications', { params })),
+  broadcastNotification: (payload) => unwrap(api.post('/admin/notifications/broadcast', payload)),
   fraudSignals: (params = {}) => unwrap(api.get('/admin/fraud-signals', { params })),
   settings: () => unwrap(api.get('/admin/settings')),
   updateSettings: (payload) => unwrap(api.patch('/admin/settings', payload)),

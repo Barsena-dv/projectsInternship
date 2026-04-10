@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { FiActivity, FiMapPin, FiNavigation, FiTarget } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FiActivity, FiArrowRight, FiCheckCircle, FiClock, FiDollarSign, FiMapPin, FiNavigation, FiSearch, FiTarget } from 'react-icons/fi';
 import EmptyState from '../../components/common/EmptyState';
 import GlassModal from '../../components/common/GlassModal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -28,6 +28,12 @@ const FinderAvailableRequestsPage = () => {
   const [finderLocation, setFinderLocation] = useState(null);
   const [locating, setLocating] = useState(true);
   const [locationError, setLocationError] = useState('');
+  const [filters, setFilters] = useState({
+    query: '',
+    category: 'all',
+    sort: 'nearest',
+    rewardMin: '',
+  });
 
   const requestCurrentLocation = () => {
     setLocationError('');
@@ -74,23 +80,62 @@ const FinderAvailableRequestsPage = () => {
 
   useEffect(() => { requestCurrentLocation(); load(); }, []);
 
-  const discovery = useMemo(() => {
-    const mapped = items.map((item) => ({
-      ...item,
-      _distanceKm: finderLocation ? calculateDistanceKm(finderLocation, { lat: item?.lastSeenLat, lng: item?.lastSeenLng }) : Infinity,
-    })).sort((a, b) => a._distanceKm - b._distanceKm);
+  const categories = useMemo(() => {
+    const unique = new Set(items.map((item) => String(item?.itemCategory || '').trim()).filter(Boolean));
+    return Array.from(unique).sort((a, b) => a.localeCompare(b));
+  }, [items]);
 
-    if (!finderLocation) return { radiusKm: null, rows: mapped };
+  const discovery = useMemo(() => {
+    const now = Date.now();
+    const mapped = items.map((item) => {
+      const rewardAmount = Number(item?.planId?.rewardAmount || item?.rewardAmount || 0);
+      const deadlineTs = new Date(item?.serviceDeadline || item?.lastSeenDatetime || item?.createdAt || now).getTime();
+      const urgencyHours = Math.max((deadlineTs - now) / (1000 * 60 * 60), 0);
+
+      return {
+        ...item,
+        _rewardAmount: rewardAmount,
+        _urgencyHours: urgencyHours,
+        _distanceKm: finderLocation
+          ? calculateDistanceKm(finderLocation, { lat: item?.lastSeenLat, lng: item?.lastSeenLng })
+          : Infinity,
+      };
+    });
+
+    const normalizedQuery = String(filters.query || '').trim().toLowerCase();
+    const minReward = Number(filters.rewardMin || 0);
+
+    const filtered = mapped.filter((item) => {
+      const queryMatches = !normalizedQuery
+        || String(item?.itemName || '').toLowerCase().includes(normalizedQuery)
+        || String(item?.itemDescription || '').toLowerCase().includes(normalizedQuery)
+        || String(item?.lastSeenLocation || '').toLowerCase().includes(normalizedQuery);
+
+      const categoryMatches = filters.category === 'all'
+        || String(item?.itemCategory || '').toLowerCase() === String(filters.category || '').toLowerCase();
+
+      const rewardMatches = item._rewardAmount >= minReward;
+      return queryMatches && categoryMatches && rewardMatches;
+    });
+
+    filtered.sort((a, b) => {
+      if (filters.sort === 'reward_high') return b._rewardAmount - a._rewardAmount;
+      if (filters.sort === 'urgent') return a._urgencyHours - b._urgencyHours;
+      if (filters.sort === 'newest') return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      return a._distanceKm - b._distanceKm;
+    });
+
+    if (!finderLocation) return { radiusKm: null, rows: filtered };
 
     let chosenRadius = 5;
     let rows = [];
     for (let r = 1; r <= 5; r++) {
-      const inRange = mapped.filter(item => item._distanceKm <= r);
+      const inRange = filtered.filter(item => item._distanceKm <= r);
       if (inRange.length > 0) { chosenRadius = r; rows = inRange; break; }
     }
-    if (rows.length === 0) rows = mapped.filter(item => item._distanceKm <= 5);
+    if (rows.length === 0) rows = filtered.filter(item => item._distanceKm <= 5);
     return { radiusKm: chosenRadius, rows };
-  }, [finderLocation, items]);
+  }, [finderLocation, items, filters]);
 
   const accept = async (requestId, payload = {}) => {
     try {
@@ -127,7 +172,7 @@ const FinderAvailableRequestsPage = () => {
         title="Signal Discovery"
         subtitle="Detection radar for nearby recovery missions within a 5km operational radius"
         actions={(
-          <button onClick={requestCurrentLocation} className="pnf-btn-primary !px-5 flex items-center gap-2">
+          <button onClick={requestCurrentLocation} className="pnf-btn-primary px-5! flex items-center gap-2">
             <FiNavigation size={14} /> <span className="uppercase text-[10px] tracking-widest">Recalibrate Radar</span>
           </button>
         )}
@@ -137,7 +182,7 @@ const FinderAvailableRequestsPage = () => {
         
         {/* Radar Status Side */}
         <div className="lg:col-span-4 space-y-6">
-           <div className="finder-section-card bg-emerald-500/5 !border-emerald-500/10">
+           <div className="finder-section-card bg-emerald-500/5 border-emerald-500/10!">
               <span className={sectionLabel}>Radar Analytics</span>
               <div className="space-y-6">
                  <div className="flex justify-between items-center text-xs">
@@ -173,6 +218,47 @@ const FinderAvailableRequestsPage = () => {
 
         {/* Discovery List */}
         <div className="lg:col-span-8 space-y-6">
+          <div className="finder-section-card bg-slate-950/70">
+            <span className={sectionLabel}>Discovery Filters</span>
+            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
+              <input
+                className="pnf-input"
+                type="text"
+                placeholder="Search item/location"
+                value={filters.query}
+                onChange={(event) => setFilters((prev) => ({ ...prev, query: event.target.value }))}
+              />
+              <select
+                className="pnf-input"
+                value={filters.category}
+                onChange={(event) => setFilters((prev) => ({ ...prev, category: event.target.value }))}
+              >
+                <option value="all">All categories</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+              <input
+                className="pnf-input"
+                type="number"
+                min="0"
+                placeholder="Min reward"
+                value={filters.rewardMin}
+                onChange={(event) => setFilters((prev) => ({ ...prev, rewardMin: event.target.value }))}
+              />
+              <select
+                className="pnf-input"
+                value={filters.sort}
+                onChange={(event) => setFilters((prev) => ({ ...prev, sort: event.target.value }))}
+              >
+                <option value="nearest">Sort: nearest</option>
+                <option value="reward_high">Sort: reward high</option>
+                <option value="urgent">Sort: urgent</option>
+                <option value="newest">Sort: newest</option>
+              </select>
+            </div>
+          </div>
+
           {discovery.rows.length === 0 ? (
             <EmptyState title="Operational Void" description="No open recovery signals detected on this frequency." />
           ) : (
@@ -184,13 +270,13 @@ const FinderAvailableRequestsPage = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
-                     <div className="hidden sm:flex w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 items-center justify-center text-emerald-500 flex-shrink-0 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all duration-300">
+                     <div className="hidden sm:flex w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 items-center justify-center text-emerald-500 shrink-0 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all duration-300">
                         <FiActivity size={32} />
                      </div>
                      <div className="flex-1 w-full">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2 pr-16 sm:pr-12">
                            <h3 className="text-base sm:text-lg font-black text-white">{item.itemName}</h3>
-                           <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest break-words max-w-full">
+                           <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest wrap-break-word max-w-full">
                              {item?.planId?.planName}
                            </span>
                         </div>

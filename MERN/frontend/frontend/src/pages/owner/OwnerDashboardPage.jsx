@@ -11,6 +11,7 @@ import { assignmentApi, notificationApi, paymentApi, requestApi } from '../../se
 import { formatDate, getErrorMessage } from '../../utils/helpers';
 import { deriveOwnerLifecycleState } from '../../utils/requestLifecycle';
 import { useScrollReveal } from '../../hooks/useScrollReveal';
+import { useAuth } from '../../hooks/useAuth';
 import '../../styles/owner/dashboard.css';
 
 const RevealWrapper = ({ children, className = '', delay = '' }) => {
@@ -48,6 +49,7 @@ const deriveTimelineItems = (requests) =>
     }));
 
 const OwnerDashboardPage = () => {
+  const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,8 +134,16 @@ const OwnerDashboardPage = () => {
       {/* Page header */}
       <div className="owner-page-header flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="owner-page-title">Management Dashboard</h1>
-          <p className="owner-page-subtitle">Real-time overview of your recovery operations</p>
+          <h1 className="owner-page-title">
+            {(() => {
+              const h = new Date().getHours();
+              const firstName = (user?.full_name || '').split(' ')[0] || 'there';
+              if (h < 12) return `Good morning, ${firstName}`;
+              if (h < 17) return `Good afternoon, ${firstName}`;
+              return `Good evening, ${firstName}`;
+            })()}
+          </h1>
+          <p className="owner-page-subtitle">Here's an overview of your recovery operations</p>
         </div>
         <div className="flex items-center gap-2">
            <button 

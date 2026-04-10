@@ -9,16 +9,16 @@ const lostItemRequestSchema = new mongoose.Schema(
     },
     itemName: {
       type: String,
-      required: true,
+      default: '',
       trim: true,
     },
     itemCategory: {
       type: String,
-      required: true,
+      default: '',
     },
     itemDescription: {
       type: String,
-      required: true,
+      default: '',
     },
     brand: String,
     model: String,
@@ -28,22 +28,22 @@ const lostItemRequestSchema = new mongoose.Schema(
     lastSeenLocation: String,
     lastSeenLat: {
       type: Number,
-      required: true,
+      default: null,
     },
     lastSeenLng: {
       type: Number,
-      required: true,
+      default: null,
     },
     lastSeenDatetime: Date,
     serviceDeadline: Date,
     planId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ServicePlan',
-      required: true,
+      default: null,
     },
     requestStatus: {
       type: String,
-      enum: ['pending_payment', 'open', 'assigned', 'found', 'completed', 'cancelled', 'failed'],
+      enum: ['draft', 'pending_payment', 'open', 'assigned', 'found', 'completed', 'cancelled', 'failed'],
       default: 'pending_payment',
     },
     itemConfirmed: {

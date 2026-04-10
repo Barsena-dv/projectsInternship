@@ -41,6 +41,18 @@ const trackingUpdateSchema = new mongoose.Schema(
       default: null,
     },
     remarks: String,
+    anomalyFlag: {
+      type: Boolean,
+      default: false,
+    },
+    anomalyReason: {
+      type: String,
+      default: '',
+    },
+    speedKmph: {
+      type: Number,
+      default: 0,
+    },
     createdAt: {
       type: Date,
       default: Date.now,

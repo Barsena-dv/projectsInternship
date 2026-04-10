@@ -2,10 +2,12 @@ const Dispute = require('./dispute.model');
 const FinderAssignment = require('../assignments/assignment.model');
 const EvidenceFile = require('../evidence/evidence.model');
 const Payment = require('../payments/payment.model');
-const paymentService = require('../payments/payment.service');
+const refundService = require('../refunds/refund.service');
 const { createNotification } = require('../notifications/notification.service');
 const User = require('../users/user.model');
 const LostItemRequest = require('../requests/request.model');
+const payoutService = require('../payouts/payout.service');
+const assignmentService = require('../assignments/assignment.service');
 
 /**
  * Raise a dispute (Escalation after conflict)
@@ -86,25 +88,34 @@ const resolveDispute = async (disputeId, adminDecision, resolutionDetails, admin
   if (!dispute || dispute.status === 'resolved') throw new Error('Invalid or resolved dispute');
 
   const assignment = await FinderAssignment.findById(dispute.assignment).populate('request');
+  if (!assignment) throw new Error('Assignment not found for dispute');
+
   const payment = await Payment.findOne({ request: assignment.request._id });
+  if (!payment) throw new Error('Payment not found for dispute assignment');
 
   if (adminDecision === 'owner_wins') {
     // CASE 1: Owner wins -> Refund + Cancel
-    await paymentService.refundPayment(payment._id);
+    await refundService.processRefund(payment._id, `Dispute resolved (owner_wins): ${resolutionDetails}`);
     assignment.status = 'cancelled';
   } else if (adminDecision === 'finder_wins') {
     // CASE 2: Finder wins -> Force Release + Complete
-    payment.paymentStatus = 'released';
-    payment.releasedAt = new Date();
-    payment.releaseReason = 'Admin resolution: ' + resolutionDetails;
-    await payment.save();
+    if (payment.paymentStatus !== 'released') {
+      payment.paymentStatus = 'released';
+      payment.releasedAt = new Date();
+      payment.releaseReason = 'Admin resolution: ' + resolutionDetails;
+      await payment.save();
+    }
 
     assignment.status = 'completed';
+    assignment.evidenceVerified = true;
+    assignment.chatUnlocked = true;
+    assignment.unlockTime = assignment.unlockTime || new Date();
     
     // TRIGGER PAYOUT for finder
     try {
-        const plan = await ServicePlan.findById(payment.servicePlan);
-        const finderReward = (payment.amount * (plan?.finderPercent || 90)) / 100;
+        const paymentWithPlan = await Payment.findById(payment._id).populate('servicePlan');
+        const settlement = assignmentService.calculateSettlementAmounts(paymentWithPlan || payment, 'success');
+        const finderReward = Number(settlement.successRewardAmount || (payment.amount * 0.7));
         
         await payoutService.createPayout(
           payment._id,
@@ -118,10 +129,13 @@ const resolveDispute = async (disputeId, adminDecision, resolutionDetails, admin
 
     const request = await LostItemRequest.findById(assignment.request._id);
     if (request) {
-        request.requestStatus = 'found';
+        request.requestStatus = 'completed';
         request.itemConfirmed = true;
+        request.confirmationDate = new Date();
         await request.save();
     }
+  } else {
+    throw new Error('adminDecision must be owner_wins or finder_wins');
   }
 
   // Update dispute status
@@ -163,8 +177,11 @@ const getDispute = async (assignmentId) => {
   return await Dispute.findOne({ assignment: assignmentId }).sort({ createdAt: -1 });
 };
 
+const getDisputeByAssignment = async (assignmentId) => getDispute(assignmentId);
+
 module.exports = {
   createDispute,
   resolveDispute,
   getDispute,
+  getDisputeByAssignment,
 };

@@ -1,11 +1,13 @@
 const Payment = require('./payment.model');
 const LostItemRequest = require('../requests/request.model');
 const FinderAssignment = require('../assignments/assignment.model');
+const User = require('../users/user.model');
 const ServicePlan = require('../servicePlans/servicePlan.model');
 const Conversation = require('../chat/conversation.model');
 const { createNotification } = require('../notifications/notification.service');
 const payoutService = require('../payouts/payout.service');
 const { addTimelineEvent } = require('../assignments/assignmentTimeline.service');
+const { applyTrustEvent } = require('../../utils/trust');
 
 const round2 = (value) => Number(Number(value || 0).toFixed(2));
 
@@ -140,6 +142,13 @@ const releasePayment = async (paymentId, userId, reason = '') => {
   // Finalize assignment
   assignment.status = 'completed';
   await assignment.save();
+
+  const finderUser = await User.findById(assignment.finder);
+  if (finderUser) {
+    applyTrustEvent(finderUser, 'SUCCESSFUL_RETURN');
+    finderUser.finderStatus = 'verified';
+    await finderUser.save();
+  }
 
   // End chat once assignment is completed, while preserving history.
   await Conversation.findOneAndUpdate(

@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    FiActivity,
+    FiClock, FiCloud,
+    FiMapPin, FiNavigation, FiPlus,
+    FiSearch,
+    FiShield, FiTarget, FiTrash2, FiVideo, FiZap
+} from 'react-icons/fi';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { 
-  FiActivity, FiArrowRight, FiCheckCircle, FiClock, FiCloud, 
-  FiInfo, FiLayers, FiMapPin, FiNavigation, FiPlus, 
-  FiShield, FiTarget, FiTrash2, FiVideo, FiZap, FiSearch 
-} from 'react-icons/fi';
 import EmptyState from '../../components/common/EmptyState';
 import GlassModal from '../../components/common/GlassModal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
 import StatusBadge from '../../components/common/StatusBadge';
-import { assignmentApi, evidenceApi, payoutApi, trackingApi } from '../../services/api';
+import { assignmentApi, evidenceApi, trackingApi } from '../../services/api';
 import { deriveFinderLifecycleState, getFinderLifecycleMessage, isDeadlineMissed } from '../../utils/finderLifecycle';
 import { formatCurrency, formatDate, getErrorMessage } from '../../utils/helpers';
 
@@ -98,7 +100,15 @@ const FinderAssignmentDetailsPage = () => {
   const [pauseLoading, setPauseLoading] = useState(false);
 
   const [trackingForm, setTrackingForm] = useState({ message: '', locationSource: LOCATION_MODES.CURRENT, locationName: '' });
-  const [evidenceForm, setEvidenceForm] = useState({ description: '', files: [] });
+   const [evidenceForm, setEvidenceForm] = useState({
+      description: '',
+      files: [],
+      uniqueIdentifyingMarks: '',
+      exactPickupLocation: '',
+      privateNotes: '',
+      foundAt: '',
+      foundLocationText: '',
+   });
   const [evidenceValidationError, setEvidenceValidationError] = useState('');
 
   const selectedEvidencePreviews = useMemo(() => (evidenceForm.files || []).map((file) => ({
@@ -148,6 +158,8 @@ const FinderAssignmentDetailsPage = () => {
   const finderDeadlineValue = assignment?.deadlineAt;
   const finderDeadlineMissed = isDeadlineMissed(finderDeadlineValue);
   const canAddTracking = !['completed', 'cancelled', 'expired', 'failed'].includes(lifecycleState);
+   const trackingMissedCount = Number(assignment?.trackingMissedCount || 0);
+   const trackingWarningCount = Number(assignment?.trackingWarningCount || 0);
   const evidenceStatus = String(evidence?.verificationStatus || '').toLowerCase();
   const canUploadEvidence = canAddTracking && !finderDeadlineMissed && (!evidence || evidenceStatus === 'rejected');
   const chatEnabled = (lifecycleState === 'verified' || Boolean(assignment?.chatUnlocked) || lifecycleState === 'completed') && !['expired', 'failed'].includes(lifecycleState);
@@ -157,6 +169,16 @@ const FinderAssignmentDetailsPage = () => {
     const tick = () => setRemainingMs(Math.max(new Date(finderDeadlineValue).getTime() - Date.now(), 0));
     tick(); const timer = setInterval(tick, 1000); return () => clearInterval(timer);
   }, [finderDeadlineValue]);
+
+   useEffect(() => {
+      if (!autoTrackingEnabled || !canAddTracking || finderDeadlineMissed) return undefined;
+
+      const timer = setInterval(() => {
+         toast.info('Tracking reminder: post GPS/manual update to keep assignment active.');
+      }, AUTO_TRACKING_INTERVAL_MS);
+
+      return () => clearInterval(timer);
+   }, [autoTrackingEnabled, canAddTracking, finderDeadlineMissed]);
 
   const submitTrackingUpdate = async (e) => {
     e.preventDefault();
@@ -181,14 +203,30 @@ const FinderAssignmentDetailsPage = () => {
   const submitEvidence = async (e) => {
     e.preventDefault();
     if (!evidenceForm.files.length || !evidenceForm.description.trim()) return toast.error('Complete forensics profile required.');
+      if (!evidenceForm.uniqueIdentifyingMarks.trim()) return toast.error('Unique identifying marks are required for claim verification.');
     const validation = await validateEvidenceFiles(evidenceForm.files);
     if (!validation.valid) return toast.error(validation.message);
     try {
       setSubmittingEvidence(true);
       const fd = new FormData(); fd.append('description', evidenceForm.description);
+         fd.append('uniqueIdentifyingMarks', evidenceForm.uniqueIdentifyingMarks);
+         fd.append('exactPickupLocation', evidenceForm.exactPickupLocation);
+         fd.append('privateNotes', evidenceForm.privateNotes);
+         fd.append('foundAt', evidenceForm.foundAt);
+         fd.append('foundLocationText', evidenceForm.foundLocationText);
       Array.from(evidenceForm.files).forEach(f => fd.append('files', f));
       await evidenceApi.upload(assignmentId, fd); toast.success('Forensic package broadcasted.');
-      setEvidenceForm({ description: '', files: [] }); setEvidenceModalOpen(false); loadData();
+         setEvidenceForm({
+            description: '',
+            files: [],
+            uniqueIdentifyingMarks: '',
+            exactPickupLocation: '',
+            privateNotes: '',
+            foundAt: '',
+            foundLocationText: '',
+         });
+         setEvidenceModalOpen(false);
+         loadData();
     } catch (err) { toast.error(getErrorMessage(err)); } finally { setSubmittingEvidence(false); }
   };
 
@@ -225,8 +263,8 @@ const FinderAssignmentDetailsPage = () => {
         
         {/* Left Column: Tactical Timeline (STACKS BELOW INTEL ON MOBILE) */}
         <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-6 sm:space-y-8 order-2 lg:order-1">
-           <div className="finder-section-card !p-0 overflow-hidden border-emerald-500/10 shadow-[0_0_50px_rgba(16,185,129,0.05)]">
-              <div className="p-6 sm:p-8 border-b border-white/5 bg-white/[0.02]">
+           <div className="finder-section-card p-0! overflow-hidden border-emerald-500/10 shadow-[0_0_50px_rgba(16,185,129,0.05)]">
+              <div className="p-6 sm:p-8 border-b border-white/5 bg-white/2">
                 <span className={sectionLabel}>Missions Timeline</span>
                 <h3 className="text-lg sm:text-xl font-black text-white">Extraction Logs</h3>
               </div>
@@ -234,7 +272,7 @@ const FinderAssignmentDetailsPage = () => {
                 {timeline.length === 0 ? (
                   <p className="text-xs text-slate-500 italic">Static feedback. No events recorded.</p>
                 ) : (
-                  <div className="space-y-8 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-white/10">
+                  <div className="space-y-8 relative before:absolute before:left-2.75 before:top-2 before:bottom-2 before:w-px before:bg-white/10">
                      {timeline.map((entry, i) => (
                        <div key={entry._id} className="relative pl-10 group">
                           <div className={`absolute left-0 top-1 w-6 h-6 rounded-lg border flex items-center justify-center z-10 transition-all ${i === 0 ? 'bg-emerald-500 border-emerald-500 text-slate-950 scale-110 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-slate-900 border-white/10 text-slate-500 group-hover:border-emerald-500/50'}`}>
@@ -258,7 +296,7 @@ const FinderAssignmentDetailsPage = () => {
 
            {/* Financial Synchronization */}
            {lifecycleState === 'completed' && payout && (
-             <div className="finder-section-card bg-emerald-500/10 !border-emerald-500/20">
+             <div className="finder-section-card bg-emerald-500/10 border-emerald-500/20!">
                 <span className={sectionLabel}>Rewards System</span>
                 <h3 className="text-lg sm:text-xl font-black text-white mb-6 underline decoration-emerald-500/30">Payout Synchronized</h3>
                 <div className="space-y-4">
@@ -285,7 +323,7 @@ const FinderAssignmentDetailsPage = () => {
         <div className="lg:col-span-8 space-y-8 order-1 lg:order-2">
            
            {/* Tactical Information Card */}
-           <div className="finder-section-card f-hologram-effect !bg-slate-900/40 overflow-hidden">
+           <div className="finder-section-card f-hologram-effect bg-slate-900/40! overflow-hidden">
               <span className={sectionLabel}>Mission Intelligence</span>
               <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-8">
                  <div>
@@ -311,7 +349,7 @@ const FinderAssignmentDetailsPage = () => {
                  <div className="mt-6 pt-6 border-t border-white/5">
                     <span className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Financial Protocol Breakdown</span>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                       <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                       <div className="p-4 rounded-xl bg-white/2 border border-white/5">
                           <span className="text-[8px] font-bold text-slate-500 uppercase block mb-1">Total Target</span>
                           <p className="text-base sm:text-lg font-black text-white">
                              {formatCurrency(payout?.payoutAmount || assignment?.request?.rewardAmount)}
@@ -360,6 +398,14 @@ const FinderAssignmentDetailsPage = () => {
 
               {/* Status Specific Alerts */}
               <div className="mt-6 flex flex-col gap-3">
+                         {!finderDeadlineMissed && canAddTracking && (
+                            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] sm:text-xs font-bold flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                 <span className="text-slate-300">
+                                    Tracking SLA: Missed windows <span className="text-amber-400">{trackingMissedCount}</span>, warnings <span className="text-emerald-400">{trackingWarningCount}</span>.
+                                 </span>
+                                 <span className="text-slate-500">Post update every ~15 minutes to avoid auto-fail.</span>
+                            </div>
+                         )}
                  {finderDeadlineMissed && (
                    <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] sm:text-xs font-bold flex items-center gap-3 animate-pulse">
                       <FiZap size={16} className="shrink-0" /> SIGNAL LOST: Tactical deadline exceeded.
@@ -388,6 +434,12 @@ const FinderAssignmentDetailsPage = () => {
                       <button onClick={() => setTrackingModalOpen(true)} className="px-6 py-3 bg-emerald-500/5 text-emerald-500 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/10 transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
                          <FiNavigation size={14} /> Broadcast Observation
                       </button>
+                                 <button
+                                    onClick={() => setAutoTrackingEnabled((prev) => !prev)}
+                                    className={`px-6 py-3 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${autoTrackingEnabled ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' : 'text-slate-400 border-white/10 hover:text-white hover:bg-white/5'}`}
+                                 >
+                                    {autoTrackingEnabled ? 'Auto Reminder: On' : 'Auto Reminder: Off'}
+                                 </button>
                    </div>
                  )}
                  {chatEnabled && (
@@ -399,7 +451,7 @@ const FinderAssignmentDetailsPage = () => {
            </div>
 
            {/* Evidence Section */}
-           <div className="finder-section-card !bg-slate-900/40 overflow-hidden">
+           <div className="finder-section-card bg-slate-900/40! overflow-hidden">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
                  <div>
                     <span className={sectionLabel}>Forensic Documentation</span>
@@ -418,10 +470,10 @@ const FinderAssignmentDetailsPage = () => {
 
               {evidence && (
                 <div className="space-y-8">
-                   <div className="p-4 sm:p-6 rounded-2xl bg-white/[0.03] border border-white/5 border-l-4 border-l-emerald-500">
+                   <div className="p-4 sm:p-6 rounded-2xl bg-white/3 border border-white/5 border-l-4 border-l-emerald-500">
                       <span className="text-[9px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-3">Transmission Remarks</span>
                       <p className="text-xs sm:text-sm text-slate-300 italic leading-relaxed">"{evidence.description}"</p>
-                    <div className="mt-4 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-[0.1em]">
+                    <div className="mt-4 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">
                        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                           <span className="flex items-center gap-2"><FiCloud size={14} className="text-emerald-500/50" /> {formatDate(evidence.createdAt)}</span>
                           <span className="flex items-center gap-2"><FiShield size={14} className="text-emerald-500/50" /> <span className={evidenceStatus === 'verified' ? 'text-emerald-400' : 'text-amber-400'}>{evidenceStatus.toUpperCase()}</span></span>
@@ -480,7 +532,7 @@ const FinderAssignmentDetailsPage = () => {
                 <button 
                   type="button"
                   onClick={() => { setTrackingModalOpen(false); setEvidenceModalOpen(true); }}
-                  className="pnf-input !bg-emerald-500/10 !border-emerald-500/20 text-emerald-500 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-500/20"
+                  className="pnf-input bg-emerald-500/10! border-emerald-500/20! text-emerald-500 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-500/20"
                 >
                   <FiPlus size={14} /> Attach Forensic Package
                 </button>
@@ -507,8 +559,63 @@ const FinderAssignmentDetailsPage = () => {
          <form id="evidence-form" onSubmit={submitEvidence} className="space-y-6">
             <div className="space-y-2">
                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Forensic Narrative</label>
-               <textarea className="pnf-input !bg-slate-950/50" rows={3} placeholder="Describe the extraction environment and specific item condition..." value={evidenceForm.description} onChange={e => setEvidenceForm(f => ({...f, description: e.target.value}))} disabled={submittingEvidence} required />
+               <textarea className="pnf-input bg-slate-950/50!" rows={3} placeholder="Describe the extraction environment and specific item condition..." value={evidenceForm.description} onChange={e => setEvidenceForm(f => ({...f, description: e.target.value}))} disabled={submittingEvidence} required />
             </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Unique Identifying Marks (Hidden)</label>
+                        <input
+                           className="pnf-input bg-slate-950/50!"
+                           placeholder="Scratch pattern, sticker, engraving"
+                           value={evidenceForm.uniqueIdentifyingMarks}
+                           onChange={(e) => setEvidenceForm((f) => ({ ...f, uniqueIdentifyingMarks: e.target.value }))}
+                           disabled={submittingEvidence}
+                           required
+                        />
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Exact Pickup Location (Hidden)</label>
+                        <input
+                           className="pnf-input bg-slate-950/50!"
+                           placeholder="Exact shelf/spot/desk location"
+                           value={evidenceForm.exactPickupLocation}
+                           onChange={(e) => setEvidenceForm((f) => ({ ...f, exactPickupLocation: e.target.value }))}
+                           disabled={submittingEvidence}
+                        />
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Found Date/Time</label>
+                        <input
+                           type="datetime-local"
+                           className="pnf-input bg-slate-950/50!"
+                           value={evidenceForm.foundAt}
+                           onChange={(e) => setEvidenceForm((f) => ({ ...f, foundAt: e.target.value }))}
+                           disabled={submittingEvidence}
+                        />
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Found Location (Public)</label>
+                        <input
+                           className="pnf-input bg-slate-950/50!"
+                           placeholder="Mall parking level 2, gate B"
+                           value={evidenceForm.foundLocationText}
+                           onChange={(e) => setEvidenceForm((f) => ({ ...f, foundLocationText: e.target.value }))}
+                           disabled={submittingEvidence}
+                        />
+                     </div>
+                     <div className="sm:col-span-2 space-y-2">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Private Notes (Hidden)</label>
+                        <textarea
+                           className="pnf-input bg-slate-950/50!"
+                           rows={2}
+                           placeholder="Extra hidden details for owner-claim verification"
+                           value={evidenceForm.privateNotes}
+                           onChange={(e) => setEvidenceForm((f) => ({ ...f, privateNotes: e.target.value }))}
+                           disabled={submittingEvidence}
+                        />
+                     </div>
+                  </div>
             
             <div className="space-y-4">
                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Uplink Vectors</label>

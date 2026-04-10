@@ -96,7 +96,17 @@ const OwnerEvidenceVerificationPage = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [verifyState, setVerifyState] = useState({ open: false, evidenceId: '', verified: true, notes: '' });
+  const [verifyState, setVerifyState] = useState({
+    open: false,
+    evidenceId: '',
+    verified: true,
+    notes: '',
+    claimAnswers: {
+      identifyingMarks: '',
+      contents: '',
+      proofReference: '',
+    },
+  });
 
   const loadData = async () => {
     try {
@@ -132,18 +142,38 @@ const OwnerEvidenceVerificationPage = () => {
   }, []);
 
   const verify = async (evidenceId, verified) => {
-    setVerifyState({ open: true, evidenceId, verified, notes: '' });
+    setVerifyState({
+      open: true,
+      evidenceId,
+      verified,
+      notes: '',
+      claimAnswers: {
+        identifyingMarks: '',
+        contents: '',
+        proofReference: '',
+      },
+    });
   };
 
   const submitVerification = async () => {
-    const { evidenceId, verified, notes } = verifyState;
+    const { evidenceId, verified, notes, claimAnswers } = verifyState;
     if (!evidenceId) return;
 
     try {
       setActionLoading(true);
-      await evidenceApi.verify(evidenceId, { verified, notes });
+      await evidenceApi.verify(evidenceId, { verified, notes, claimAnswers });
       toast.success(verified ? 'Evidence accepted' : 'Evidence rejected');
-      setVerifyState({ open: false, evidenceId: '', verified: true, notes: '' });
+      setVerifyState({
+        open: false,
+        evidenceId: '',
+        verified: true,
+        notes: '',
+        claimAnswers: {
+          identifyingMarks: '',
+          contents: '',
+          proofReference: '',
+        },
+      });
       await loadData();
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -194,13 +224,63 @@ const OwnerEvidenceVerificationPage = () => {
       <GlassModal
         open={verifyState.open}
         title={verifyState.verified ? 'Accept Evidence' : 'Reject Evidence'}
-        subtitle="Add optional notes before submitting your decision."
-        onClose={() => setVerifyState({ open: false, evidenceId: '', verified: true, notes: '' })}
+        subtitle={verifyState.verified ? 'Provide claim details for hidden-data matching before approval.' : 'Add rejection notes before submitting your decision.'}
+        onClose={() => setVerifyState({
+          open: false,
+          evidenceId: '',
+          verified: true,
+          notes: '',
+          claimAnswers: {
+            identifyingMarks: '',
+            contents: '',
+            proofReference: '',
+          },
+        })}
         onConfirm={submitVerification}
         confirmText={verifyState.verified ? 'Accept' : 'Reject'}
         confirmClassName={verifyState.verified ? 'pnf-btn-primary' : 'rounded-lg border border-rose-600 bg-rose-600 text-white'}
         loading={actionLoading}
       >
+        {verifyState.verified ? (
+          <div className="mb-4 grid gap-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Identifying Marks</label>
+              <input
+                className="pnf-input"
+                value={verifyState.claimAnswers.identifyingMarks}
+                onChange={(e) => setVerifyState((prev) => ({
+                  ...prev,
+                  claimAnswers: { ...prev.claimAnswers, identifyingMarks: e.target.value },
+                }))}
+                placeholder="Color, scratches, sticker marks, unique traits"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Contents / Item Details</label>
+              <input
+                className="pnf-input"
+                value={verifyState.claimAnswers.contents}
+                onChange={(e) => setVerifyState((prev) => ({
+                  ...prev,
+                  claimAnswers: { ...prev.claimAnswers, contents: e.target.value },
+                }))}
+                placeholder="What was inside / exact details"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Proof Reference</label>
+              <input
+                className="pnf-input"
+                value={verifyState.claimAnswers.proofReference}
+                onChange={(e) => setVerifyState((prev) => ({
+                  ...prev,
+                  claimAnswers: { ...prev.claimAnswers, proofReference: e.target.value },
+                }))}
+                placeholder="Bill ID / IMEI / purchase screenshot reference"
+              />
+            </div>
+          </div>
+        ) : null}
         <label className="mb-1 block text-sm font-medium text-slate-700">Notes</label>
         <textarea
           className="pnf-input"

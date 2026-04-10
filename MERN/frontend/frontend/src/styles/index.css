@@ -1,28 +1,28 @@
 /* ============================================================
-   POSTNFIND — GLOBAL BASE (Light + Dark Combo)
-   Philosophy: Off-white content area, dark navy header, 
-               indigo accent, crisp Inter typography
+   POSTNFIND — GLOBAL BASE (Dark-first Premium Design System)
+   Philosophy: Deep immersive backgrounds, glassmorphism surfaces,
+               role-based accent colors, crisp Inter typography
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
 @import 'tailwindcss';
 
 /* ---- Global tokens ---- */
 :root {
   /* Backgrounds */
-  --pnf-bg:          #f4f6fb;
-  --pnf-surface:     #ffffff;
-  --pnf-surface-alt: #f8fafc;
-  --pnf-nav-bg:      #131929;
+  --pnf-bg:          #030712;
+  --pnf-surface:     rgba(15, 23, 42, 0.6);
+  --pnf-surface-alt: rgba(30, 41, 59, 0.4);
+  --pnf-nav-bg:      #0f172a;
 
   /* Text */
-  --pnf-text:        #111827;
-  --pnf-text-2:      #374151; /* Darker gray for light mode */
-  --pnf-text-3:      #6b7280; /* Stronger gray for inputs/labels */
-  --pnf-text-bright: #f8fafc; /* Pure bright text for dark contexts */
+  --pnf-text:        #f1f5f9;
+  --pnf-text-2:      #cbd5e1;
+  --pnf-text-3:      #94a3b8;
+  --pnf-text-bright: #f8fafc;
 
   /* Border */
-  --pnf-border:      #e5e7eb;
-  --pnf-border-2:    #d1d5db;
+  --pnf-border:      rgba(255, 255, 255, 0.08);
+  --pnf-border-2:    rgba(255, 255, 255, 0.12);
 
   /* Accent — indigo */
   --pnf-accent:      #6366f1;
@@ -30,10 +30,17 @@
   --pnf-accent-glow: rgba(99,102,241,0.2);
 
   /* Shadows */
-  --pnf-shadow-xs:   0 1px 2px rgba(0,0,0,0.05);
-  --pnf-shadow-sm:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --pnf-shadow-md:   0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
-  --pnf-shadow-lg:   0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+  --pnf-shadow-xs:   0 1px 2px rgba(0,0,0,0.2);
+  --pnf-shadow-sm:   0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.03) inset;
+  --pnf-shadow-md:   0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  --pnf-shadow-lg:   0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06) inset;
+
+  /* Radius scale */
+  --pnf-radius-sm: 8px;
+  --pnf-radius-md: 12px;
+  --pnf-radius-lg: 16px;
+  --pnf-radius-xl: 20px;
+  --pnf-radius-2xl: 24px;
 }
 
 * { box-sizing: border-box; }
@@ -45,11 +52,22 @@ html, body {
   color: var(--pnf-text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 #root { min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* Global link reset */
+a { text-decoration: none; color: inherit; }
+
+/* ---- Focus Accessibility ---- */
+:focus-visible {
+  outline: 2px solid var(--pnf-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
 /* ---- Scrollbar Utility ---- */
 .pnf-no-scrollbar {
@@ -60,19 +78,22 @@ html, body {
   display: none;
 }
 
-
-
-
-
 /* ---- Typography Scale ---- */
-h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
+h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; line-height: 1.2; }
 
 /* ---- Utility card ---- */
 .pnf-card {
   background: var(--pnf-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--pnf-border);
-  border-radius: 12px;
+  border-radius: var(--pnf-radius-lg);
   box-shadow: var(--pnf-shadow-sm);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pnf-card:hover {
+  border-color: var(--pnf-border-2);
+  box-shadow: var(--pnf-shadow-md);
 }
 
 /* ---- Buttons ---- */
@@ -81,54 +102,123 @@ h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
   color: #fff;
   border: 1px solid var(--pnf-accent);
   font-family: inherit;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
+  border-radius: var(--pnf-radius-md);
+  padding: 0.5rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
 }
-.pnf-btn-primary:hover { background: #5558e3; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+.pnf-btn-primary:hover {
+  background: #5558e3;
+  box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+  transform: translateY(-1px);
+}
+.pnf-btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
 
 .pnf-btn-outline {
   border: 1px solid var(--pnf-border-2);
   color: var(--pnf-text-2);
   background: var(--pnf-surface);
   font-family: inherit;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
+  border-radius: var(--pnf-radius-md);
+  padding: 0.5rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.pnf-btn-outline:hover { border-color: var(--pnf-border-2); background: var(--pnf-surface-alt); color: var(--pnf-text); }
+.pnf-btn-outline:hover {
+  border-color: var(--pnf-border-2);
+  background: rgba(255,255,255,0.05);
+  color: var(--pnf-text);
+}
+.pnf-btn-outline:active {
+  transform: scale(0.98);
+}
 
 /* ---- Input ---- */
 .pnf-input {
   width: 100%;
   border: 1px solid var(--pnf-border);
-  border-radius: 8px;
-  padding: 0.575rem 0.875rem;
+  border-radius: var(--pnf-radius-md);
+  padding: 0.625rem 1rem;
   font-size: 0.875rem;
   outline: none;
-  background: var(--pnf-surface);
+  background: rgba(15, 23, 42, 0.4);
   color: var(--pnf-text);
   font-family: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
-.pnf-input:focus { border-color: var(--pnf-accent); box-shadow: 0 0 0 3px var(--pnf-accent-dim); }
+.pnf-input:focus {
+  border-color: var(--pnf-accent);
+  background: rgba(15, 23, 42, 0.6);
+  box-shadow: 0 0 0 3px var(--pnf-accent-dim);
+}
 .pnf-input::placeholder { color: var(--pnf-text-3); }
+
+/* Select dropdown fix for dark theme */
+.pnf-input option {
+  background: #1e293b;
+  color: var(--pnf-text);
+}
 
 /* ---- Modal Surface ---- */
 .pnf-modal-panel {
-  background: rgba(15, 23, 42, 0.92) !important; /* Rich deep slate for high contrast */
+  background: rgba(15, 23, 42, 0.92) !important;
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 
-/* ---- Page enter animation ---- */
+/* ============================================================
+   PAGE MOUNT TRANSITION
+   ============================================================ */
+
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pnf-page-enter {
+  animation: pageSlideIn 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ============================================================
+   SKELETON SHIMMER
+   ============================================================ */
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.pnf-skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--pnf-radius-sm);
+}
+
+/* ============================================================
+   NOISE OVERLAY (for textured backgrounds)
+   ============================================================ */
+
+.pnf-noise::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
 
 /* ============================================================
    PREMIUM ROLE-BASED GLASS BACKGROUNDS
@@ -147,7 +237,7 @@ h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
   position: fixed;
   inset: 0;
   z-index: 1;
-  background: rgba(4, 8, 16, 0.55); /* Deep dark sophisticated tint */
+  background: rgba(4, 8, 16, 0.55);
   backdrop-filter: blur(140px) saturate(160%);
   -webkit-backdrop-filter: blur(140px) saturate(160%);
   pointer-events: none;
@@ -225,60 +315,82 @@ h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
 
 /* --- Role Themes --- */
 .pnf-bg-owner {
-  --role-base: #0c0a09; /* Deep stone */
-  --role-orb-1: #f59e0b; /* Amber */
-  --role-orb-2: #ea580c; /* Orange */
-  --role-orb-3: #fbbf24; /* Warm Gold */
+  --role-base: #0c0a09;
+  --role-orb-1: #f59e0b;
+  --role-orb-2: #ea580c;
+  --role-orb-3: #fbbf24;
 }
 
 .pnf-bg-finder {
-  --role-base: #020617; /* Deep slate */
-  --role-orb-1: #10b981; /* Emerald */
-  --role-orb-2: #06b6d4; /* Cyan */
-  --role-orb-3: #047857; /* Deep Green */
+  --role-base: #020617;
+  --role-orb-1: #10b981;
+  --role-orb-2: #06b6d4;
+  --role-orb-3: #047857;
 }
 
 .pnf-bg-admin,
 .pnf-bg-default {
-  --role-base: #020617; /* Deep navy */
-  --role-orb-1: #6366f1; /* Indigo */
-  --role-orb-2: #8b5cf6; /* Violet */
-  --role-orb-3: #2563eb; /* Blue */
+  --role-base: #020617;
+  --role-orb-1: #6366f1;
+  --role-orb-2: #8b5cf6;
+  --role-orb-3: #2563eb;
 }
 
 /* ============================================================
-   GLOBAL SCROLLBAR — THEMED
+   ROLE-ADAPTIVE SCROLLBAR
    ============================================================ */
 
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1c1917; /* Same as stone-900 */
+  background: rgba(0, 0, 0, 0.2);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #44403c; /* Stone-700 */
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  border: 2px solid #1c1917;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #f59e0b; /* Amber-500 on hover */
+  background: rgba(255, 255, 255, 0.2);
+  background-clip: content-box;
+}
+
+/* Owner scrollbar accent */
+.pnf-bg-owner ::-webkit-scrollbar-thumb:hover,
+.owner-dashboard-wrapper ::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.35);
+  background-clip: content-box;
+}
+
+/* Finder scrollbar accent */
+.pnf-bg-finder ::-webkit-scrollbar-thumb:hover,
+.finder-dashboard-wrapper ::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.35);
+  background-clip: content-box;
+}
+
+/* Admin scrollbar accent */
+.pnf-bg-admin ::-webkit-scrollbar-thumb:hover,
+.admin-wrapper ::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.35);
+  background-clip: content-box;
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #44403c #1c1917;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
 }
 
 /* ============================================================
    MODERN SCROLLING & REVEAL ANIMATIONS
    ============================================================ */
 
-/* Base Reveal Class */
 .reveal-up {
   opacity: 0;
   transform: translateY(30px);
@@ -302,7 +414,6 @@ h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
    ORIENTATION-SPECIFIC NAVIGATION
    ============================================================ */
 
-/* The toggle should ONLY be visible in Portrait mode */
 .pnf-nav-toggle {
   display: none !important;
 }
@@ -326,7 +437,6 @@ h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
   }
 }
 
-/* The desktop links should ONLY be visible in Landscape mode */
 .pnf-nav-desktop {
   display: flex !important;
 }
@@ -338,11 +448,51 @@ h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
 }
 
 /* ============================================================
-   MODERN TOAST NOTIFICATIONS (MOBILE OPTIMIZED)
+   PREMIUM TOAST NOTIFICATIONS
    ============================================================ */
 
 .Toastify__toast-container {
   padding: 1rem !important;
+}
+
+.Toastify__toast {
+  margin-bottom: 0.75rem !important;
+  border-radius: 1rem !important;
+  background: rgba(15, 23, 42, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset !important;
+  padding: 0.875rem 1.25rem !important;
+  min-height: 56px !important;
+}
+
+.Toastify__toast--success { border-left: 3px solid #10b981 !important; }
+.Toastify__toast--error { border-left: 3px solid #f43f5e !important; }
+.Toastify__toast--info { border-left: 3px solid #6366f1 !important; }
+.Toastify__toast--warning { border-left: 3px solid #f59e0b !important; }
+
+.Toastify__toast-body {
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: #f8fafc !important;
+  line-height: 1.4 !important;
+}
+
+.Toastify__progress-bar {
+  height: 2px !important;
+}
+
+.Toastify__close-button {
+  align-self: center !important;
+  opacity: 0.4 !important;
+  color: #94a3b8 !important;
+}
+.Toastify__close-button:hover {
+  opacity: 1 !important;
 }
 
 @media (max-width: 480px) {
@@ -357,33 +507,82 @@ h1, h2, h3, h4, h5, h6 { margin: 0; font-family: inherit; }
   }
 
   .Toastify__toast {
-    margin-bottom: 1rem !important;
     border-radius: 1.25rem !important;
-    background: rgba(15, 23, 42, 0.8) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset !important;
-    padding: 1rem 1.25rem !important;
-    min-height: 60px !important;
-  }
-
-  .Toastify__toast--success { border-bottom: 3px solid #10b981 !important; }
-  .Toastify__toast--error { border-bottom: 3px solid #f43f5e !important; }
-
-  .Toastify__toast-body {
-    padding: 0 !important;
-    margin: 0 !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 0.875rem !important;
-    font-weight: 600 !important;
-    color: #f8fafc !important;
-    line-height: 1.4 !important;
-  }
-
-  .Toastify__close-button {
-    align-self: center !important;
-    opacity: 0.4 !important;
   }
 }
-
+
+/* ============================================================
+   TOGGLE SWITCH (replacement for raw checkboxes)
+   ============================================================ */
+
+.pnf-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.pnf-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.pnf-toggle-track {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pnf-toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #94a3b8;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.pnf-toggle input:checked + .pnf-toggle-track {
+  background: var(--pnf-accent);
+  border-color: var(--pnf-accent);
+}
+
+.pnf-toggle input:checked + .pnf-toggle-track::after {
+  transform: translateX(20px);
+  background: #fff;
+}
+
+/* Owner toggle variant */
+.pnf-toggle--amber input:checked + .pnf-toggle-track {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+
+/* Finder toggle variant */
+.pnf-toggle--emerald input:checked + .pnf-toggle-track {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+/* ============================================================
+   TAB CONTENT CROSSFADE
+   ============================================================ */
+
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pnf-tab-content {
+  animation: tabFadeIn 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}

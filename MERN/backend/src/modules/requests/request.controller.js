@@ -13,6 +13,19 @@ const createRequest = async (req, res) => {
   }
 };
 
+const publishRequest = async (req, res) => {
+  try {
+    const request = await requestService.publishRequest(req.params.id, req.user.userId);
+    res.status(200).json({
+      success: true,
+      message: 'Request moved to pending payment successfully',
+      data: request,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const getMyRequests = async (req, res) => {
   try {
     const requests = await requestService.getMyRequests(req.user.userId);
@@ -67,6 +80,7 @@ const deleteRequest = async (req, res) => {
 
 module.exports = {
   createRequest,
+  publishRequest,
   getMyRequests,
   getAvailableRequests,
   getRequestById,

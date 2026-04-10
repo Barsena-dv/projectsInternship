@@ -10,8 +10,8 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
 import { useAuth } from '../../hooks/useAuth';
 import { assignmentApi, chatApi } from '../../services/api';
-import { getErrorMessage } from '../../utils/helpers';
 import '../../styles/owner/chat.css';
+import { getErrorMessage } from '../../utils/helpers';
 
 const POLL_INTERVAL_MS = 7000;
 
@@ -102,7 +102,7 @@ const ChatPage = () => {
   const navigate = useNavigate();
   const { assignmentId } = useParams();
   const { user } = useAuth();
-  const finderNeedsAssignmentScope = user?.role === 'finder' && !assignmentId;
+  const roleNeedsAssignmentScope = ['owner', 'finder'].includes(String(user?.role || '').toLowerCase()) && !assignmentId;
 
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState('');
@@ -218,18 +218,18 @@ const ChatPage = () => {
   }, []);
 
   useEffect(() => {
-    if (finderNeedsAssignmentScope) return;
+    if (roleNeedsAssignmentScope) return;
     loadConversations();
-  }, [finderNeedsAssignmentScope, loadConversations]);
+  }, [roleNeedsAssignmentScope, loadConversations]);
 
   useEffect(() => {
-    if (finderNeedsAssignmentScope) return;
+    if (roleNeedsAssignmentScope) return;
     if (!activeConversationId) return;
     loadMessages(activeConversationId);
-  }, [activeConversationId, finderNeedsAssignmentScope, loadMessages]);
+  }, [activeConversationId, roleNeedsAssignmentScope, loadMessages]);
 
   useEffect(() => {
-    if (finderNeedsAssignmentScope) return undefined;
+    if (roleNeedsAssignmentScope) return undefined;
     if (!activeConversationId) return undefined;
 
     const timer = setInterval(async () => {
@@ -242,7 +242,7 @@ const ChatPage = () => {
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(timer);
-  }, [activeConversationId, finderNeedsAssignmentScope, loadConversations, loadMessages]);
+  }, [activeConversationId, roleNeedsAssignmentScope, loadConversations, loadMessages]);
 
   useEffect(() => {
     if (!messagesContainerRef.current || !shouldStickToBottomRef.current) return;
@@ -318,7 +318,7 @@ const ChatPage = () => {
     return <LoadingSpinner text="Loading chat conversations..." />;
   }
 
-  if (finderNeedsAssignmentScope) {
+  if (roleNeedsAssignmentScope) {
     return (
       <div className="owner-chat-page">
         <PageHeader title="Chat" subtitle="Chat is available only from Assignment Details after evidence verification." />

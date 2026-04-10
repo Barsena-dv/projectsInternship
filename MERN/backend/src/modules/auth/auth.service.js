@@ -1,8 +1,13 @@
 const User = require('../users/user.model');
 const { hashPassword, comparePassword } = require('../../utils/passwordHash');
 const { generateToken } = require('../../utils/jwt');
-const { sendPasswordResetEmail } = require('../../utils/mailer');
+const { sendFinderOtpEmail, sendPasswordResetEmail } = require('../../utils/mailer');
+const { applyTrustEvent, getTrustBadge } = require('../../utils/trust');
 const crypto = require('crypto');
+
+const hashOtp = (otp) => crypto.createHash('sha256').update(String(otp)).digest('hex');
+
+const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 
 /**
  * Register new user
@@ -40,8 +45,21 @@ const register = async (userData) => {
     phone: phone.trim(),
     role: role || 'owner',
     isVerified: role === 'finder' ? false : true,
+    isEmailVerified: role === 'finder' ? false : true,
+    verificationLevel: role === 'finder' ? 'pending_verification' : 'basic_verified',
+    finderStatus: role === 'finder' ? 'pending_verification' : 'verified',
+    trustScore: role === 'finder' ? 0 : 10,
+    trustBadge: role === 'finder' ? 'basic_user' : getTrustBadge(10),
     accountStatus: 'active',
   });
+
+  if (role === 'finder') {
+    const otp = generateOtp();
+    user.emailVerificationOtp = hashOtp(otp);
+    user.emailVerificationOtpExpiry = new Date(Date.now() + (10 * 60 * 1000));
+    await user.save();
+    await sendFinderOtpEmail(user.email, user.full_name, otp);
+  }
 
   return {
     id: user._id,
@@ -55,7 +73,7 @@ const register = async (userData) => {
 /**
  * Login user
  */
-const login = async (email, password) => {
+const login = async (email, password, sessionMeta = {}) => {
   const normalizedEmail = email.toLowerCase().trim();
 
   // 1. Check if user exists
@@ -76,7 +94,20 @@ const login = async (email, password) => {
   }
 
   // 4. Generate token
-  const token = generateToken(user._id, user.role);
+  const sessionId = crypto.randomUUID();
+  const sessionRecord = {
+    sessionId,
+    userAgent: String(sessionMeta.userAgent || '').slice(0, 500),
+    ipAddress: String(sessionMeta.ipAddress || '').slice(0, 100),
+    createdAt: new Date(),
+    lastActiveAt: new Date(),
+  };
+
+  const previousSessions = Array.isArray(user.activeSessions) ? user.activeSessions : [];
+  user.activeSessions = [sessionRecord, ...previousSessions].slice(0, 10);
+  await user.save();
+
+  const token = generateToken(user._id, user.role, sessionId);
 
   // 5. Build user data (excluding password)
   const userData = user.toObject();
@@ -196,6 +227,99 @@ const resetPassword = async (token, newPassword) => {
   return true;
 };
 
+const resendFinderEmailOtp = async (email) => {
+  const normalizedEmail = String(email || '').toLowerCase().trim();
+  const user = await User.findOne({ email: normalizedEmail });
+  if (!user || user.role !== 'finder') {
+    throw new Error('Finder account not found');
+  }
+
+  const otp = generateOtp();
+  user.emailVerificationOtp = hashOtp(otp);
+  user.emailVerificationOtpExpiry = new Date(Date.now() + (10 * 60 * 1000));
+  await user.save();
+  await sendFinderOtpEmail(user.email, user.full_name, otp);
+
+  return true;
+};
+
+const verifyFinderEmailOtp = async (email, otpCode) => {
+  const normalizedEmail = String(email || '').toLowerCase().trim();
+  const user = await User.findOne({ email: normalizedEmail });
+  if (!user || user.role !== 'finder') {
+    throw new Error('Finder account not found');
+  }
+
+  if (!user.emailVerificationOtp || !user.emailVerificationOtpExpiry) {
+    throw new Error('No verification code found. Please request a new OTP.');
+  }
+
+  if (new Date(user.emailVerificationOtpExpiry).getTime() < Date.now()) {
+    throw new Error('Verification code expired. Please request a new OTP.');
+  }
+
+  if (hashOtp(otpCode) !== user.emailVerificationOtp) {
+    throw new Error('Invalid verification code');
+  }
+
+  user.isEmailVerified = true;
+  user.verificationLevel = ['id_verified', 'advanced_verified'].includes(String(user.verificationLevel))
+    ? user.verificationLevel
+    : 'basic_verified';
+  user.finderStatus = user.isVerified ? 'verified' : 'pending_verification';
+  user.emailVerificationOtp = undefined;
+  user.emailVerificationOtpExpiry = undefined;
+  applyTrustEvent(user, 'EMAIL_VERIFIED');
+  await user.save();
+
+  return {
+    isEmailVerified: user.isEmailVerified,
+    verificationLevel: user.verificationLevel,
+    trustScore: user.trustScore,
+    trustBadge: user.trustBadge,
+  };
+};
+
+const logoutAllDevices = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error('User not found');
+  user.activeSessions = [];
+  await user.save();
+  return true;
+};
+
+const updatePreferences = async (userId, payload = {}) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error('User not found');
+
+  const notifications = payload.notificationPreferences || {};
+  const privacy = payload.privacySettings || {};
+
+  if (Object.prototype.hasOwnProperty.call(notifications, 'finderApplied')) user.notificationPreferences.finderApplied = Boolean(notifications.finderApplied);
+  if (Object.prototype.hasOwnProperty.call(notifications, 'trackingUpdate')) user.notificationPreferences.trackingUpdate = Boolean(notifications.trackingUpdate);
+  if (Object.prototype.hasOwnProperty.call(notifications, 'evidenceUpdate')) user.notificationPreferences.evidenceUpdate = Boolean(notifications.evidenceUpdate);
+  if (Object.prototype.hasOwnProperty.call(notifications, 'paymentUpdate')) user.notificationPreferences.paymentUpdate = Boolean(notifications.paymentUpdate);
+  if (Object.prototype.hasOwnProperty.call(notifications, 'disputeUpdate')) user.notificationPreferences.disputeUpdate = Boolean(notifications.disputeUpdate);
+  if (Object.prototype.hasOwnProperty.call(notifications, 'marketingAnnouncements')) user.notificationPreferences.marketingAnnouncements = Boolean(notifications.marketingAnnouncements);
+
+  if (Object.prototype.hasOwnProperty.call(privacy, 'profileVisibility')) {
+    const visibility = String(privacy.profileVisibility || 'limited');
+    if (!['public', 'limited', 'private'].includes(visibility)) {
+      throw new Error('profileVisibility must be public, limited, or private');
+    }
+    user.privacySettings.profileVisibility = visibility;
+  }
+  if (Object.prototype.hasOwnProperty.call(privacy, 'activityHistoryVisible')) {
+    user.privacySettings.activityHistoryVisible = Boolean(privacy.activityHistoryVisible);
+  }
+
+  await user.save();
+  return {
+    notificationPreferences: user.notificationPreferences,
+    privacySettings: user.privacySettings,
+  };
+};
+
 module.exports = {
   register,
   login,
@@ -204,4 +328,8 @@ module.exports = {
   changePassword,
   forgotPassword,
   resetPassword,
+  resendFinderEmailOtp,
+  verifyFinderEmailOtp,
+  logoutAllDevices,
+  updatePreferences,
 };

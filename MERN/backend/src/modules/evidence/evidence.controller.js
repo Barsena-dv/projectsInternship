@@ -35,7 +35,16 @@ const normalizeFiles = (files = []) => {
 const uploadEvidence = async (req, res) => {
   try {
     const { assignmentId } = req.params;
-    const { description, lat, lng } = req.body;
+    const {
+      description,
+      lat,
+      lng,
+      uniqueIdentifyingMarks,
+      exactPickupLocation,
+      privateNotes,
+      foundAt,
+      foundLocationText,
+    } = req.body;
     const userId = req.user.userId;
 
     if (!req.files || req.files.length === 0) {
@@ -63,7 +72,14 @@ const uploadEvidence = async (req, res) => {
       files,
       description,
       lat,
-      lng
+      lng,
+      {
+        uniqueIdentifyingMarks,
+        exactPickupLocation,
+        privateNotes,
+        foundAt,
+        foundLocationText,
+      }
     );
 
     res.status(201).json({
@@ -92,6 +108,9 @@ const getEvidence = async (req, res) => {
 
     const evidenceData = evidence.toObject();
     evidenceData.files = normalizeFiles(evidenceData.files);
+    if (req.user.role !== 'finder') {
+      delete evidenceData.hiddenData;
+    }
 
     res.status(200).json({ success: true, data: evidenceData });
   } catch (error) {
@@ -102,14 +121,15 @@ const getEvidence = async (req, res) => {
 const verifyEvidence = async (req, res) => {
   try {
     const { evidenceId } = req.params;
-    const { verified, notes } = req.body;
+    const { verified, notes, claimAnswers = {} } = req.body;
     const userId = req.user.userId;
 
     const result = await evidenceService.verifyEvidence(
       evidenceId,
       verified,
       notes,
-      userId
+      userId,
+      claimAnswers
     );
 
     res.status(200).json({

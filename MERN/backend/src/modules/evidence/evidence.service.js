@@ -5,6 +5,32 @@ const LostItemRequest = require('../requests/request.model');
 const { createNotification } = require('../notifications/notification.service');
 const { addTimelineEvent } = require('../assignments/assignmentTimeline.service');
 
+const normalize = (value = '') => String(value || '').trim().toLowerCase();
+
+const tokenOverlapScore = (a = '', b = '') => {
+  const left = new Set(normalize(a).split(/\s+/).filter(Boolean));
+  const right = new Set(normalize(b).split(/\s+/).filter(Boolean));
+  if (!left.size || !right.size) return 0;
+  let overlap = 0;
+  left.forEach((token) => {
+    if (right.has(token)) overlap += 1;
+  });
+  const ratio = overlap / Math.max(left.size, right.size);
+  return Math.round(ratio * 100);
+};
+
+const evaluateClaim = (hiddenData = {}, ownerAnswers = {}) => {
+  const marksScore = tokenOverlapScore(hiddenData.uniqueIdentifyingMarks, ownerAnswers.identifyingMarks);
+  const notesScore = tokenOverlapScore(hiddenData.privateNotes, ownerAnswers.contents);
+  const proofScore = normalize(ownerAnswers.proofReference).length >= 6 ? 100 : 0;
+
+  const finalScore = Math.round((marksScore * 0.65) + (notesScore * 0.2) + (proofScore * 0.15));
+
+  if (finalScore >= 75) return { matchScore: finalScore, matchOutcome: 'match' };
+  if (finalScore >= 40) return { matchScore: finalScore, matchOutcome: 'partial' };
+  return { matchScore: finalScore, matchOutcome: 'mismatch' };
+};
+
 const isDeadlineReached = (deadlineAt) => {
   if (!deadlineAt) return false;
   const value = new Date(deadlineAt).getTime();
@@ -14,7 +40,7 @@ const isDeadlineReached = (deadlineAt) => {
 /**
  * Finder uploads proof of recovery
  */
-const uploadEvidence = async (assignmentId, userId, files, description, lat, lng) => {
+const uploadEvidence = async (assignmentId, userId, files, description, lat, lng, hiddenData = {}) => {
   // 1. Validate assignment
   const assignment = await FinderAssignment.findById(assignmentId);
   if (!assignment) throw new Error('Assignment not found');
@@ -29,6 +55,17 @@ const uploadEvidence = async (assignmentId, userId, files, description, lat, lng
 
   if (assignment.isDisputed) {
     throw new Error('Evidence uploads are locked while an active dispute exists');
+  }
+
+  const uniqueIdentifyingMarks = String(hiddenData.uniqueIdentifyingMarks || '').trim();
+  if (!uniqueIdentifyingMarks) {
+    throw new Error('Unique identifying marks are required for secure claim verification');
+  }
+
+  const imageCount = (files || []).filter((file) => String(file.fileType || '').toLowerCase() === 'image').length;
+  const videoCount = (files || []).filter((file) => String(file.fileType || '').toLowerCase() === 'video').length;
+  if (videoCount === 0 && imageCount < 2) {
+    throw new Error('At least two evidence images are required when no video is provided');
   }
 
   // 2. Validate finder ownership
@@ -59,6 +96,13 @@ const uploadEvidence = async (assignmentId, userId, files, description, lat, lng
     description,
     lat: lat || 0,
     lng: lng || 0,
+    hiddenData: {
+      uniqueIdentifyingMarks,
+      exactPickupLocation: String(hiddenData.exactPickupLocation || '').trim(),
+      privateNotes: String(hiddenData.privateNotes || '').trim(),
+      foundAt: hiddenData.foundAt ? new Date(hiddenData.foundAt) : undefined,
+      foundLocationText: String(hiddenData.foundLocationText || '').trim(),
+    },
     verificationStatus: 'pending',
   });
 
@@ -131,7 +175,7 @@ const getEvidenceByAssignment = async (assignmentId, userId) => {
 /**
  * Owner verifies or rejects the proof
  */
-const verifyEvidence = async (evidenceId, verified, notes, userId) => {
+const verifyEvidence = async (evidenceId, verified, notes, userId, claimAnswers = {}) => {
   const evidence = await EvidenceFile.findById(evidenceId);
   if (!evidence) throw new Error('Evidence not found');
 
@@ -151,30 +195,54 @@ const verifyEvidence = async (evidenceId, verified, notes, userId) => {
     throw new Error('Reason is required when rejecting evidence');
   }
 
+  const evaluatedClaim = evaluateClaim(evidence.hiddenData || {}, claimAnswers || {});
+
+  let finalStatus = verified ? 'verified' : 'rejected';
+  if (verified && evaluatedClaim.matchOutcome === 'mismatch') {
+    finalStatus = 'rejected';
+  }
+  if (verified && evaluatedClaim.matchOutcome === 'partial') {
+    finalStatus = 'needs_admin_review';
+  }
+
   // Update logic
-  evidence.verificationStatus = verified ? 'verified' : 'rejected';
+  evidence.verificationStatus = finalStatus;
   evidence.verificationNotes = notes;
   evidence.verificationDate = new Date();
   evidence.verifiedBy = userId;
+  evidence.claimVerification = {
+    ownerAnswers: {
+      identifyingMarks: String(claimAnswers.identifyingMarks || '').trim(),
+      contents: String(claimAnswers.contents || '').trim(),
+      proofReference: String(claimAnswers.proofReference || '').trim(),
+    },
+    matchScore: evaluatedClaim.matchScore,
+    matchOutcome: evaluatedClaim.matchOutcome,
+    checkedAt: new Date(),
+  };
   await evidence.save();
 
   // Audit Log
   const { logAction } = require('../auditLogs/auditLog.service');
   logAction({
     userId: userId,
-    action: verified ? 'EVIDENCE_VERIFY' : 'EVIDENCE_REJECT',
+    action: finalStatus === 'verified' ? 'EVIDENCE_VERIFY' : finalStatus === 'needs_admin_review' ? 'EVIDENCE_NEEDS_ADMIN_REVIEW' : 'EVIDENCE_REJECT',
     entityType: 'EvidenceFile',
     entityId: evidence._id,
-    details: { assignmentId: assignment._id, notes },
+    details: { assignmentId: assignment._id, notes, claimScore: evaluatedClaim.matchScore, claimOutcome: evaluatedClaim.matchOutcome },
   });
 
-  if (verified) {
+  if (finalStatus === 'verified') {
     assignment.evidenceVerified = true;
     assignment.chatUnlocked = true;
     assignment.unlockTime = new Date();
+    assignment.isDisputed = false;
   } else {
     // If rejected, reset submitted flag to allow re-upload
-    assignment.evidenceSubmitted = false;
+    assignment.evidenceSubmitted = finalStatus === 'rejected' ? false : true;
+    assignment.evidenceVerified = false;
+    assignment.chatUnlocked = false;
+    if (finalStatus === 'needs_admin_review') assignment.isDisputed = true;
   }
   assignment.lastActivityAt = new Date();
   await assignment.save();
@@ -182,7 +250,7 @@ const verifyEvidence = async (evidenceId, verified, notes, userId) => {
   await addTimelineEvent({
     assignmentId: assignment._id,
     requestId: assignment.request._id,
-    action: verified ? 'EVIDENCE_VERIFIED' : 'EVIDENCE_REJECTED',
+    action: finalStatus === 'verified' ? 'EVIDENCE_VERIFIED' : finalStatus === 'needs_admin_review' ? 'EVIDENCE_ESCALATED_ADMIN' : 'EVIDENCE_REJECTED',
     actorUserId: userId,
     actorRole: 'owner',
     actorLabel: 'Owner',
@@ -194,10 +262,12 @@ const verifyEvidence = async (evidenceId, verified, notes, userId) => {
     await createNotification({
       userId: assignment.finder,
       type: 'evidence',
-      title: verified ? 'Proof Verified' : 'Proof Rejected',
-      message: verified 
+      title: finalStatus === 'verified' ? 'Proof Verified' : finalStatus === 'needs_admin_review' ? 'Admin Review Required' : 'Proof Rejected',
+      message: finalStatus === 'verified'
         ? `Great news! The owner has verified your proof for "${assignment.request.itemName}". Chat is now unlocked.`
-        : `Management Update: The owner has rejected your evidence for "${assignment.request.itemName}". Notes: ${notes || 'No notes provided. Please re-upload.'}`,
+        : finalStatus === 'needs_admin_review'
+          ? `Your proof for "${assignment.request.itemName}" requires admin review due to partial claim match.`
+          : `Management Update: The owner has rejected your evidence for "${assignment.request.itemName}". Notes: ${notes || 'No notes provided. Please re-upload.'}`,
       data: { assignmentId: assignment._id, status: evidence.verificationStatus },
     });
   } catch (err) {
@@ -208,11 +278,11 @@ const verifyEvidence = async (evidenceId, verified, notes, userId) => {
   await addTimelineEvent({
     assignmentId: assignment._id,
     requestId: assignment.request._id,
-    action: verified ? 'EVIDENCE_VERIFIED' : 'EVIDENCE_REJECTED',
+    action: finalStatus === 'verified' ? 'EVIDENCE_VERIFIED' : finalStatus === 'needs_admin_review' ? 'EVIDENCE_ESCALATED_ADMIN' : 'EVIDENCE_REJECTED',
     actorUserId: userId,
     actorRole: 'owner',
     actorLabel: 'Owner',
-    details: { notes, evidenceId: evidence._id },
+    details: { notes, evidenceId: evidence._id, claimOutcome: evaluatedClaim.matchOutcome, claimScore: evaluatedClaim.matchScore },
   });
 
   return evidence;

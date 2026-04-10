@@ -5,6 +5,7 @@ const User = require('../users/user.model');
 const Payment = require('../payments/payment.model');
 const ServicePlan = require('../servicePlans/servicePlan.model');
 const Payout = require('../payouts/payout.model');
+const TrackingUpdate = require('../tracking/tracking.model');
 const { createNotification } = require('../notifications/notification.service');
 const payoutService = require('../payouts/payout.service');
 const { addTimelineEvent, getTimelineByAssignment, getTimelineByRequest } = require('./assignmentTimeline.service');
@@ -12,6 +13,11 @@ const { addTimelineEvent, getTimelineByAssignment, getTimelineByRequest } = requ
 const MAX_PAUSE_MS = 15 * 60 * 1000;
 const ASSIGNMENT_DEADLINE_HOURS = Number(process.env.ASSIGNMENT_DEADLINE_HOURS || 4);
 const EXPIRED_DROP_FINDER_FEE_PERCENT = Number(process.env.EXPIRED_DROP_FINDER_FEE_PERCENT || 10);
+const MAX_PENDING_APPLICATIONS = Number(process.env.MAX_PENDING_APPLICATIONS || 8);
+const MAX_DAILY_APPLICATIONS = Number(process.env.MAX_DAILY_APPLICATIONS || 25);
+const TRACKING_INTERVAL_MINUTES = Number(process.env.TRACKING_INTERVAL_MINUTES || 15);
+const TRACKING_GRACE_MINUTES = Number(process.env.TRACKING_GRACE_MINUTES || 45);
+const TRACKING_FAIL_MISSED_COUNT = Number(process.env.TRACKING_FAIL_MISSED_COUNT || 3);
 
 const round2 = (value) => Number(Number(value || 0).toFixed(2));
 
@@ -156,6 +162,28 @@ const acceptAssignment = async (requestId, userId, payload = {}) => {
 
   if (!user.isVerified) {
     throw new Error('Your account must be verified by an admin before accepting tasks');
+  }
+
+  if (!user.isEmailVerified) {
+    throw new Error('Complete email OTP verification before applying for assignments');
+  }
+
+  const pendingApplicationCount = await AssignmentApplication.countDocuments({
+    finder: userId,
+    status: 'pending',
+  });
+  if (pendingApplicationCount >= MAX_PENDING_APPLICATIONS) {
+    throw new Error(`Application limit reached. You can keep only ${MAX_PENDING_APPLICATIONS} pending applications at a time.`);
+  }
+
+  const dayStart = new Date();
+  dayStart.setHours(0, 0, 0, 0);
+  const dailyApplicationCount = await AssignmentApplication.countDocuments({
+    finder: userId,
+    createdAt: { $gte: dayStart },
+  });
+  if (dailyApplicationCount >= MAX_DAILY_APPLICATIONS) {
+    throw new Error(`Daily application limit reached (${MAX_DAILY_APPLICATIONS}/day). Try again later.`);
   }
 
   // 2. Validate request status
@@ -533,6 +561,15 @@ const decideApplication = async (requestId, applicationId, decision, reason, use
  * Get assignments for the logged-in finder
  */
 const getMyAssignments = async (userId) => {
+  const assignments = await FinderAssignment.find({ finder: userId })
+    .populate({
+      path: 'request',
+      populate: { path: 'planId' },
+    })
+    .sort({ createdAt: -1 });
+
+  await Promise.all(assignments.map((assignment) => syncAssignmentStatus(assignment._id)));
+
   return FinderAssignment.find({ finder: userId })
     .populate({
       path: 'request',
@@ -643,41 +680,103 @@ const syncAssignmentStatus = async (assignmentId) => {
     }
   }
 
-  // 3. Check Inactivity (Only if still active)
-  if (!changed && assignment.status === 'active') {
-    const inactivityThreshold = 60 * 60 * 1000; // 1 hour
-    const lastActivity = assignment.lastActivityAt || assignment.assignedAt;
-    
-    if (now - lastActivity > inactivityThreshold) {
-      assignment.status = 'inactive';
+  // 3. Hybrid Tracking Compliance: grace + warning + fail (except paused/evidence phase)
+  const trackingRequired = !assignment.evidenceSubmitted && !assignment.evidenceVerified;
+  if (!changed && trackingRequired && ['active', 'inactive'].includes(String(assignment.status))) {
+    const latestTracking = await TrackingUpdate.findOne({ assignmentId: assignment._id }).sort({ createdAt: -1 });
+    const trackingRefDate = latestTracking?.createdAt || assignment.lastActivityAt || assignment.assignedAt;
+    const trackingAgeMinutes = Math.max((now.getTime() - new Date(trackingRefDate).getTime()) / (60 * 1000), 0);
+
+    let missedCount = 0;
+    if (trackingAgeMinutes > TRACKING_GRACE_MINUTES) {
+      missedCount = Math.floor((trackingAgeMinutes - TRACKING_GRACE_MINUTES) / TRACKING_INTERVAL_MINUTES) + 1;
+    }
+
+    assignment.trackingMissedCount = Math.max(0, missedCount);
+
+    if (missedCount >= TRACKING_FAIL_MISSED_COUNT) {
+      assignment.status = 'failed';
       assignment.inactivityMarkedAt = now;
       changed = true;
+
+      assignment.request.requestStatus = 'failed';
+      await assignment.request.save();
 
       await addTimelineEvent({
         assignmentId: assignment._id,
         requestId: assignment.request._id,
-        action: 'ASSIGNMENT_INACTIVE',
-        details: { lastActivityAt: lastActivity },
+        action: 'ASSIGNMENT_FAILED_NO_TRACKING',
+        details: {
+          missedCount,
+          trackingAgeMinutes: Math.round(trackingAgeMinutes),
+          graceMinutes: TRACKING_GRACE_MINUTES,
+        },
       });
 
-      // Notify owner
       try {
         await createNotification({
           userId: assignment.request.owner,
-          type: 'inactivity',
-          title: 'Finder Inactive',
-          message: `The finder seems inactive on your request: "${assignment.request.itemName}". No updates for over 1 hour.`,
-          data: { assignmentId: assignment._id },
+          type: 'deadline',
+          title: 'Assignment Failed: Missing Tracking',
+          message: `Finder missed ${missedCount} tracking windows for "${assignment.request.itemName}". Assignment marked failed.`,
+          data: { assignmentId: assignment._id, requestId: assignment.request._id },
         });
-
         await createNotification({
           userId: assignment.finder,
           type: 'inactivity',
-          title: 'You Are Marked Inactive',
-          message: `No updates were posted for over 1 hour on "${assignment.request.itemName}". Add tracking updates to reactivate.`,
-          data: { assignmentId: assignment._id },
+          title: 'Assignment Failed',
+          message: `You missed consecutive tracking updates for "${assignment.request.itemName}". This assignment is now failed.`,
+          data: { assignmentId: assignment._id, requestId: assignment.request._id },
         });
       } catch (nErr) { console.error('Notification failed:', nErr.message); }
+    } else if (missedCount > 0) {
+      if (assignment.status !== 'inactive') {
+        assignment.status = 'inactive';
+        assignment.inactivityMarkedAt = now;
+      }
+
+      if (Number(assignment.trackingWarningCount || 0) < missedCount) {
+        assignment.trackingWarningCount = missedCount;
+        assignment.lastTrackingWarningAt = now;
+        changed = true;
+
+        await addTimelineEvent({
+          assignmentId: assignment._id,
+          requestId: assignment.request._id,
+          action: 'TRACKING_WARNING_ISSUED',
+          details: {
+            missedCount,
+            trackingAgeMinutes: Math.round(trackingAgeMinutes),
+            graceMinutes: TRACKING_GRACE_MINUTES,
+          },
+        });
+
+        try {
+          await createNotification({
+            userId: assignment.finder,
+            type: 'inactivity',
+            title: 'Tracking Update Required',
+            message: `Tracking update missed (${missedCount}/${TRACKING_FAIL_MISSED_COUNT}). Share a manual or GPS update to keep assignment active.`,
+            data: { assignmentId: assignment._id, requestId: assignment.request._id },
+          });
+          await createNotification({
+            userId: assignment.request.owner,
+            type: 'tracking',
+            title: 'Finder Tracking Warning',
+            message: `Finder has missed ${missedCount} tracking window(s) for "${assignment.request.itemName}".`,
+            data: { assignmentId: assignment._id, requestId: assignment.request._id },
+          });
+        } catch (nErr) { console.error('Notification failed:', nErr.message); }
+      }
+    } else {
+      assignment.trackingWarningCount = 0;
+      assignment.lastTrackingWarningAt = null;
+      assignment.trackingMissedCount = 0;
+      if (assignment.status === 'inactive') {
+        assignment.status = 'active';
+        assignment.inactivityMarkedAt = null;
+      }
+      changed = true;
     }
   }
 

@@ -117,10 +117,9 @@
 .finder-section-card::after {
   content: '';
   position: absolute;
-  top: 0; right: 0;
-  width: 100px; height: 100px;
-  background: radial-gradient(circle at top right, var(--f-accent-dim), transparent);
-  opacity: 0.5;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.15), transparent);
   pointer-events: none;
 }
 
@@ -168,7 +167,7 @@
   background: rgba(16, 185, 129, 0.08);
   border-color: var(--f-accent-2);
   transform: scale(1.02);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(16,185,129,0.1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(16,185,129,0.1), 0 0 0 1px rgba(16,185,129,0.1);
 }
 
 .f-mini-chart-bar {

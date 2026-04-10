@@ -67,6 +67,18 @@
   background: var(--admin-accent);
   color: white;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  position: relative;
+}
+
+.admin-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: #fff;
 }
 
 /* Page Header In Admin */
@@ -93,7 +105,8 @@
 
 .admin-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.2);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(99,102,241,0.1);
 }
 
 /* Custom Scrollbar for Admin */
@@ -127,7 +140,11 @@
 }
 
 .admin-table tr:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.admin-table tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.01);
 }
 
 .admin-table td {

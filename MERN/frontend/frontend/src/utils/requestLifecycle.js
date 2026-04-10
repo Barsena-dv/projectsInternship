@@ -12,6 +12,8 @@ export const deriveOwnerLifecycleState = ({ request, payment, assignment, eviden
     return 'completed';
   }
 
+  if (requestStatus === 'draft') return 'draft';
+
   if (requestStatus === 'failed' || assignmentStatus === 'failed') return 'failed';
   if (assignmentStatus === 'expired') return 'expired';
   if (assignmentStatus === 'inactive') return 'inactive';
@@ -28,9 +30,8 @@ export const deriveOwnerLifecycleState = ({ request, payment, assignment, eviden
   }
 
   if (requestStatus === 'pending_payment') {
-    if (!payment) return 'draft';
     if (paymentStatus === 'pending') return 'pending_payment';
-    return 'draft';
+    return 'pending_payment';
   }
 
   return requestStatus;

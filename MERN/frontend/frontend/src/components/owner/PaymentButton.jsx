@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
-import GlassModal from '../common/GlassModal';
-import { paymentApi } from '../../services/api';
+import { paymentApi, requestApi } from '../../services/api';
 import { getErrorMessage } from '../../utils/helpers';
+import GlassModal from '../common/GlassModal';
 
 const PaymentButton = ({ request, onSuccess }) => {
   const defaultAmount = useMemo(() => {
     const plan = request?.planId || {};
-    return Number(plan.price || plan.amount || plan.rewardAmount || 100);
+    const planFee = Number(plan.price || plan.amount || 0);
+    const reward = Number(request?.rewardAmount || 0);
+    return Number(planFee + reward || 100);
   }, [request]);
 
   const [amount, setAmount] = useState(defaultAmount);
@@ -18,6 +20,10 @@ const PaymentButton = ({ request, onSuccess }) => {
   const handlePay = async () => {
     try {
       setLoading(true);
+      if (String(request?.requestStatus || '').toLowerCase() === 'draft') {
+        await requestApi.publish(request._id);
+      }
+
       const servicePlanId = request?.planId?._id || request?.planId;
 
       const createRes = await paymentApi.create({
@@ -31,7 +37,7 @@ const PaymentButton = ({ request, onSuccess }) => {
       const transactionId = `txn_${Date.now()}`;
 
       await paymentApi.process(paymentId, transactionId);
-      toast.success('Payment successful. Request is now open.');
+      toast.success('Payment successful. Request is now published and open for finders.');
       if (onSuccess) onSuccess();
     } catch (error) {
       toast.error(getErrorMessage(error));

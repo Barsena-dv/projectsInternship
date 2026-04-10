@@ -188,8 +188,14 @@ const FinderDashboardPage = () => {
       {/* Interactive Top Navbar/Tabs */}
       <div className="flex flex-col xl:flex-row items-center justify-between gap-6 pb-8 border-b border-white/5">
         <PageHeader
-          title="Intelligence Hub"
-          subtitle="Tactical discovery workbench and financial synchronization terminal"
+          title={(() => {
+            const h = new Date().getHours();
+            const firstName = (user?.full_name || '').split(' ')[0] || 'there';
+            if (h < 12) return `Good morning, ${firstName}`;
+            if (h < 17) return `Good afternoon, ${firstName}`;
+            return `Good evening, ${firstName}`;
+          })()}
+          subtitle="Your discovery workbench and mission control terminal"
         />
         <div className="flex p-2 bg-slate-950/40 backdrop-blur-2xl rounded-2xl border border-white/5 shadow-2xl">
            <button onClick={() => setActiveTab('RADAR')} className={tabBtnStyle('RADAR')}>
@@ -205,7 +211,7 @@ const FinderDashboardPage = () => {
       </div>
 
       {/* Dynamic Content Switching */}
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="pnf-tab-content" key={activeTab}>
         
         {/* --- RADAR TAB --- */}
         {activeTab === 'RADAR' && (

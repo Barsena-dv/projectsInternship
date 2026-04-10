@@ -57,6 +57,18 @@ const assignmentSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    trackingMissedCount: {
+      type: Number,
+      default: 0,
+    },
+    trackingWarningCount: {
+      type: Number,
+      default: 0,
+    },
+    lastTrackingWarningAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true, versionKey: false }
 );

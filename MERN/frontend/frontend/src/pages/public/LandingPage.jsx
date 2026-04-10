@@ -173,7 +173,7 @@ const LandingPage = () => {
             <div className="h-12 w-[1px] bg-white/10 hidden md:block" />
             <div>
                <p className="text-6xl font-black text-white tracking-tighter">₹24M+</p>
-               <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Rewards Settleed</p>
+               <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Rewards Settled</p>
             </div>
             <div className="h-12 w-[1px] bg-white/10 hidden md:block" />
             <div>

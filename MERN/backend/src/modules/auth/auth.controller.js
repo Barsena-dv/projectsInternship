@@ -16,7 +16,10 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const result = await authService.login(email, password);
+    const result = await authService.login(email, password, {
+      userAgent: req.headers['user-agent'] || '',
+      ipAddress: req.ip || '',
+    });
     const { token, user } = result;
 
     // Audit Log
@@ -41,6 +44,13 @@ const login = async (req, res) => {
           role: user.role,
           accountStatus: user.accountStatus,
           isVerified: user.isVerified,
+          isEmailVerified: user.isEmailVerified,
+          verificationLevel: user.verificationLevel,
+          finderStatus: user.finderStatus,
+          trustScore: user.trustScore,
+          trustBadge: user.trustBadge,
+          notificationPreferences: user.notificationPreferences,
+          privacySettings: user.privacySettings,
         },
       },
     });
@@ -150,6 +160,46 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const resendFinderEmailOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) throw new Error('Please provide an email address');
+    await authService.resendFinderEmailOtp(email);
+    res.status(200).json({ success: true, message: 'Verification code sent to email.' });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const verifyFinderEmailOtp = async (req, res) => {
+  try {
+    const { email, otpCode } = req.body;
+    if (!email || !otpCode) throw new Error('Email and OTP code are required');
+    const result = await authService.verifyFinderEmailOtp(email, otpCode);
+    res.status(200).json({ success: true, message: 'Email verified successfully', data: result });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const logoutAllDevices = async (req, res) => {
+  try {
+    await authService.logoutAllDevices(req.user.userId);
+    res.status(200).json({ success: true, message: 'Logged out from all devices successfully' });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const updatePreferences = async (req, res) => {
+  try {
+    const result = await authService.updatePreferences(req.user.userId, req.body || {});
+    res.status(200).json({ success: true, message: 'Preferences updated successfully', data: result });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -158,4 +208,8 @@ module.exports = {
   changePassword,
   forgotPassword,
   resetPassword,
+  resendFinderEmailOtp,
+  verifyFinderEmailOtp,
+  logoutAllDevices,
+  updatePreferences,
 };

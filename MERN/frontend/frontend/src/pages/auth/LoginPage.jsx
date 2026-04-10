@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FiArrowRight, FiLock, FiShield } from 'react-icons/fi';
+import { FiArrowRight, FiEye, FiEyeOff, FiLock, FiShield } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getRoleHomePath } from '../../contexts/AuthContext';
@@ -19,11 +19,17 @@ const LoginPage = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (values) => {
     setLoading(true);
     try {
       const user = await login(values);
+      if (user.role === 'finder' && !user.isEmailVerified) {
+        toast.info('Complete finder email OTP verification first.');
+        navigate(`/verify-finder-email?email=${encodeURIComponent(user.email || values.email)}`, { replace: true });
+        return;
+      }
       toast.success('Access granted. Synchronizing session...');
       navigate(getRoleHomePath(user.role), { replace: true });
     } catch (error) {
@@ -39,7 +45,7 @@ const LoginPage = () => {
       <div className="auth-glow auth-glow-1" />
       <div className="auth-glow auth-glow-2" />
 
-      <div className="auth-modern-card reveal">
+      <div className="auth-modern-card">
         <header className="auth-modern-header">
           <Link to="/" className="auth-brand-pill">
             <FiShield className="text-white" size={24} />
@@ -52,15 +58,15 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="auth-input-container">
-            <label htmlFor="email" className="auth-input-label">Security Identifier (Email)</label>
+            <label htmlFor="email" className="auth-input-label">Email Address</label>
             <input
               id="email"
               type="email"
               className={`auth-input-field ${errors.email ? 'error' : ''}`}
-              placeholder="operator@postnfind.com"
+              placeholder="your@email.com"
               {...register('email', { 
-                required: 'Identifier is required',
-                pattern: { value: /^\S+@\S+$/i, message: 'Invalid identity format' }
+                required: 'Email is required',
+                pattern: { value: /^\S+@\S+$/i, message: 'Invalid email format' }
               })}
             />
             {errors.email && <p className="auth-error-text">{errors.email.message}</p>}
@@ -68,17 +74,28 @@ const LoginPage = () => {
 
           <div className="auth-input-container">
             <div className="flex justify-between items-center mb-2">
-              <label htmlFor="password" title="password" className="auth-input-label mb-0">Encryption Key</label>
-              <Link to="/forgot-password" title="forgot-password" className="auth-forgot-link">Recover Key?</Link>
+              <label htmlFor="password" title="password" className="auth-input-label mb-0">Password</label>
+              <Link to="/forgot-password" title="forgot-password" className="auth-forgot-link">Forgot password?</Link>
             </div>
-            <input
-              id="password"
-              title="password"
-              type="password"
-              className={`auth-input-field ${errors.password ? 'error' : ''}`}
-              placeholder="••••••••"
-              {...register('password', { required: 'Security key is required' })}
-            />
+            <div className="auth-password-wrap">
+              <input
+                id="password"
+                title="password"
+                type={showPassword ? 'text' : 'password'}
+                className={`auth-input-field ${errors.password ? 'error' : ''}`}
+                placeholder="••••••••"
+                {...register('password', { required: 'Password is required' })}
+              />
+              <button
+                type="button"
+                className="auth-password-toggle"
+                onClick={() => setShowPassword((p) => !p)}
+                tabIndex={-1}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+              </button>
+            </div>
             {errors.password && <p className="auth-error-text">{errors.password.message}</p>}
           </div>
 
@@ -90,17 +107,17 @@ const LoginPage = () => {
               </span>
             ) : (
               <>
-                <FiLock size={18} />
-                Sign In to Platform
+                <FiLock size={16} />
+                Sign In
               </>
             )}
           </button>
         </form>
 
         <footer className="auth-footer">
-          New to the Registry? 
+          New to PostNFind? 
           <Link to="/register" className="auth-footer-link ml-2">
-            Create Identity <FiArrowRight className="inline ml-1" />
+            Create Account <FiArrowRight className="inline ml-1" />
           </Link>
         </footer>
       </div>

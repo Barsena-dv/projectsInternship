@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { FiArrowLeft, FiArrowRight, FiCheckCircle, FiInfo, FiMapPin, FiPackage, FiShield } from 'react-icons/fi';
 import useLocation from '../../hooks/useLocation';
+import '../../styles/owner/dashboard.css';
 import LocationSearchInput from './LocationSearchInput';
 import MapPicker from './MapPicker';
-import '../../styles/owner/dashboard.css';
 
 const STEPS = [
   { id: 1, title: 'Identity', subtitle: 'Basic item details', icon: <FiPackage size={18} /> },
@@ -17,6 +17,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
   const {
     register,
     handleSubmit,
+    getValues,
     clearErrors,
     setError,
     setValue,
@@ -99,7 +100,7 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
   }, [clearErrors, location.address, location.lat, location.lng, setValue]);
 
   const handleFormSubmit = (values, intent = 'draft') => {
-    if (!hasSelectedLocation) {
+    if (intent !== 'draft' && !hasSelectedLocation) {
       setError('lastSeenLocation', { type: 'manual', message: 'Location is required' });
       return;
     }
@@ -366,6 +367,14 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
         </button>
 
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => handleFormSubmit(getValues(), 'draft')}
+            disabled={loading}
+            className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-stone-300 hover:bg-white/10 transition-all font-bold text-sm"
+          >
+            {loading ? 'Saving...' : 'Save Draft'}
+          </button>
           {step < STEPS.length ? (
             <button 
               type="button" 
@@ -377,14 +386,6 @@ const RequestForm = ({ plans, loading, onSubmit }) => {
             </button>
           ) : (
             <>
-              <button 
-                type="button" 
-                onClick={handleSubmit((v) => handleFormSubmit(v, 'draft'))}
-                disabled={loading}
-                className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-stone-300 hover:bg-white/10 transition-all font-bold text-sm"
-              >
-                {loading ? 'Saving...' : 'Save Draft'}
-              </button>
               <button 
                 type="button" 
                 onClick={handleSubmit((v) => handleFormSubmit(v, 'pay_now'))}

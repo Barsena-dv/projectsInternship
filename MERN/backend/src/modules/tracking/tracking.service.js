@@ -2,6 +2,26 @@ const TrackingUpdate = require('./tracking.model');
 const FinderAssignment = require('../assignments/assignment.model');
 const { createNotification } = require('../notifications/notification.service');
 const { addTimelineEvent } = require('../assignments/assignmentTimeline.service');
+const User = require('../users/user.model');
+
+const toRad = (value) => (Number(value) * Math.PI) / 180;
+
+const calculateDistanceKm = (from, to) => {
+  const lat1 = Number(from?.lat);
+  const lng1 = Number(from?.lng);
+  const lat2 = Number(to?.lat);
+  const lng2 = Number(to?.lng);
+  if (![lat1, lng1, lat2, lng2].every(Number.isFinite)) return null;
+
+  const earthRadiusKm = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+};
 
 const isDeadlineReached = (deadlineAt) => {
   if (!deadlineAt) return false;
@@ -53,7 +73,38 @@ const createUpdate = async (updateData, userId) => {
 
   assignment.lastActivityAt = new Date();
   assignment.inactivityMarkedAt = null;
+  assignment.trackingMissedCount = 0;
+  assignment.trackingWarningCount = 0;
+  assignment.lastTrackingWarningAt = null;
   await assignment.save();
+
+  const latValue = Number.isFinite(Number(currentLat)) ? Number(currentLat) : null;
+  const lngValue = Number.isFinite(Number(currentLng)) ? Number(currentLng) : null;
+
+  const previousTracking = await TrackingUpdate.findOne({ assignmentId }).sort({ createdAt: -1 });
+  let anomalyFlag = false;
+  let anomalyReason = '';
+  let speedKmph = 0;
+  if (
+    previousTracking
+    && latValue !== null
+    && lngValue !== null
+    && Number.isFinite(Number(previousTracking.currentLat))
+    && Number.isFinite(Number(previousTracking.currentLng))
+  ) {
+    const distanceKm = calculateDistanceKm(
+      { lat: previousTracking.currentLat, lng: previousTracking.currentLng },
+      { lat: latValue, lng: lngValue }
+    );
+    const elapsedHours = Math.max((Date.now() - new Date(previousTracking.createdAt).getTime()) / (1000 * 60 * 60), 0.0001);
+    speedKmph = Number(((distanceKm || 0) / elapsedHours).toFixed(2));
+
+    const elapsedMinutes = elapsedHours * 60;
+    if ((distanceKm !== null && distanceKm >= 8 && elapsedMinutes <= 10) || speedKmph > 120) {
+      anomalyFlag = true;
+      anomalyReason = `Anomalous location jump detected (distance=${(distanceKm || 0).toFixed(2)}km, speed=${speedKmph}km/h)`;
+    }
+  }
 
   // 3. Create tracking update
   const update = await TrackingUpdate.create({
@@ -63,9 +114,12 @@ const createUpdate = async (updateData, userId) => {
     mode: mode || 'manual',
     locationSource: locationSource || 'none',
     locationName: locationName || '',
-    currentLat: Number.isFinite(Number(currentLat)) ? Number(currentLat) : null,
-    currentLng: Number.isFinite(Number(currentLng)) ? Number(currentLng) : null,
+    currentLat: latValue,
+    currentLng: lngValue,
     remarks: remarks || '',
+    anomalyFlag,
+    anomalyReason,
+    speedKmph,
   });
 
   // 4. Milestone Notification & Timeline Logic
@@ -86,6 +140,41 @@ const createUpdate = async (updateData, userId) => {
     actorLabel: 'Finder',
     details: eventDetails,
   });
+
+  if (anomalyFlag) {
+    await addTimelineEvent({
+      assignmentId: assignment._id,
+      requestId: assignment.request._id,
+      action: 'TRACKING_SPOOFING_ALERT',
+      actorUserId: userId,
+      actorRole: 'finder',
+      actorLabel: 'Finder',
+      details: { anomalyReason, speedKmph },
+    });
+
+    try {
+      await createNotification({
+        userId: assignment.request.owner,
+        type: 'tracking',
+        title: 'Suspicious Tracking Activity',
+        message: `Potential location spoofing signal detected for this assignment. Review tracking timeline before verification.`,
+        data: { assignmentId: assignment._id, updateId: update._id },
+      });
+
+      const admins = await User.find({ role: 'admin', accountStatus: 'active' }).select('_id');
+      await Promise.all(
+        admins.map((admin) => createNotification({
+          userId: admin._id,
+          type: 'tracking',
+          title: 'Finder Spoofing Alert',
+          message: `Anomalous movement detected in assignment ${assignment._id}.`,
+          data: { assignmentId: assignment._id, updateId: update._id },
+        }))
+      );
+    } catch (err) {
+      console.error('Spoofing notification failed:', err.message);
+    }
+  }
 
   // Notify Owner
   try {
@@ -110,6 +199,9 @@ const createUpdate = async (updateData, userId) => {
  * Get all tracking updates for an assignment (Timeline)
  */
 const getTrackingTimeline = async (assignmentId, userId) => {
+  const assignmentService = require('../assignments/assignment.service');
+  await assignmentService.syncAssignmentStatus(assignmentId);
+
   const assignment = await FinderAssignment.findById(assignmentId).populate('request');
   if (!assignment) throw new Error('Assignment not found');
 

@@ -1,25 +1,37 @@
-import { useEffect, useMemo, useState, useRef } from 'react';
-import { toast } from 'react-toastify';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FiCamera, FiCheckCircle, FiEdit3, FiLock, FiShield, FiUser } from 'react-icons/fi';
+import { toast } from 'react-toastify';
 import Avatar from '../../components/common/Avatar';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageHeader from '../../components/common/PageHeader';
 import { useAuth } from '../../hooks/useAuth';
 import { authApi } from '../../services/api';
-import { getErrorMessage } from '../../utils/helpers';
 import '../../styles/owner/dashboard.css';
+import { getErrorMessage } from '../../utils/helpers';
 
 const ProfilePage = () => {
-  const { user, refreshMe } = useAuth();
+  const { user, refreshMe, logout } = useAuth();
   const fileInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState('account');
   const [profileForm, setProfileForm] = useState({ full_name: '', phone: '' });
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [savingPreferences, setSavingPreferences] = useState(false);
+  const [loggingOutAllDevices, setLoggingOutAllDevices] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [profileErrors, setProfileErrors] = useState({});
   const [passwordErrors, setPasswordErrors] = useState({});
+  const [preferencesForm, setPreferencesForm] = useState({
+    finderApplied: true,
+    trackingUpdate: true,
+    evidenceUpdate: true,
+    paymentUpdate: true,
+    disputeUpdate: true,
+    marketingAnnouncements: false,
+    profileVisibility: 'limited',
+    activityHistoryVisible: true,
+  });
   
   // Tab configurations consistent with theme
   const tabs = useMemo(() => {
@@ -40,8 +52,63 @@ const ProfilePage = () => {
         full_name: user.full_name || '',
         phone: user.phone || '',
       });
+
+      setPreferencesForm({
+        finderApplied: user?.notificationPreferences?.finderApplied ?? true,
+        trackingUpdate: user?.notificationPreferences?.trackingUpdate ?? true,
+        evidenceUpdate: user?.notificationPreferences?.evidenceUpdate ?? true,
+        paymentUpdate: user?.notificationPreferences?.paymentUpdate ?? true,
+        disputeUpdate: user?.notificationPreferences?.disputeUpdate ?? true,
+        marketingAnnouncements: user?.notificationPreferences?.marketingAnnouncements ?? false,
+        profileVisibility: user?.privacySettings?.profileVisibility || 'limited',
+        activityHistoryVisible: user?.privacySettings?.activityHistoryVisible ?? true,
+      });
     }
   }, [user]);
+
+  const handlePreferenceToggle = (field) => {
+    setPreferencesForm((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  const handlePreferencesSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setSavingPreferences(true);
+      await authApi.updatePreferences({
+        notificationPreferences: {
+          finderApplied: preferencesForm.finderApplied,
+          trackingUpdate: preferencesForm.trackingUpdate,
+          evidenceUpdate: preferencesForm.evidenceUpdate,
+          paymentUpdate: preferencesForm.paymentUpdate,
+          disputeUpdate: preferencesForm.disputeUpdate,
+          marketingAnnouncements: preferencesForm.marketingAnnouncements,
+        },
+        privacySettings: {
+          profileVisibility: preferencesForm.profileVisibility,
+          activityHistoryVisible: preferencesForm.activityHistoryVisible,
+        },
+      });
+      await refreshMe();
+      toast.success('Privacy and notification settings updated.');
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setSavingPreferences(false);
+    }
+  };
+
+  const handleLogoutAllDevices = async () => {
+    try {
+      setLoggingOutAllDevices(true);
+      await authApi.logoutAllDevices();
+      toast.success('All device sessions closed. Please login again.');
+      logout();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setLoggingOutAllDevices(false);
+    }
+  };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -145,7 +212,7 @@ const ProfilePage = () => {
               />
               {uploadingPhoto && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <LoadingSpinner className="!p-0" size="sm" />
+                  <LoadingSpinner className="p-0!" size="sm" />
                 </div>
               )}
               <button 
@@ -230,7 +297,7 @@ const ProfilePage = () => {
             ))}
           </div>
 
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="pnf-tab-content" key={activeTab}>
             {activeTab === 'account' && (
               <div className={cardStyle}>
                 <h3 className="text-xl font-black text-white mb-8 flex items-center gap-3">
@@ -314,7 +381,7 @@ const ProfilePage = () => {
                    <FiLock className="text-amber-500" /> Security Credentials
                 </h3>
                 <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                   <div className="space-y-2 max-w-md">
+                  <div className="space-y-2 max-w-md">
                     <label className={labelStyle}>Current Security Key</label>
                     <input
                       className="pnf-input"
@@ -357,6 +424,77 @@ const ProfilePage = () => {
                       >
                         {savingPassword ? 'Armoring Account...' : 'Confirm Security Update'}
                       </button>
+                  </div>
+                </form>
+
+                <form onSubmit={handlePreferencesSubmit} className="mt-10 space-y-6 border-t border-white/5 pt-8">
+                  <h4 className="text-sm font-black uppercase tracking-widest text-amber-500">Notification & Privacy</h4>
+
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {[
+                      ['finderApplied', 'Finder Applied Alerts'],
+                      ['trackingUpdate', 'Tracking Updates'],
+                      ['evidenceUpdate', 'Evidence Updates'],
+                      ['paymentUpdate', 'Payment Updates'],
+                      ['disputeUpdate', 'Dispute Updates'],
+                      ['marketingAnnouncements', 'Marketing Announcements'],
+                    ].map(([key, label]) => (
+                      <label key={key} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-stone-300 cursor-pointer hover:bg-white/[0.07] transition-all">
+                        <span className="font-medium">{label}</span>
+                        <span className="pnf-toggle pnf-toggle--amber">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(preferencesForm[key])}
+                            onChange={() => handlePreferenceToggle(key)}
+                          />
+                          <span className="pnf-toggle-track" />
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelStyle}>Profile Visibility</label>
+                      <select
+                        className="pnf-input"
+                        value={preferencesForm.profileVisibility}
+                        onChange={(e) => setPreferencesForm((prev) => ({ ...prev, profileVisibility: e.target.value }))}
+                      >
+                        <option value="public">Public</option>
+                        <option value="limited">Limited</option>
+                        <option value="private">Private</option>
+                      </select>
+                    </div>
+                    <label className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-stone-300 mt-6 md:mt-0 cursor-pointer hover:bg-white/[0.07] transition-all">
+                      <span className="font-medium">Show Activity History</span>
+                      <span className="pnf-toggle pnf-toggle--amber">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(preferencesForm.activityHistoryVisible)}
+                          onChange={() => handlePreferenceToggle('activityHistoryVisible')}
+                        />
+                        <span className="pnf-toggle-track" />
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 justify-end">
+                    <button
+                      type="submit"
+                      disabled={savingPreferences}
+                      className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-900 font-black text-xs uppercase tracking-widest disabled:opacity-50"
+                    >
+                      {savingPreferences ? 'Saving...' : 'Save Preferences'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={loggingOutAllDevices}
+                      onClick={handleLogoutAllDevices}
+                      className="px-6 py-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 font-black text-xs uppercase tracking-widest disabled:opacity-50"
+                    >
+                      {loggingOutAllDevices ? 'Closing Sessions...' : 'Logout From All Devices'}
+                    </button>
                   </div>
                 </form>
               </div>

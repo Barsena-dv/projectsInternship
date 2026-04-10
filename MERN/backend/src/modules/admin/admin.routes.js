@@ -60,6 +60,7 @@ router.post('/payments/:paymentId/flag', adminController.flagSuspiciousPayment);
  */
 router.get('/audit-logs', adminController.getAuditLogs);
 router.get('/notifications', adminController.getNotifications);
+router.post('/notifications/broadcast', adminController.broadcastNotifications);
 router.get('/fraud-signals', adminController.getFraudSignals);
 
 /**

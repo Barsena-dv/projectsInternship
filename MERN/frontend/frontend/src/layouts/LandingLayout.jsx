@@ -42,12 +42,12 @@ const LandingLayout = () => {
 
         {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
-           <div className="fixed inset-0 top-[80px] bg-slate-950 z-[90] flex flex-col p-8 gap-6 animate-in slide-in-from-top duration-300">
+           <div className="fixed inset-0 top-[72px] bg-slate-950/95 backdrop-blur-xl z-[90] flex flex-col p-8 gap-6" style={{ animation: 'pageSlideIn 300ms cubic-bezier(0.16, 1, 0.3, 1) both' }}>
               <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-black text-white">How it Works</a>
               <a href="#security" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-black text-white">Security</a>
               <div className="h-[1px] bg-white/5 my-4" />
               <Link to="/login" className="text-xl font-bold text-indigo-400">Sign In</Link>
-              <Link to="/register" className="px-6 py-4 bg-indigo-500 rounded-2xl text-xl font-black text-white text-center">
+              <Link to="/register" className="px-6 py-4 bg-indigo-500 rounded-2xl text-xl font-black text-white text-center shadow-lg shadow-indigo-500/20">
                  Join Registry
               </Link>
            </div>

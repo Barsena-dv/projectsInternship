@@ -22,8 +22,8 @@ const validateRegister = (data) => {
     errors.phone = 'Phone number is required';
   }
 
-  if (data.role && !['owner', 'finder', 'both'].includes(data.role)) {
-    errors.role = 'Role must be owner, finder, or both';
+  if (data.role && !['owner', 'finder', 'admin'].includes(data.role)) {
+    errors.role = 'Role must be owner, finder, or admin';
   }
 
   return {

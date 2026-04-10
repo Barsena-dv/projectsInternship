@@ -64,6 +64,43 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isPhoneVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isIdVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isSelfieVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationLevel: {
+      type: String,
+      enum: ['pending_verification', 'basic_verified', 'id_verified', 'advanced_verified'],
+      default: 'pending_verification',
+    },
+    finderStatus: {
+      type: String,
+      enum: ['pending_verification', 'verified', 'flagged', 'restricted'],
+      default: 'pending_verification',
+    },
+    trustScore: {
+      type: Number,
+      default: 0,
+    },
+    trustBadge: {
+      type: String,
+      enum: ['trusted_finder', 'basic_user', 'suspicious'],
+      default: 'basic_user',
+    },
+    emailVerificationOtp: String,
+    emailVerificationOtpExpiry: Date,
     verificationToken: String,
     verificationTokenExpiry: Date,
     resetPasswordToken: String,
@@ -85,6 +122,67 @@ const userSchema = new mongoose.Schema(
       completedAssignments: {
         type: Number,
         default: 0,
+      },
+    },
+    activeSessions: [
+      {
+        sessionId: {
+          type: String,
+          required: true,
+        },
+        userAgent: {
+          type: String,
+          default: '',
+        },
+        ipAddress: {
+          type: String,
+          default: '',
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+        lastActiveAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    notificationPreferences: {
+      finderApplied: {
+        type: Boolean,
+        default: true,
+      },
+      trackingUpdate: {
+        type: Boolean,
+        default: true,
+      },
+      evidenceUpdate: {
+        type: Boolean,
+        default: true,
+      },
+      paymentUpdate: {
+        type: Boolean,
+        default: true,
+      },
+      disputeUpdate: {
+        type: Boolean,
+        default: true,
+      },
+      marketingAnnouncements: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    privacySettings: {
+      profileVisibility: {
+        type: String,
+        enum: ['public', 'limited', 'private'],
+        default: 'limited',
+      },
+      activityHistoryVisible: {
+        type: Boolean,
+        default: true,
       },
     },
   },

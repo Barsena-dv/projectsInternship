@@ -267,6 +267,15 @@ const getNotifications = async (req, res) => {
   }
 };
 
+const broadcastNotifications = async (req, res) => {
+  try {
+    const result = await adminService.broadcastNotification(req.body, req.user.userId);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const getFraudSignals = async (req, res) => {
   try {
     const result = await adminService.getFraudSignals(req.query);
@@ -320,6 +329,7 @@ module.exports = {
   flagSuspiciousPayment,
   getAuditLogs,
   getNotifications,
+  broadcastNotifications,
   getFraudSignals,
   getSystemSettings,
   updateSystemSettings,

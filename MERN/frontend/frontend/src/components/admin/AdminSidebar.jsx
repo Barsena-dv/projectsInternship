@@ -1,20 +1,49 @@
-import { NavLink } from 'react-router-dom';
-import { 
-  FiGrid, FiUsers, FiFileText, FiLink, FiAlertTriangle, 
-  FiCreditCard, FiSearch, FiSettings, FiBell, FiShield, FiLogOut 
+import {
+    FiAlertTriangle,
+    FiBarChart2,
+    FiBell,
+    FiCamera,
+    FiCreditCard,
+    FiDollarSign,
+    FiFileText,
+    FiGrid,
+    FiLink,
+    FiLogOut,
+    FiMapPin,
+    FiMessageSquare,
+    FiRotateCcw,
+    FiSearch,
+    FiSettings,
+    FiShield,
+    FiUsers,
 } from 'react-icons/fi';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 const ADMIN_NAV = [
-  { label: 'Overview', to: '/admin/overview', icon: FiGrid },
-  { label: 'Users', to: '/admin/users', icon: FiUsers },
-  { label: 'Requests', to: '/admin/requests', icon: FiFileText },
-  { label: 'Assignments', to: '/admin/assignments', icon: FiLink },
-  { label: 'Disputes', to: '/admin/disputes', icon: FiAlertTriangle },
-  { label: 'Payments', to: '/admin/payments', icon: FiCreditCard },
-  { label: 'Audit Logs', to: '/admin/logs', icon: FiSearch },
-  { label: 'System Health', to: '/admin/health', icon: FiShield },
-  { label: 'Settings', to: '/admin/settings', icon: FiSettings },
+  { label: 'Dashboard', to: '/admin/overview', icon: FiGrid, group: 'control' },
+  { label: 'User Management', to: '/admin/users', icon: FiUsers, group: 'operations' },
+  { label: 'Request Management', to: '/admin/requests', icon: FiFileText, group: 'operations' },
+  { label: 'Assignment Management', to: '/admin/assignments', icon: FiLink, group: 'operations' },
+  { label: 'Tracking Monitoring', to: '/admin/tracking', icon: FiMapPin, group: 'operations' },
+  { label: 'Evidence Monitoring', to: '/admin/evidence', icon: FiCamera, group: 'operations' },
+  { label: 'Chat Monitoring', to: '/admin/chat-monitor', icon: FiMessageSquare, group: 'operations' },
+  { label: 'Payment Management', to: '/admin/payments', icon: FiCreditCard, group: 'financial' },
+  { label: 'Refund Management', to: '/admin/refunds', icon: FiRotateCcw, group: 'financial' },
+  { label: 'Payout Management', to: '/admin/payouts', icon: FiDollarSign, group: 'financial' },
+  { label: 'Dispute Management', to: '/admin/disputes', icon: FiAlertTriangle, group: 'financial' },
+  { label: 'Notification Control', to: '/admin/notifications', icon: FiBell, group: 'governance' },
+  { label: 'Analytics Dashboard', to: '/admin/analytics', icon: FiBarChart2, group: 'governance' },
+  { label: 'Audit Logs', to: '/admin/logs', icon: FiSearch, group: 'governance' },
+  { label: 'Security Signals', to: '/admin/security', icon: FiShield, group: 'governance' },
+  { label: 'System Settings', to: '/admin/settings', icon: FiSettings, group: 'governance' },
+];
+
+const NAV_GROUPS = [
+  { id: 'control', label: 'Control' },
+  { id: 'operations', label: 'Operations' },
+  { id: 'financial', label: 'Financial' },
+  { id: 'governance', label: 'Governance' },
 ];
 
 const AdminSidebar = () => {
@@ -33,33 +62,21 @@ const AdminSidebar = () => {
       </div>
 
       <nav className="admin-sidebar-nav custom-scrollbar">
-        <div className="mb-4">
-          <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Main Menu</p>
-          {ADMIN_NAV.slice(0, 6).map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-            >
-              <item.icon size={18} />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </div>
-
-        <div>
-          <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">System</p>
-          {ADMIN_NAV.slice(6).map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-            >
-              <item.icon size={18} />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </div>
+        {NAV_GROUPS.map((group) => (
+          <div key={group.id} className="mb-4">
+            <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">{group.label}</p>
+            {ADMIN_NAV.filter((item) => item.group === group.id).map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+              >
+                <item.icon size={18} />
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </div>
+        ))}
       </nav>
 
       <div className="p-4 border-t border-white/5">

@@ -17,6 +17,7 @@ const refundService = require('../refunds/refund.service');
 const payoutService = require('../payouts/payout.service');
 const AdminSystemSetting = require('./systemSetting.model');
 const { calculateDistance } = require('../../utils/distance');
+const { applyTrustEvent, getTrustBadge } = require('../../utils/trust');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -307,7 +308,7 @@ const listUsers = async (filters = {}) => {
 
   const [rows, total] = await Promise.all([
     User.find(query)
-      .select('full_name email phone role ratingAvg ratingCount isVerified accountStatus createdAt updatedAt')
+      .select('full_name email phone role ratingAvg ratingCount isVerified isEmailVerified isIdVerified verificationLevel finderStatus trustScore trustBadge accountStatus createdAt updatedAt')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(safeLimit),
@@ -397,6 +398,22 @@ const verifyFinder = async (userId, isApproved, adminId, reason = '') => {
   if (user.role !== 'finder') throw new Error('Only finder accounts can be verified');
 
   user.isVerified = Boolean(isApproved);
+  if (isApproved) {
+    user.finderStatus = 'verified';
+    if (user.isIdVerified) {
+      user.verificationLevel = 'id_verified';
+    } else if (user.isEmailVerified) {
+      user.verificationLevel = 'basic_verified';
+    }
+    if (!user.isIdVerified) {
+      user.isIdVerified = true;
+      applyTrustEvent(user, 'ID_VERIFIED');
+    }
+  } else {
+    user.finderStatus = 'flagged';
+    user.trustScore = Math.max(Number(user.trustScore || 0) - 20, -200);
+    user.trustBadge = getTrustBadge(user.trustScore);
+  }
   await user.save();
 
   await logAction({
@@ -432,6 +449,16 @@ const updateUserStatus = async (userId, status, adminId, reason = '') => {
   if (!user) throw new Error('User not found');
 
   user.accountStatus = status;
+  if (status === 'blocked') {
+    applyTrustEvent(user, 'SCAM_REPORTED');
+    user.finderStatus = 'restricted';
+  }
+  if (status === 'suspended' && user.role === 'finder' && user.finderStatus !== 'restricted') {
+    user.finderStatus = 'flagged';
+  }
+  if (status === 'active' && user.role === 'finder' && user.finderStatus !== 'restricted') {
+    user.finderStatus = user.isVerified ? 'verified' : 'pending_verification';
+  }
   await user.save();
 
   await logAction({
@@ -1216,9 +1243,53 @@ const getNotificationMonitoring = async (params = {}) => {
   };
 };
 
+const broadcastNotification = async ({ title, message, type = 'system', role = '' }, adminId) => {
+  const normalizedTitle = String(title || '').trim();
+  const normalizedMessage = String(message || '').trim();
+  if (!normalizedTitle || !normalizedMessage) {
+    throw new Error('title and message are required');
+  }
+
+  const userQuery = { accountStatus: 'active' };
+  if (role && ['owner', 'finder', 'admin'].includes(String(role))) {
+    userQuery.role = role;
+  }
+
+  const users = await User.find(userQuery).select('_id');
+  if (!users.length) {
+    return { sentCount: 0 };
+  }
+
+  const notifications = users.map((user) => ({
+    user: user._id,
+    type,
+    title: normalizedTitle,
+    message: normalizedMessage,
+    data: { broadcast: true },
+  }));
+
+  await Notification.insertMany(notifications, { ordered: false });
+
+  await logAction({
+    userId: adminId,
+    action: 'ADMIN_NOTIFICATION_BROADCAST',
+    entityType: 'Notification',
+    entityId: adminId,
+    details: {
+      type,
+      role: role || 'all',
+      sentCount: notifications.length,
+    },
+  });
+
+  return {
+    sentCount: notifications.length,
+  };
+};
+
 const getFraudSignals = async ({ threshold = 50 } = {}) => {
   const [finders, assignments, disputes, tracking] = await Promise.all([
-    User.find({ role: 'finder' }).select('full_name email accountStatus ratingAvg ratingCount').limit(500),
+    User.find({ role: 'finder' }).select('full_name email accountStatus ratingAvg ratingCount trustScore trustBadge finderStatus').limit(500),
     FinderAssignment.find({}).select('finder status'),
     Dispute.find({}).select('raisedBy againstUser'),
     TrackingUpdate.find({ createdAt: { $gte: new Date(Date.now() - 14 * DAY_MS) } })
@@ -1273,6 +1344,9 @@ const getFraudSignals = async ({ threshold = 50 } = {}) => {
       full_name: finder.full_name,
       email: finder.email,
       accountStatus: finder.accountStatus,
+      trustScore: Number(finder.trustScore || 0),
+      trustBadge: finder.trustBadge,
+      finderStatus: finder.finderStatus,
       assignmentStats,
       disputeCount,
       trackingSignals: {
@@ -1354,6 +1428,7 @@ module.exports = {
   flagSuspiciousPayment,
   getAuditLogsForAdmin,
   getNotificationMonitoring,
+  broadcastNotification,
   getFraudSignals,
   getSystemSettings,
   updateSystemSettings,

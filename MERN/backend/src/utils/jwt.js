@@ -5,11 +5,12 @@ const jwt = require('jsonwebtoken');
  * @param {String} userId - User ID
  * @param {String} role - User role
  */
-const generateToken = (userId, role) => {
+const generateToken = (userId, role, sessionId = null) => {
   return jwt.sign(
     {
       userId,
       role,
+      sessionId,
     },
     process.env.JWT_SECRET,
     {

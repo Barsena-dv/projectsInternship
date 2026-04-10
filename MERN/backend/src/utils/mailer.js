@@ -148,6 +148,25 @@ const sendPasswordResetEmail = async (email, fullName, resetUrl) => {
   });
 };
 
+const sendFinderOtpEmail = async (email, fullName, otpCode) => {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #0f172a; line-height: 1.6;">
+      <h2 style="color: #2563eb;">Finder Email Verification</h2>
+      <p>Hi ${fullName},</p>
+      <p>Use this one-time code to verify your finder account on PostNFind:</p>
+      <div style="font-size: 30px; letter-spacing: 6px; font-weight: 700; color: #111827; padding: 10px 14px; background: #eef2ff; border-radius: 8px; display: inline-block;">${otpCode}</div>
+      <p style="margin-top: 14px;">This code expires in 10 minutes.</p>
+      <p style="font-size: 12px; color: #64748b;">If you did not initiate this action, you can ignore this email.</p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: 'PostNFind Finder Email Verification Code',
+    html,
+  });
+};
+
 module.exports = {
   sendEmail,
   sendRegistrationEmail,
@@ -155,4 +174,5 @@ module.exports = {
   sendEvidenceNotificationEmail,
   sendItemConfirmedEmail,
   sendPasswordResetEmail,
+  sendFinderOtpEmail,
 };
