@@ -90,7 +90,7 @@ const OwnerCreateRequestPage = () => {
   if (planLoading) return <LoadingSpinner text="Assembling service plans..." />;
 
   return (
-    <div className="owner-page-enter">
+    <div className="owner-page-enter owner-page-shell">
       <PageHeader 
         title="Create New Request" 
         subtitle="Provide item details to help finders identify and recover your property" 

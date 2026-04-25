@@ -245,7 +245,7 @@ const FinderAssignmentDetailsPage = () => {
   const sectionLabel = "text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.2em] mb-4 block";
 
   return (
-    <div className="finder-page-enter space-y-8 pb-12 overflow-x-hidden">
+   <div className="finder-page-enter finder-page-shell space-y-8 pb-12 overflow-x-hidden">
       <PageHeader
         title="Mission Workbench"
         subtitle={getFinderLifecycleMessage(lifecycleState)}

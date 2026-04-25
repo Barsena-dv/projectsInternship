@@ -41,26 +41,17 @@ const RegisterPage = () => {
 
   return (
     <div className="auth-modern-layout pnf-dark-scrollbar">
-      {/* Cinematic Glows */}
       <div className="auth-glow auth-glow-1" style={{ width: '800px', height: '800px', opacity: 0.15 }} />
       <div className="auth-glow auth-glow-2" style={{ bottom: '0', right: '0', opacity: 0.1 }} />
 
-      <div className="auth-modern-card max-w-130">
+      <div className={`auth-modern-card max-w-130 ${selectedRole === 'owner' ? 'auth-role-owner' : 'auth-role-finder'}`}>
         <header className="auth-modern-header">
-          <Link to="/" className="auth-brand-pill" style={{
-            background: selectedRole === 'owner' 
-              ? 'linear-gradient(135deg, #f59e0b, #d97706)' 
-              : 'linear-gradient(135deg, #10b981, #059669)',
-            boxShadow: selectedRole === 'owner'
-              ? '0 10px 20px rgba(245,158,11,0.3)'
-              : '0 10px 20px rgba(16,185,129,0.3)',
-            transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-          }}>
+          <Link to="/" className="auth-brand-pill">
             <FiUserPlus className="text-white" size={24} />
           </Link>
           <h1 className="auth-modern-title">Create Account</h1>
           <p className="auth-modern-subtitle">
-            Join PostNFind to start posting discovery requests or earning rewards as a finder.
+            Create your profile to post recovery requests or accept finder assignments.
           </p>
         </header>
 
@@ -95,7 +86,7 @@ const RegisterPage = () => {
                  id="email"
                  type="email"
                  className={`auth-input-field ${errors.email ? 'error' : ''}`}
-                 placeholder="your@email.com"
+                 placeholder="you@example.com"
                  {...register('email', { required: 'Email is required' })}
                />
                {errors.email && <p className="auth-error-text">{errors.email.message}</p>}
@@ -108,7 +99,7 @@ const RegisterPage = () => {
                <input
                  id="phone"
                  className={`auth-input-field ${errors.phone ? 'error' : ''}`}
-                 placeholder="+91 XXXXX XXXXX"
+                 placeholder="+91 98XXXXXX12"
                  {...register('phone', { required: 'Phone number is required' })}
                />
                {errors.phone && <p className="auth-error-text">{errors.phone.message}</p>}
@@ -122,7 +113,7 @@ const RegisterPage = () => {
                    title="password"
                    type={showPassword ? 'text' : 'password'}
                    className={`auth-input-field ${errors.password ? 'error' : ''}`}
-                   placeholder="••••••••"
+                   placeholder="Minimum 6 characters"
                    {...register('password', { 
                      required: 'Password is required',
                      minLength: { value: 6, message: 'Minimum 6 characters' }
@@ -142,18 +133,7 @@ const RegisterPage = () => {
              </div>
           </div>
 
-          <button 
-            type="submit" 
-            className="auth-submit-btn" 
-            style={{
-              background: selectedRole === 'owner' ? '#f59e0b' : '#10b981',
-              boxShadow: selectedRole === 'owner' 
-                ? '0 10px 25px rgba(245,158,11,0.3)' 
-                : '0 10px 25px rgba(16,185,129,0.3)',
-              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-            disabled={loading}
-          >
+          <button type="submit" className="auth-submit-btn" disabled={loading}>
             {loading ? (
                <span className="flex items-center gap-2">
                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

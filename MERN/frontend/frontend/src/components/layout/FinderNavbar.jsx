@@ -71,6 +71,30 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
     } catch { /* no-op */ }
   };
 
+  const theme = darkMode
+    ? {
+        text: '#ecfeff',
+        textMuted: '#cbd5e1',
+        textSoft: '#94a3b8',
+        surface: 'rgba(15, 23, 42, 0.9)',
+        surfaceAlt: 'rgba(15, 23, 42, 0.96)',
+        border: 'rgba(16, 185, 129, 0.2)',
+        hover: 'rgba(16, 185, 129, 0.12)',
+        accent: '#10b981',
+        navIdle: '#94a3b8',
+      }
+    : {
+        text: '#0f172a',
+        textMuted: '#334155',
+        textSoft: '#475569',
+        surface: 'rgba(255, 255, 255, 0.88)',
+        surfaceAlt: 'rgba(255, 255, 255, 0.96)',
+        border: 'rgba(100, 116, 139, 0.28)',
+        hover: 'rgba(148, 163, 184, 0.12)',
+        accent: '#059669',
+        navIdle: '#475569',
+      };
+
   const navStyle = {
     position: 'sticky',
     top: 0,
@@ -79,10 +103,10 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
     height: '64px',
     display: 'flex',
     alignItems: 'center',
-    background: scrolled ? 'rgba(15, 23, 42, 0.7)' : 'rgba(15, 23, 42, 0.3)',
+    background: scrolled ? theme.surface : theme.surfaceAlt,
     backdropFilter: 'blur(16px)',
     WebkitBackdropFilter: 'blur(16px)',
-    borderBottom: scrolled ? '1px solid rgba(16, 185, 129, 0.15)' : '1px solid transparent',
+    borderBottom: scrolled ? `1px solid ${theme.border}` : '1px solid transparent',
     boxShadow: scrolled ? '0 10px 30px rgba(0,0,0,0.5)' : 'none',
     transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
   };
@@ -91,9 +115,9 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
     position: 'absolute',
     right: 0,
     top: '56px',
-    background: 'rgba(15, 23, 42, 0.9)',
+    background: theme.surfaceAlt,
     backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(16, 185, 129, 0.2)',
+    border: `1px solid ${theme.border}`,
     borderRadius: '16px',
     boxShadow: '0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(16, 185, 129, 0.05) inset',
     zIndex: 200,
@@ -125,7 +149,7 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
       <header style={navStyle}>
         <div className="fnav-header-inner" style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
           
-          <Link to="/finder/dashboard" className="fnav-logo-text" style={{ fontWeight: 900, fontSize: '1.2rem', color: '#f1f5f9', textDecoration: 'none', marginRight: '2.5rem', display: 'flex', alignItems: 'center', gap: '8px', letterSpacing: '-0.02em' }}>
+          <Link to="/finder/dashboard" className="fnav-logo-text" style={{ fontWeight: 900, fontSize: '1.2rem', color: theme.text, textDecoration: 'none', marginRight: '2.5rem', display: 'flex', alignItems: 'center', gap: '8px', letterSpacing: '-0.02em' }}>
             <div style={{ background: 'linear-gradient(135deg, #10b981, #059669)', width: '24px', height: '24px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontSize: '0.75rem', fontWeight: 900 }}>F</div>
             Post<span style={{ color: '#10b981' }}>N</span>Find
           </Link>
@@ -139,13 +163,13 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
                 style={({ isActive }) => ({
                   fontSize: '0.875rem',
                   fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#fff' : '#94a3b8',
+                  color: isActive ? theme.text : theme.navIdle,
                   textDecoration: 'none',
                   padding: '0.5rem 1rem',
                   borderRadius: '12px',
                   transition: 'all 0.2s',
-                  background: isActive ? 'rgba(16, 185, 129, 0.12)' : 'transparent',
-                  border: isActive ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent',
+                  background: isActive ? theme.hover : 'transparent',
+                  border: isActive ? `1px solid ${theme.border}` : '1px solid transparent',
                 })}
               >
                 {link.label}
@@ -161,35 +185,35 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
             {/* Search */}
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                {searchOpen ? (
-                 <div className="fnav-search-container" style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '0 0.75rem', border: '1px solid rgba(16, 185, 129, 0.3)', gap: '0.5rem', height: '36px', minWidth: '220px', animation: 'fNavDrop 0.2s ease' }}>
-                    <FiSearch size={14} color="#10b981" />
-                    <input autoFocus placeholder="Find request..." style={{ background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.85rem', width: '100%' }} value={searchVal} onChange={(e) => setSearchVal(e.target.value)} />
+                  <div className="fnav-search-container" style={{ display: 'flex', alignItems: 'center', background: theme.hover, borderRadius: '10px', padding: '0 0.75rem', border: `1px solid ${theme.border}`, gap: '0.5rem', height: '36px', minWidth: '220px', animation: 'fNavDrop 0.2s ease' }}>
+                    <FiSearch size={14} color={theme.accent} />
+                    <input autoFocus placeholder="Find request..." style={{ background: 'transparent', border: 'none', outline: 'none', color: theme.text, fontSize: '0.85rem', width: '100%' }} value={searchVal} onChange={(e) => setSearchVal(e.target.value)} />
                     <FiX size={14} color="#64748b" style={{ cursor: 'pointer' }} onClick={() => {setSearchOpen(false); setSearchVal('');}} />
                  </div>
                ) : (
-                 <button onClick={() => setSearchOpen(true)} className="fnav-iconbtn" style={{ background: 'transparent', border: 'none', color: '#94a3b8', padding: '8px', cursor: 'pointer', borderRadius: '10px' }}>
+                  <button onClick={() => setSearchOpen(true)} className="fnav-iconbtn" style={{ background: 'transparent', border: 'none', color: theme.navIdle, padding: '8px', cursor: 'pointer', borderRadius: '10px' }}>
                     <FiSearch size={18} />
                  </button>
                )}
             </div>
 
             {/* Dark Mode */}
-            <button onClick={onToggleDark} className="fnav-iconbtn" style={{ background: 'transparent', border: 'none', color: '#94a3b8', padding: '8px', cursor: 'pointer', borderRadius: '10px' }}>
+              <button onClick={onToggleDark} className="fnav-iconbtn" style={{ background: 'transparent', border: 'none', color: theme.navIdle, padding: '8px', cursor: 'pointer', borderRadius: '10px' }}>
                {darkMode ? <FiSun size={18} /> : <FiMoon size={18} />}
             </button>
 
             {/* Notifications */}
             <div ref={notifRef} style={{ position: 'relative' }}>
-              <button onClick={() => setNotifOpen(!notifOpen)} className="fnav-iconbtn" style={{ background: 'transparent', border: 'none', color: notifOpen ? '#10b981' : '#94a3b8', padding: '8px', cursor: 'pointer', borderRadius: '10px', position: 'relative' }}>
+              <button onClick={() => setNotifOpen(!notifOpen)} className="fnav-iconbtn" style={{ background: 'transparent', border: 'none', color: notifOpen ? theme.accent : theme.navIdle, padding: '8px', cursor: 'pointer', borderRadius: '10px', position: 'relative' }}>
                 <FiBell size={18} />
                 {unreadCount > 0 && <span style={{ position: 'absolute', top: 6, right: 6, width: '8px', height: '8px', background: '#10b981', borderRadius: '50%', border: '2px solid #0f172a' }} />}
               </button>
               {notifOpen && (
                 <div style={{ ...dropdownStyle, width: '320px', animation: 'fNavDrop 0.2s ease' }}>
-                  <div style={{ padding: '1rem', borderBottom: '1px solid rgba(16,185,129,0.1)', background: 'rgba(16,185,129,0.03)' }}>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#fff', display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ padding: '1rem', borderBottom: `1px solid ${theme.border}`, background: theme.hover }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: theme.text, display: 'flex', justifyContent: 'space-between' }}>
                       <span>Alert Center</span>
-                      <Link to="/notifications" onClick={() => setNotifOpen(false)} style={{ color: '#10b981', textDecoration: 'none', fontSize: '0.75rem' }}>View All</Link>
+                      <Link to="/notifications" onClick={() => setNotifOpen(false)} style={{ color: theme.accent, textDecoration: 'none', fontSize: '0.75rem' }}>View All</Link>
                     </div>
                   </div>
                   <div style={{ maxHeight: '360px', overflowY: 'auto' }}>
@@ -218,16 +242,16 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
             <div ref={profileRef} style={{ position: 'relative' }}>
               <button onClick={() => setProfileOpen(!profileOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Avatar src={user?.profileImage?.url || user?.profileImage} name={user?.full_name} size="sm" className="border border-emerald-500/20" />
-                <span className="fnav-profile-name" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f1f5f9' }}>{user?.full_name?.split(' ')[0]}</span>
+                 <span className="fnav-profile-name" style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>{user?.full_name?.split(' ')[0]}</span>
               </button>
               {profileOpen && (
                 <div style={{ ...dropdownStyle, width: '200px', padding: '6px', animation: 'fNavDrop 0.2s ease' }}>
-                   <div style={{ padding: '0.75rem', borderBottom: '1px solid rgba(16,185,129,0.1)' }}>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{user?.full_name}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{user?.role?.toUpperCase()}</div>
+                   <div style={{ padding: '0.75rem', borderBottom: `1px solid ${theme.border}` }}>
+                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text }}>{user?.full_name}</div>
+                     <div style={{ fontSize: '0.7rem', color: theme.navIdle }}>{user?.role?.toUpperCase()}</div>
                    </div>
                    <div style={{ padding: '4px 0' }}>
-                      <Link to="/profile" onClick={() => setProfileOpen(false)} style={{ display: 'block', padding: '8px 12px', color: '#cbd5e1', textDecoration: 'none', fontSize: '0.8rem', borderRadius: '8px' }}>Discovery Settings</Link>
+                     <Link to="/profile" onClick={() => setProfileOpen(false)} style={{ display: 'block', padding: '8px 12px', color: theme.textMuted, textDecoration: 'none', fontSize: '0.8rem', borderRadius: '8px' }}>Discovery Settings</Link>
                       <button onClick={() => { logout(); navigate('/login'); }} style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: '8px 12px', color: '#fca5a5', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
                          <FiLogOut size={14} /> De-authenticate
                       </button>
@@ -258,7 +282,7 @@ const FinderNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
             onClick={() => setMobileMenuOpen(false)} 
           />
           {/* Sidebar */}
-          <div style={{ position: 'relative', marginLeft: 'auto', width: '280px', maxWidth: '80%', height: '100%', background: 'rgba(15, 23, 42, 0.95)', borderLeft: '1px solid rgba(16, 185, 129, 0.1)', display: 'flex', flexDirection: 'column', padding: '1.5rem', animation: 'fNavDrop 0.3s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+          <div style={{ position: 'relative', marginLeft: 'auto', width: '280px', maxWidth: '80%', height: '100%', background: theme.surfaceAlt, borderLeft: `1px solid ${theme.border}`, display: 'flex', flexDirection: 'column', padding: '1.5rem', animation: 'fNavDrop 0.3s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
             <div className="flex flex-col w-full h-full">
               <div className="flex justify-between items-center mb-8">
                 <span className="font-black text-white text-lg tracking-tight">Menu</span>

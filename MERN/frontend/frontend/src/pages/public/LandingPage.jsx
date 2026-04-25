@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { 
   FiMapPin, FiShield, FiTrendingUp, FiCheckCircle, 
-  FiDollarSign, FiSearch, FiArrowRight, FiActivity, FiBriefcase 
+   FiDollarSign, FiArrowRight, FiActivity
 } from 'react-icons/fi';
 import { useAuth } from '../../hooks/useAuth';
 import { Navigate } from 'react-router-dom';
@@ -46,29 +46,44 @@ const LandingPage = () => {
         </div>
 
         <div className="landing-hero-content pnf-page-enter">
-           <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full mb-8 reveal">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Global Discovery Registry v2.0</p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-300/20 rounded-full mb-8 reveal">
+                     <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                     <p className="text-[10px] font-black text-cyan-300 uppercase tracking-widest">Trusted Lost and Found Network</p>
            </div>
            
            <h1 className="hero-title reveal delay-100">
-             Lose It. <br />
-             <span className="text-indigo-400">Let the World Find It.</span>
+                   Recover What Matters <br />
+                   <span className="text-cyan-300">With Verified People and Secure Payments.</span>
            </h1>
            
            <p className="hero-subtitle reveal delay-200">
-             Bridging the gap between the things you value and the people who discover them. 
-             A decentralized, escrow-protected ecosystem for professional lost & found recovery.
+                   PostNFind connects owners and finders through structured requests, proof-based milestones,
+                   and escrow-backed payouts so every recovery journey stays transparent.
            </p>
 
            <div className="flex flex-wrap items-center justify-center gap-6 reveal delay-300">
               <Link to="/register" className="landing-btn-primary group flex items-center gap-2">
-                 Join the Registry <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+                         Create Free Account <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link to="/login" className="landing-btn-outline">
-                 Member Login
+                         Sign In
               </Link>
            </div>
+
+                <div className="landing-quick-stats reveal delay-400">
+                   <div className="landing-quick-stat">
+                      <span className="landing-quick-value">98%</span>
+                      <span className="landing-quick-label">successful handoffs</span>
+                   </div>
+                   <div className="landing-quick-stat">
+                      <span className="landing-quick-value">24M+</span>
+                      <span className="landing-quick-label">rewards settled</span>
+                   </div>
+                   <div className="landing-quick-stat">
+                      <span className="landing-quick-value">12k+</span>
+                      <span className="landing-quick-label">active users</span>
+                   </div>
+                </div>
         </div>
       </section>
 
@@ -81,23 +96,23 @@ const LandingPage = () => {
                <div className="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20 mb-8 transform transition-transform group-hover:rotate-6 overflow-hidden">
                   <img src="/assets/owner-benefit.png" alt="Owner Benefit" className="w-full h-full object-cover opacity-80" />
                </div>
-               <h3 className="text-2xl font-black text-white mb-4 uppercase tracking-wider">I Lost Something</h3>
+               <h3 className="text-2xl font-black text-white mb-4">For Owners</h3>
                <p className="text-slate-400 font-medium mb-10 leading-relaxed">
-                  Post a discovery request with an escrowed reward. Our verified finders will begin tracking and surveying across the designated grid.
+                  Create a recovery request, define your budget and evidence, and receive updates from verified finders working your case.
                </p>
                <ul className="space-y-4 mb-10">
                   <li className="flex items-center gap-3 text-sm font-bold text-slate-300">
-                     <FiCheckCircle className="text-amber-500" /> Professional Grade Tracking
+                     <FiCheckCircle className="text-amber-500" /> Guided request creation
                   </li>
                   <li className="flex items-center gap-3 text-sm font-bold text-slate-300">
-                     <FiCheckCircle className="text-amber-500" /> Forensic Evidence Verification
+                     <FiCheckCircle className="text-amber-500" /> Evidence-first validation
                   </li>
                   <li className="flex items-center gap-3 text-sm font-bold text-slate-300">
-                     <FiCheckCircle className="text-amber-500" /> 85% Refund Guarantee (Basic)
+                     <FiCheckCircle className="text-amber-500" /> Escrow-secured payout flow
                   </li>
                </ul>
-               <Link to="/register?role=owner" className="flex items-center gap-2 text-amber-500 font-black tracking-widest text-xs uppercase group-hover:translate-x-2 transition-transform">
-                  Post a Request <FiArrowRight />
+               <Link to="/register?role=owner" className="flex items-center gap-2 text-amber-500 font-black tracking-wider text-xs uppercase group-hover:translate-x-2 transition-transform">
+                  Post Recovery Request <FiArrowRight />
                </Link>
             </article>
 
@@ -106,23 +121,23 @@ const LandingPage = () => {
                <div className="w-16 h-16 bg-sky-500 rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/20 mb-8 transform transition-transform group-hover:-rotate-6 overflow-hidden">
                   <img src="/assets/finder-benefit.png" alt="Finder Benefit" className="w-full h-full object-cover opacity-80" />
                </div>
-               <h3 className="text-2xl font-black text-white mb-4 uppercase tracking-wider">I Want to Discover</h3>
+               <h3 className="text-2xl font-black text-white mb-4">For Finders</h3>
                <p className="text-slate-400 font-medium mb-10 leading-relaxed">
-                  Join as a discovery specialist. Browse the global mission registry, complete verifications, and earn guaranteed rewards for your time and success.
+                  Browse requests near your location, submit proof at each step, and receive guaranteed payouts for successful recoveries.
                </p>
                <ul className="space-y-4 mb-10">
                   <li className="flex items-center gap-3 text-sm font-bold text-slate-300">
-                     <FiCheckCircle className="text-sky-400" /> Guaranteed Participation Fee
+                     <FiCheckCircle className="text-sky-400" /> Clear assignment requirements
                   </li>
                   <li className="flex items-center gap-3 text-sm font-bold text-slate-300">
-                     <FiCheckCircle className="text-sky-400" /> High-Discovery Success Bonuses
+                     <FiCheckCircle className="text-sky-400" /> Milestone-based reward releases
                   </li>
                   <li className="flex items-center gap-3 text-sm font-bold text-slate-300">
-                     <FiCheckCircle className="text-sky-400" /> Tiered Trust Badges
+                     <FiCheckCircle className="text-sky-400" /> Reputation and trust badges
                   </li>
                </ul>
-               <Link to="/register?role=finder" className="flex items-center gap-2 text-sky-400 font-black tracking-widest text-xs uppercase group-hover:translate-x-2 transition-transform">
-                  Start Discovering <FiArrowRight />
+               <Link to="/register?role=finder" className="flex items-center gap-2 text-sky-400 font-black tracking-wider text-xs uppercase group-hover:translate-x-2 transition-transform">
+                  Start as Finder <FiArrowRight />
                </Link>
             </article>
 
@@ -132,58 +147,58 @@ const LandingPage = () => {
       {/* Trust & Security Section */}
       <section id="security" className="landing-section">
          <div className="max-w-4xl mx-auto text-center mb-20 reveal">
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 uppercase tracking-tighter">The 3-Way Split Protocol</h2>
-            <p className="text-slate-400 font-medium max-w-2xl mx-auto border-l-2 border-indigo-500 pl-6 text-left">
-               Our proprietary settlement engine ensures that every linkage is fair. We solve the trust gap by splitting rewards between finding fees, discovery bonuses, and platform protection.
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Built for Trust at Every Step</h2>
+            <p className="text-slate-400 font-medium max-w-2xl mx-auto border-l-2 border-cyan-300 pl-6 text-left">
+               Verified identities, documented progress, and escrow-backed settlements reduce risk for both owners and finders.
             </p>
          </div>
 
          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 rounded-3xl bg-white/5 border border-white/5 reveal">
-               <FiShield className="text-indigo-400 mb-6" size={32} />
-               <h4 className="font-black text-white mb-2 uppercase tracking-widest">Escrow Hold</h4>
+               <FiShield className="text-cyan-300 mb-6" size={32} />
+               <h4 className="font-black text-white mb-2 uppercase tracking-widest">Escrow Security</h4>
                <p className="text-xs text-slate-500 leading-relaxed">
-                  Funds are locked at the moment of engagement, ensuring finders are rewarded and owners are protected.
+                  Owner funds remain protected in escrow and are released only when proof-based milestones are completed.
                </p>
             </div>
             <div className="p-8 rounded-3xl bg-white/5 border border-white/5 reveal delay-100">
                <FiTrendingUp className="text-emerald-400 mb-6" size={32} />
-               <h4 className="font-black text-white mb-2 uppercase tracking-widest">Success Multipliers</h4>
+               <h4 className="font-black text-white mb-2 uppercase tracking-widest">Performance Reputation</h4>
                <p className="text-xs text-slate-500 leading-relaxed">
-                  Higher Trust Ratings unlock tiered rewards and success-based multipliers for elite discovery specialists.
+                  Reliable completion history improves visibility and helps top performers get higher-value assignments.
                </p>
             </div>
             <div className="p-8 rounded-3xl bg-white/5 border border-white/5 reveal delay-200">
                <FiActivity className="text-rose-400 mb-6" size={32} />
-               <h4 className="font-black text-white mb-2 uppercase tracking-widest">Real-time Telemetry</h4>
+               <h4 className="font-black text-white mb-2 uppercase tracking-widest">Operational Oversight</h4>
                <p className="text-xs text-slate-500 leading-relaxed">
-                  Administrative oversight and suspicious jump detection maintain the absolute integrity of every mission.
+                  Admin activity logs and dispute workflows help resolve issues quickly and keep the platform fair.
                </p>
             </div>
          </div>
       </section>
 
       {/* Stats Proof */}
-      <section className="landing-section border-t border-white/5">
+      <section id="results" className="landing-section border-t border-white/5">
          <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-12 reveal">
             <div>
                <p className="text-6xl font-black text-white tracking-tighter">98%</p>
-               <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Discovery Precision</p>
+               <p className="text-[10px] font-black text-cyan-300 uppercase tracking-widest">Recovery Completion</p>
             </div>
             <div className="h-12 w-[1px] bg-white/10 hidden md:block" />
             <div>
                <p className="text-6xl font-black text-white tracking-tighter">₹24M+</p>
-               <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Rewards Settled</p>
+               <p className="text-[10px] font-black text-cyan-300 uppercase tracking-widest">Rewards Settled</p>
             </div>
             <div className="h-12 w-[1px] bg-white/10 hidden md:block" />
             <div>
                <p className="text-6xl font-black text-white tracking-tighter">12k+</p>
-               <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Active Linkages</p>
+               <p className="text-[10px] font-black text-cyan-300 uppercase tracking-widest">Active Participants</p>
             </div>
             <div className="h-12 w-[1px] bg-white/10 hidden md:block" />
             <div className="flex-1 text-right">
                <p className="text-sm font-bold text-slate-500 leading-relaxed max-w-xs ml-auto">
-                  Join the thousands of users securing their belongings in the global registry.
+                  Teams, students, and communities use PostNFind to improve recovery outcomes with less friction.
                </p>
             </div>
          </div>
@@ -191,12 +206,12 @@ const LandingPage = () => {
 
       {/* Final CTA */}
       <section className="landing-section">
-         <div className="max-w-7xl mx-auto p-12 md:p-24 rounded-[3rem] bg-gradient-to-br from-indigo-500 to-indigo-900 shadow-2xl shadow-indigo-500/30 text-center relative overflow-hidden group reveal">
+         <div className="max-w-7xl mx-auto p-12 md:p-24 rounded-[3rem] bg-gradient-to-br from-cyan-400 to-blue-700 shadow-2xl shadow-cyan-500/20 text-center relative overflow-hidden group reveal">
             <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
             <div className="relative z-10">
-               <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tighter">Ready to Restore?</h2>
-               <Link to="/register" className="inline-block px-12 py-5 bg-white text-indigo-900 rounded-2xl font-black text-xl uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-slate-900/40">
-                  Deploy Registry Now
+               <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tight">Ready to Present a Better Recovery Experience?</h2>
+               <Link to="/register" className="inline-block px-12 py-5 bg-white text-sky-900 rounded-2xl font-black text-xl uppercase tracking-wider hover:scale-105 transition-all shadow-xl shadow-slate-900/40">
+                  Start with PostNFind
                </Link>
             </div>
          </div>

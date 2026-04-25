@@ -65,13 +65,13 @@ const FinderAssignmentsPage = () => {
 
   if (loading) return <LoadingSpinner text="Synchronizing Mission Data..." />;
 
-  const sectionLabel = "text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.2em] mb-4 block";
+  const sectionLabel = "text-[10px] font-black text-emerald-400/90 uppercase tracking-[0.2em] mb-4 block";
   const tabStyle = (id) => `px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-    activeFilter === id ? 'bg-emerald-500 text-slate-950 shadow-lg' : 'text-slate-500 hover:text-emerald-400 hover:bg-white/5'
+    activeFilter === id ? 'bg-emerald-500 text-slate-950 shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'
   }`;
 
   return (
-    <div className="finder-page-enter space-y-10">
+    <div className="finder-page-enter finder-page-shell finder-assignments-page space-y-10">
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         <PageHeader 
           title="Mission Control" 
@@ -160,16 +160,16 @@ const FinderAssignmentsPage = () => {
       </div>
 
       {/* Discovery Prompt Footer */}
-      <div className="mt-8 sm:mt-12 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-emerald-500 text-slate-950 relative overflow-hidden group shadow-[0_20px_50px_rgba(16,185,129,0.2)]">
-         <FiLayers className="absolute -right-6 -bottom-6 text-slate-950/10 hidden sm:block" size={180} />
+      <div className="finder-cta-banner mt-8 sm:mt-12 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] relative overflow-hidden group">
+        <FiLayers className="absolute -right-6 -bottom-6 text-emerald-300/10 hidden sm:block" size={180} />
          <div className="relative z-10 flex flex-col xl:flex-row items-center justify-between gap-6 sm:gap-8 text-center xl:text-left">
             <div className="max-w-md">
-               <h3 className="text-xl sm:text-2xl font-black mb-2 uppercase tracking-tighter">Expand Your Discovery Range</h3>
-               <p className="text-xs sm:text-sm font-bold opacity-80 leading-relaxed italic">
+            <h3 className="text-xl sm:text-2xl font-black mb-2 uppercase tracking-tighter text-white">Expand Your Discovery Range</h3>
+            <p className="text-xs sm:text-sm font-bold text-slate-200 leading-relaxed italic">
                  New signals are detected in real-time. Keep your operational radar synchronized for priority extraction rewards.
                </p>
             </div>
-            <Link to="/finder/requests" className="px-6 sm:px-8 py-3 sm:py-4 bg-slate-950 text-emerald-500 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] hover:bg-slate-900 transition-all whitespace-nowrap w-full sm:w-auto">
+          <Link to="/finder/requests" className="finder-cta-button px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] transition-all whitespace-nowrap w-full sm:w-auto text-center">
                Scan Available Signals
             </Link>
          </div>

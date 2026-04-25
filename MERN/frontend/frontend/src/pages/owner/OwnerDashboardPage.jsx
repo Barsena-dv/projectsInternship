@@ -130,7 +130,7 @@ const OwnerDashboardPage = () => {
   if (loading) return <LoadingSpinner text="Assembling your dashboard..." />;
 
   return (
-    <div className="owner-page-enter">
+    <div className="owner-page-enter owner-page-shell">
       {/* Page header */}
       <div className="owner-page-header flex flex-wrap items-end justify-between gap-4">
         <div>

@@ -183,7 +183,7 @@ const FinderDashboardPage = () => {
   );
 
   return (
-    <div className="finder-page-enter space-y-8 pb-12 overflow-x-hidden">
+    <div className="finder-page-enter finder-page-shell space-y-8 pb-12 overflow-x-hidden">
       
       {/* Interactive Top Navbar/Tabs */}
       <div className="flex flex-col xl:flex-row items-center justify-between gap-6 pb-8 border-b border-white/5">

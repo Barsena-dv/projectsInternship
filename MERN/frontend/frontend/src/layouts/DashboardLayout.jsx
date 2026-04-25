@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import RoleSidebar from '../components/common/RoleSidebar';
 import TopNavbar from '../components/common/TopNavbar';
@@ -13,9 +13,29 @@ import '../styles/finder/dashboard.css';
 
 const DashboardLayout = () => {
   const { user } = useAuth();
-  const [darkMode, setDarkMode] = useState(true);
   const isOwner = user?.role === 'owner';
   const isFinder = user?.role === 'finder';
+
+  const roleThemeKey = useMemo(() => `pnf-theme-${user?.role || 'default'}`, [user?.role]);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem(roleThemeKey) !== 'light';
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const saved = localStorage.getItem(roleThemeKey);
+    if (!saved) {
+      setDarkMode(true);
+      return;
+    }
+    setDarkMode(saved !== 'light');
+  }, [roleThemeKey]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(roleThemeKey, darkMode ? 'dark' : 'light');
+  }, [roleThemeKey, darkMode]);
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -26,9 +46,9 @@ const DashboardLayout = () => {
   if (isOwner) {
     return (
       <div 
-        className="owner-dashboard-wrapper pnf-dark-scrollbar" 
+        className={`owner-dashboard-wrapper pnf-dark-scrollbar ${darkMode ? 'owner-theme-dark' : 'owner-theme-light'}`}
         onScroll={handleScroll}
-        style={{ height: '100vh', overflowY: 'auto', color: '#fffbeb', position: 'relative' }}
+        style={{ height: '100vh', overflowY: 'auto', color: 'var(--role-text-primary)', position: 'relative' }}
       >
         <RoleBackground />
         <OwnerNavbar 
@@ -36,7 +56,7 @@ const DashboardLayout = () => {
           onToggleDark={() => setDarkMode((p) => !p)} 
           scrolledOverride={scrolled}
         />
-        <main className="owner-page-enter" style={{ position: 'relative', zIndex: 10, maxWidth: '1440px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+        <main className="owner-page-enter pnf-dashboard-main" style={{ position: 'relative', zIndex: 10 }}>
           <Outlet />
         </main>
       </div>
@@ -46,9 +66,9 @@ const DashboardLayout = () => {
   if (isFinder) {
     return (
       <div 
-        className="finder-dashboard-wrapper pnf-dark-scrollbar" 
+        className={`finder-dashboard-wrapper pnf-dark-scrollbar ${darkMode ? 'finder-theme-dark' : 'finder-theme-light'}`}
         onScroll={handleScroll}
-        style={{ height: '100vh', overflowY: 'auto', color: '#f1f5f9', position: 'relative' }}
+        style={{ height: '100vh', overflowY: 'auto', color: 'var(--role-text-primary)', position: 'relative' }}
       >
         <RoleBackground />
         <FinderNavbar 
@@ -56,7 +76,7 @@ const DashboardLayout = () => {
           onToggleDark={() => setDarkMode((p) => !p)} 
           scrolledOverride={scrolled}
         />
-        <main className="finder-page-enter" style={{ position: 'relative', zIndex: 10, maxWidth: '1440px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+        <main className="finder-page-enter pnf-dashboard-main" style={{ position: 'relative', zIndex: 10 }}>
           <Outlet />
         </main>
       </div>
@@ -64,11 +84,11 @@ const DashboardLayout = () => {
   }
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-dvh pnf-default-shell">
       <TopNavbar />
       <div className="mx-auto grid max-w-300 gap-4 px-4 py-4 md:grid-cols-[240px_1fr] md:px-6">
         <RoleSidebar role={user?.role} />
-        <main className="pnf-page-enter">
+        <main className="pnf-page-enter pnf-default-main">
           <Outlet />
         </main>
       </div>

@@ -62,12 +62,12 @@ const TopNavbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur md:px-6">
+    <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/60 px-4 py-3 backdrop-blur-xl md:px-6">
       <div className="mx-auto flex max-w-300 items-center justify-between">
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="text-lg font-bold tracking-tight text-blue-700"
+          className="text-lg font-black tracking-tight text-cyan-300"
         >
           PostNFind
         </button>
@@ -76,7 +76,7 @@ const TopNavbar = () => {
           <div className="relative">
             <button
               type="button"
-              className="relative rounded-lg border border-slate-300 p-2 text-slate-700 hover:bg-slate-100"
+              className="relative rounded-lg border border-white/15 bg-white/5 p-2 text-slate-200 hover:bg-white/10"
               onClick={() => setOpen((prev) => !prev)}
               aria-label="Open notifications"
             >
@@ -89,12 +89,12 @@ const TopNavbar = () => {
             </button>
 
             {open ? (
-              <div className="absolute right-0 top-11 z-30 w-90 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+              <div className="absolute right-0 top-11 z-30 w-90 rounded-xl border border-white/10 bg-slate-950/90 p-3 shadow-2xl backdrop-blur-xl">
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-slate-800">Notifications</h3>
+                  <h3 className="text-sm font-semibold text-slate-100">Notifications</h3>
                   <button
                     type="button"
-                    className="text-xs font-medium text-blue-600 hover:underline"
+                    className="text-xs font-medium text-cyan-300 hover:underline"
                     onClick={() => {
                       setOpen(false);
                       navigate('/notifications');
@@ -104,9 +104,9 @@ const TopNavbar = () => {
                   </button>
                 </div>
 
-                {loading ? <p className="py-4 text-center text-xs text-slate-500">Loading...</p> : null}
+                {loading ? <p className="py-4 text-center text-xs text-slate-400">Loading...</p> : null}
 
-                {!loading && items.length === 0 ? <p className="py-4 text-center text-xs text-slate-500">No notifications</p> : null}
+                {!loading && items.length === 0 ? <p className="py-4 text-center text-xs text-slate-400">No notifications</p> : null}
 
                 {!loading && items.length > 0 ? (
                   <div className="max-h-90 space-y-2 overflow-auto">
@@ -114,16 +114,16 @@ const TopNavbar = () => {
                       <button
                         key={item._id}
                         type="button"
-                        className={`w-full rounded-lg border p-2 text-left ${item.isRead ? 'border-slate-200 bg-white' : 'border-blue-100 bg-blue-50/50'}`}
+                        className={`w-full rounded-lg border p-2 text-left ${item.isRead ? 'border-white/10 bg-white/0' : 'border-cyan-300/30 bg-cyan-300/10'}`}
                         onClick={() => {
                           markRead(item._id);
                           setOpen(false);
                           navigate(resolveNotificationTarget(item, user?.role));
                         }}
                       >
-                        <p className="text-xs font-semibold text-slate-800">{item.title}</p>
-                        <p className="mt-0.5 line-clamp-2 text-xs text-slate-600">{item.message}</p>
-                        <p className="mt-1 text-[11px] text-slate-400">{formatDate(item.createdAt)}</p>
+                        <p className="text-xs font-semibold text-slate-100">{item.title}</p>
+                        <p className="mt-0.5 line-clamp-2 text-xs text-slate-300">{item.message}</p>
+                        <p className="mt-1 text-[11px] text-slate-500">{formatDate(item.createdAt)}</p>
                       </button>
                     ))}
                   </div>
@@ -133,12 +133,12 @@ const TopNavbar = () => {
           </div>
 
           <div className="text-right">
-            <p className="text-sm font-medium text-slate-800">{user?.full_name || 'User'}</p>
-            <p className="text-xs text-slate-500">{String(user?.role || '').toUpperCase()}</p>
+            <p className="text-sm font-medium text-slate-100">{user?.full_name || 'User'}</p>
+            <p className="text-xs text-slate-400">{String(user?.role || '').toUpperCase()}</p>
           </div>
           <button
             type="button"
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+            className="rounded-lg border border-white/15 px-3 py-1.5 text-sm text-slate-200 hover:bg-white/10"
             onClick={handleLogout}
           >
             Logout

@@ -242,3 +242,34 @@
 .owner-form-submit:hover { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5); transform: translateY(-1px); }
 .owner-form-submit:active { transform: scale(0.98); }
 .owner-form-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Light mode overrides */
+.owner-theme-light .owner-field-input,
+.owner-theme-light .owner-field-select,
+.owner-theme-light .owner-field-textarea {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(100, 116, 139, 0.24);
+  color: #0f172a;
+}
+
+.owner-theme-light .owner-field-label {
+  color: #64748b;
+}
+
+.owner-theme-light .owner-form-section,
+.owner-theme-light .owner-req-preview,
+.owner-theme-light .owner-plan-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(100, 116, 139, 0.24);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+.owner-theme-light .owner-plan-card .plan-name,
+.owner-theme-light .owner-req-preview-val {
+  color: #0f172a;
+}
+
+.owner-theme-light .owner-plan-card .plan-desc,
+.owner-theme-light .owner-req-preview-key {
+  color: #64748b;
+}

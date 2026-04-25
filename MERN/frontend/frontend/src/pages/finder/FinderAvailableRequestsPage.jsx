@@ -167,7 +167,7 @@ const FinderAvailableRequestsPage = () => {
   const sectionLabel = "text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.2em] mb-4 block";
 
   return (
-    <div className="finder-page-enter space-y-8">
+    <div className="finder-page-enter finder-page-shell space-y-8">
       <PageHeader
         title="Signal Discovery"
         subtitle="Detection radar for nearby recovery missions within a 5km operational radius"

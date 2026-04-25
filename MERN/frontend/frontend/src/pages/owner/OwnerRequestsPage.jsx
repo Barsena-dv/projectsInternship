@@ -142,13 +142,13 @@ const OwnerRequestsPage = () => {
   });
 
   return (
-    <div className="owner-page-enter">
+    <div className="owner-page-enter owner-page-shell">
       {/* Header */}
       <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+        <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--role-text-primary)' }}>
           My Requests
         </h1>
-        <p style={{ margin: '0.35rem 0 0', color: '#a8a29e', fontSize: '0.875rem' }}>
+        <p style={{ margin: '0.35rem 0 0', color: 'var(--role-text-muted)', fontSize: '0.875rem' }}>
           Track pending, open, assigned, and completed requests
         </p>
       </div>
@@ -161,9 +161,9 @@ const OwnerRequestsPage = () => {
           placeholder="🔍 Search by name…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ padding: '0.4rem 1rem', borderRadius: '100px', border: '1.5px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: '#fffbeb', fontSize: '0.82rem', outline: 'none', minWidth: '180px', transition: 'all 0.2s' }}
-          onFocus={(e) => { e.target.style.borderColor = '#f59e0b'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.2)'; }}
-          onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none'; }}
+          style={{ padding: '0.4rem 1rem', borderRadius: '100px', border: '1.5px solid var(--role-border)', background: 'var(--role-surface-soft)', color: 'var(--role-text-primary)', fontSize: '0.82rem', outline: 'none', minWidth: '180px', transition: 'all 0.2s' }}
+          onFocus={(e) => { e.target.style.borderColor = 'var(--role-accent)'; e.target.style.boxShadow = '0 0 0 3px var(--role-accent-soft)'; }}
+          onBlur={(e) => { e.target.style.borderColor = 'var(--role-border)'; e.target.style.boxShadow = 'none'; }}
         />
         {FILTERS.map((f) => (
           <button
@@ -211,8 +211,8 @@ const OwnerRequestsPage = () => {
         loading={deleteLoading}
       >
         <div className="owner-section-card rounded-xl p-3 text-sm text-stone-300" style={{ background: 'rgba(0,0,0,0.2)' }}>
-          <p><span className="font-medium text-stone-400">Item:</span> {deleteTarget?.itemName || '-'}</p>
-          <p><span className="font-medium text-stone-400">Category:</span> {deleteTarget?.itemCategory || '-'}</p>
+          <p><span className="font-medium" style={{ color: 'var(--role-text-muted)' }}>Item:</span> {deleteTarget?.itemName || '-'}</p>
+          <p><span className="font-medium" style={{ color: 'var(--role-text-muted)' }}>Category:</span> {deleteTarget?.itemCategory || '-'}</p>
         </div>
       </GlassModal>
     </div>

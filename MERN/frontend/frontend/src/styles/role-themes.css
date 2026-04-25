@@ -1,0 +1,269 @@
+/* role-themes.css: unified owner/finder light-dark theming */
+
+.owner-dashboard-wrapper,
+.finder-dashboard-wrapper {
+  --role-text-primary: #f8fafc;
+  --role-text-secondary: #cbd5e1;
+  --role-text-muted: #94a3b8;
+  --role-surface: rgba(15, 23, 42, 0.55);
+  --role-surface-soft: rgba(15, 23, 42, 0.35);
+  --role-border: rgba(255, 255, 255, 0.1);
+  --role-border-strong: rgba(255, 255, 255, 0.18);
+  --role-panel-shadow: 0 14px 36px rgba(2, 6, 23, 0.38);
+  --role-navbar-bg: rgba(2, 6, 23, 0.45);
+  --role-navbar-bg-scrolled: rgba(2, 6, 23, 0.72);
+  --role-navbar-text: #e2e8f0;
+  --role-nav-muted: #94a3b8;
+  --role-search-bg: rgba(15, 23, 42, 0.45);
+  --role-accent: #22d3ee;
+  --role-accent-contrast: #083344;
+}
+
+.owner-theme-dark {
+  --role-bg-a: rgba(245, 158, 11, 0.08);
+  --role-bg-b: rgba(251, 146, 60, 0.08);
+  --role-surface: rgba(28, 25, 23, 0.55);
+  --role-surface-soft: rgba(28, 25, 23, 0.35);
+  --role-border: rgba(255, 237, 213, 0.12);
+  --role-border-strong: rgba(255, 237, 213, 0.2);
+  --role-text-primary: #fffbeb;
+  --role-text-secondary: #fef3c7;
+  --role-text-muted: #d6d3d1;
+  --role-navbar-bg: rgba(28, 25, 23, 0.4);
+  --role-navbar-bg-scrolled: rgba(28, 25, 23, 0.76);
+  --role-navbar-text: #fffbeb;
+  --role-nav-muted: #a8a29e;
+  --role-search-bg: rgba(0, 0, 0, 0.3);
+  --role-accent: #f59e0b;
+  --role-accent-contrast: #1c1917;
+}
+
+.owner-theme-light {
+  --role-bg-a: rgba(245, 158, 11, 0.07);
+  --role-bg-b: rgba(125, 211, 252, 0.14);
+  --role-surface: rgba(255, 255, 255, 0.82);
+  --role-surface-soft: rgba(255, 255, 255, 0.65);
+  --role-border: rgba(148, 163, 184, 0.28);
+  --role-border-strong: rgba(100, 116, 139, 0.35);
+  --role-text-primary: #1f2937;
+  --role-text-secondary: #334155;
+  --role-text-muted: #64748b;
+  --role-navbar-bg: rgba(255, 255, 255, 0.72);
+  --role-navbar-bg-scrolled: rgba(255, 255, 255, 0.92);
+  --role-navbar-text: #0f172a;
+  --role-nav-muted: #475569;
+  --role-search-bg: rgba(241, 245, 249, 0.85);
+  --role-accent: #d97706;
+  --role-accent-contrast: #ffffff;
+  --role-panel-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+.finder-theme-dark {
+  --role-bg-a: rgba(16, 185, 129, 0.08);
+  --role-bg-b: rgba(14, 116, 144, 0.08);
+  --role-bg-c: #021322;
+  --role-surface: rgba(15, 23, 42, 0.55);
+  --role-surface-soft: rgba(15, 23, 42, 0.4);
+  --role-border: rgba(16, 185, 129, 0.18);
+  --role-border-strong: rgba(16, 185, 129, 0.28);
+  --role-text-primary: #ecfeff;
+  --role-text-secondary: #d1fae5;
+  --role-text-muted: #94a3b8;
+  --role-navbar-bg: rgba(15, 23, 42, 0.42);
+  --role-navbar-bg-scrolled: rgba(15, 23, 42, 0.76);
+  --role-navbar-text: #ecfeff;
+  --role-nav-muted: #94a3b8;
+  --role-search-bg: rgba(0, 0, 0, 0.3);
+  --role-accent: #10b981;
+  --role-accent-contrast: #052e2b;
+}
+
+.finder-theme-light {
+  --role-bg-a: rgba(16, 185, 129, 0.08);
+  --role-bg-b: rgba(56, 189, 248, 0.12);
+  --role-bg-c: #ecfeff;
+  --role-surface: rgba(255, 255, 255, 0.84);
+  --role-surface-soft: rgba(255, 255, 255, 0.68);
+  --role-border: rgba(100, 116, 139, 0.24);
+  --role-border-strong: rgba(71, 85, 105, 0.34);
+  --role-text-primary: #0f172a;
+  --role-text-secondary: #1e293b;
+  --role-text-muted: #64748b;
+  --role-navbar-bg: rgba(255, 255, 255, 0.74);
+  --role-navbar-bg-scrolled: rgba(255, 255, 255, 0.94);
+  --role-navbar-text: #0f172a;
+  --role-nav-muted: #475569;
+  --role-search-bg: rgba(241, 245, 249, 0.85);
+  --role-accent: #059669;
+  --role-accent-contrast: #ffffff;
+  --role-panel-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+.owner-dashboard-wrapper,
+.finder-dashboard-wrapper {
+  background: radial-gradient(circle at 0% 0%, var(--role-bg-a), transparent 40%), radial-gradient(circle at 100% 100%, var(--role-bg-b), transparent 42%);
+}
+
+.finder-theme-dark {
+  background: radial-gradient(circle at 8% 12%, rgba(16, 185, 129, 0.12), transparent 34%), radial-gradient(circle at 92% 88%, rgba(14, 116, 144, 0.14), transparent 34%), linear-gradient(135deg, #021322 0%, #032136 48%, #04273a 100%);
+}
+
+.finder-theme-light {
+  background: radial-gradient(circle at 10% 8%, rgba(16, 185, 129, 0.1), transparent 32%), radial-gradient(circle at 92% 92%, rgba(56, 189, 248, 0.16), transparent 34%), linear-gradient(140deg, #f0fdfa 0%, #eff6ff 52%, #e0f2fe 100%);
+}
+
+.owner-theme-light .pnf-card,
+.finder-theme-light .pnf-card,
+.owner-theme-light .owner-section-card,
+.finder-theme-light .finder-section-card,
+.owner-theme-light .f-card-interactive,
+.finder-theme-light .f-card-interactive {
+  background: var(--role-surface) !important;
+  border-color: var(--role-border) !important;
+  box-shadow: var(--role-panel-shadow) !important;
+}
+
+.owner-theme-light .owner-page-title,
+.owner-theme-light .owner-section-title,
+.owner-theme-light .owner-stat-card .stat-value,
+.finder-theme-light .finder-section-card h3,
+.finder-theme-light .finder-section-card h2,
+.finder-theme-light .f-card-interactive h3,
+.finder-theme-light .f-card-interactive h4 {
+  color: var(--role-text-primary) !important;
+}
+
+.owner-theme-light .owner-page-subtitle,
+.owner-theme-light .owner-section-link,
+.owner-theme-light .owner-stat-card .stat-title,
+.owner-theme-light .owner-stat-card .stat-helper,
+.finder-theme-light .finder-section-card p,
+.finder-theme-light .f-card-interactive p {
+  color: var(--role-text-muted) !important;
+}
+
+.owner-theme-light .dash-list-item:hover {
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+/* Owner utility overrides for contrast consistency */
+.owner-theme-light .text-white,
+.owner-theme-light .text-stone-200,
+.owner-theme-light .text-stone-300,
+.owner-theme-light .text-slate-200,
+.owner-theme-light .text-slate-300 {
+  color: var(--role-text-primary) !important;
+}
+
+.owner-theme-light .text-stone-400,
+.owner-theme-light .text-stone-500,
+.owner-theme-light .text-slate-400,
+.owner-theme-light .text-slate-500,
+.owner-theme-light .text-slate-600 {
+  color: var(--role-text-muted) !important;
+}
+
+.owner-theme-light .bg-white\/5,
+.owner-theme-light .bg-white\/10,
+.owner-theme-light .bg-stone-950\/40,
+.owner-theme-light .bg-stone-900\/40,
+.owner-theme-light .bg-black\/20,
+.owner-theme-light .bg-black\/30 {
+  background: var(--role-surface-soft) !important;
+}
+
+.owner-theme-light .border-white\/5,
+.owner-theme-light .border-white\/10,
+.owner-theme-light .border-white\/20 {
+  border-color: var(--role-border) !important;
+}
+
+.owner-theme-light .pnf-input,
+.owner-theme-light input,
+.owner-theme-light textarea,
+.owner-theme-light select {
+  color: #0f172a;
+}
+
+.owner-theme-light input::placeholder,
+.owner-theme-light textarea::placeholder {
+  color: #64748b;
+}
+
+.owner-theme-dark .text-stone-400,
+.owner-theme-dark .text-stone-500,
+.owner-theme-dark .text-slate-500,
+.owner-theme-dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+/* Finder utility overrides so light theme works across utility-heavy pages */
+.finder-theme-light .text-white,
+.finder-theme-light .text-slate-200,
+.finder-theme-light .text-slate-300 {
+  color: var(--role-text-primary) !important;
+}
+
+.finder-theme-light .text-slate-400,
+.finder-theme-light .text-slate-500,
+.finder-theme-light .text-slate-600,
+.finder-theme-light .text-slate-700,
+.finder-theme-light .text-stone-400,
+.finder-theme-light .text-stone-500 {
+  color: var(--role-text-muted) !important;
+}
+
+.finder-theme-light .bg-slate-950\/40,
+.finder-theme-light .bg-slate-950\/50,
+.finder-theme-light .bg-slate-950\/70,
+.finder-theme-light .bg-slate-950\/80,
+.finder-theme-light .bg-slate-900\/80,
+.finder-theme-light .bg-slate-900\/40,
+.finder-theme-light .bg-slate-900\/60,
+.finder-theme-light .bg-slate-900\/20,
+.finder-theme-light .bg-white\/5,
+.finder-theme-light .bg-white\/2 {
+  background: var(--role-surface-soft) !important;
+}
+
+.finder-theme-light .border-white\/5,
+.finder-theme-light .border-white\/10,
+.finder-theme-light .border-white\/20,
+.finder-theme-light .border-emerald-500\/10 {
+  border-color: var(--role-border) !important;
+}
+
+.finder-theme-light .text-emerald-500,
+.finder-theme-light .text-emerald-500\/60,
+.finder-theme-light .text-emerald-500\/50,
+.finder-theme-light .text-emerald-500\/70 {
+  color: var(--role-accent) !important;
+}
+
+.finder-theme-light .bg-emerald-500 {
+  background: var(--role-accent) !important;
+  color: var(--role-accent-contrast) !important;
+}
+
+.finder-theme-light .text-slate-950 {
+  color: var(--role-accent-contrast) !important;
+}
+
+.finder-theme-light .pnf-input,
+.finder-theme-light input,
+.finder-theme-light textarea,
+.finder-theme-light select {
+  color: #0f172a;
+}
+
+.finder-theme-light input::placeholder,
+.finder-theme-light textarea::placeholder {
+  color: #64748b;
+}
+
+.finder-theme-dark .text-slate-500,
+.finder-theme-dark .text-slate-600,
+.finder-theme-dark .text-stone-500 {
+  color: #cbd5e1 !important;
+}

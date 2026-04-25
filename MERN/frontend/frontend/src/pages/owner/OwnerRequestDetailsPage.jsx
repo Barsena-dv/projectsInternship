@@ -362,7 +362,7 @@ const OwnerRequestDetailsPage = () => {
   }
 
   return (
-    <div>
+    <div className="owner-page-shell">
       <PageHeader title={`Request Details: ${request.itemName}`} subtitle="Status-driven request and payment lifecycle" />
       <RequestDetails
         request={request}

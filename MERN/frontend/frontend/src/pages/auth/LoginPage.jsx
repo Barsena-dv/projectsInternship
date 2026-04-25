@@ -41,7 +41,6 @@ const LoginPage = () => {
 
   return (
     <div className="auth-modern-layout pnf-dark-scrollbar">
-      {/* Cinematic Glows */}
       <div className="auth-glow auth-glow-1" />
       <div className="auth-glow auth-glow-2" />
 
@@ -52,7 +51,7 @@ const LoginPage = () => {
           </Link>
           <h1 className="auth-modern-title">Welcome Back</h1>
           <p className="auth-modern-subtitle">
-            Sign in to access your discovery dashboard and manage mission parameters.
+            Sign in to manage requests, track assignments, and communicate securely.
           </p>
         </header>
 
@@ -63,7 +62,7 @@ const LoginPage = () => {
               id="email"
               type="email"
               className={`auth-input-field ${errors.email ? 'error' : ''}`}
-              placeholder="your@email.com"
+              placeholder="you@example.com"
               {...register('email', { 
                 required: 'Email is required',
                 pattern: { value: /^\S+@\S+$/i, message: 'Invalid email format' }
@@ -83,7 +82,7 @@ const LoginPage = () => {
                 title="password"
                 type={showPassword ? 'text' : 'password'}
                 className={`auth-input-field ${errors.password ? 'error' : ''}`}
-                placeholder="••••••••"
+                placeholder="Enter your password"
                 {...register('password', { required: 'Password is required' })}
               />
               <button
@@ -103,7 +102,7 @@ const LoginPage = () => {
             {loading ? (
               <span className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Authenticating...
+                Signing in...
               </span>
             ) : (
               <>
@@ -117,7 +116,7 @@ const LoginPage = () => {
         <footer className="auth-footer">
           New to PostNFind? 
           <Link to="/register" className="auth-footer-link ml-2">
-            Create Account <FiArrowRight className="inline ml-1" />
+            Create your account <FiArrowRight className="inline ml-1" />
           </Link>
         </footer>
       </div>

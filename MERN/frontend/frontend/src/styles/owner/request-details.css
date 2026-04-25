@@ -139,3 +139,22 @@
   color: var(--text-3);
   margin-top: 0.25rem;
 }
+
+/* Light mode overrides */
+.owner-theme-light .owner-details-card,
+.owner-theme-light .tracking-event-card {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(100, 116, 139, 0.24);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+.owner-theme-light .owner-details-label,
+.owner-theme-light .tracking-event-time,
+.owner-theme-light .tracking-event-meta {
+  color: #64748b;
+}
+
+.owner-theme-light .owner-details-value,
+.owner-theme-light .tracking-event-title {
+  color: #0f172a;
+}

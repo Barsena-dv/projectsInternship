@@ -71,6 +71,34 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
     } catch { /* no-op */ }
   };
 
+  const theme = darkMode
+    ? {
+        text: '#fffbeb',
+        textMuted: '#a8a29e',
+        textSoft: '#d6d3d1',
+        surface: 'rgba(28, 25, 23, 0.85)',
+        surfaceAlt: 'rgba(28, 25, 23, 0.95)',
+        border: 'rgba(255, 255, 255, 0.1)',
+        borderSoft: 'rgba(255, 255, 255, 0.06)',
+        hover: 'rgba(255,255,255,0.06)',
+        accent: '#f59e0b',
+        accentSoft: 'rgba(245, 158, 11, 0.1)',
+        navIdle: '#a8a29e',
+      }
+    : {
+        text: '#0f172a',
+        textMuted: '#475569',
+        textSoft: '#334155',
+        surface: 'rgba(255, 255, 255, 0.85)',
+        surfaceAlt: 'rgba(255, 255, 255, 0.96)',
+        border: 'rgba(100, 116, 139, 0.25)',
+        borderSoft: 'rgba(100, 116, 139, 0.18)',
+        hover: 'rgba(148,163,184,0.12)',
+        accent: '#d97706',
+        accentSoft: 'rgba(217, 119, 6, 0.12)',
+        navIdle: '#475569',
+      };
+
 
   const navStyle = {
     position: 'sticky',
@@ -80,10 +108,10 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
     height: '64px',
     display: 'flex',
     alignItems: 'center',
-    background: scrolled ? 'rgba(28, 25, 23, 0.7)' : 'rgba(28, 25, 23, 0.3)',
+    background: scrolled ? theme.surface : theme.surfaceAlt,
     backdropFilter: 'blur(16px)',
     WebkitBackdropFilter: 'blur(16px)',
-    borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
+    borderBottom: scrolled ? `1px solid ${theme.border}` : '1px solid transparent',
     boxShadow: scrolled ? '0 10px 30px rgba(0,0,0,0.5)' : 'none',
     transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
     fontFamily: "'Inter', -apple-system, sans-serif",
@@ -93,14 +121,14 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
     position: 'absolute',
     right: 0,
     top: '56px',
-    background: 'rgba(28, 25, 23, 0.85)',
+    background: theme.surfaceAlt,
     backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    border: `1px solid ${theme.border}`,
     borderRadius: '16px',
     boxShadow: '0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset',
     zIndex: 200,
     overflow: 'hidden',
-    color: '#f8fafc',
+    color: theme.text,
   };
 
   return (
@@ -149,7 +177,7 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
         <div className="onav-header-inner" style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
 
           {/* Logo */}
-          <Link to="/owner/dashboard" className="onav-logo-text" style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.03em', color: '#f1f5f9', textDecoration: 'none', flexShrink: 0, marginRight: '2rem', display: 'flex', alignItems: 'center', gap: '2px' }}>
+          <Link to="/owner/dashboard" className="onav-logo-text" style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.03em', color: theme.text, textDecoration: 'none', flexShrink: 0, marginRight: '2rem', display: 'flex', alignItems: 'center', gap: '2px' }}>
             <span style={{ background: 'linear-gradient(135deg,#f59e0b,#fbbf24)', borderRadius: '6px', width: '22px', height: '22px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', marginRight: '6px', fontWeight: 900, boxShadow: '0 2px 8px rgba(245,158,11,0.4)', color: '#1c1917' }}>P</span>
             Post<span style={{ color: '#fbbf24' }}>N</span>Find
           </Link>
@@ -163,13 +191,13 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
                 style={({ isActive }) => ({
                   fontSize: '0.875rem',
                   fontWeight: isActive ? 600 : 500,
-                  color: isActive ? '#ffffff' : '#94a3b8',
+                  color: isActive ? theme.text : theme.navIdle,
                   textDecoration: 'none',
                   padding: '0.4rem 0.875rem',
                   borderRadius: '10px',
                   transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  background: isActive ? 'rgba(245, 158, 11, 0.08)' : 'transparent',
-                  border: isActive ? '1px solid rgba(245, 158, 11, 0.15)' : '1px solid transparent',
+                  background: isActive ? theme.accentSoft : 'transparent',
+                  border: isActive ? `1px solid ${theme.borderSoft}` : '1px solid transparent',
                   whiteSpace: 'nowrap',
                   boxShadow: isActive ? '0 4px 12px rgba(0,0,0,0.2)' : 'none',
                 })}
@@ -188,14 +216,14 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
 
             {/* Search */}
             {searchOpen ? (
-              <div className="onav-search-container" style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.08)', borderRadius: '8px', padding: '0 0.7rem', border: '1px solid rgba(245,158,11,0.4)', gap: '0.4rem', height: '34px', minWidth: '200px' }}>
-                <FiSearch size={13} color="#94a3b8" />
+              <div className="onav-search-container" style={{ display: 'flex', alignItems: 'center', background: theme.hover, borderRadius: '8px', padding: '0 0.7rem', border: `1px solid ${theme.border}`, gap: '0.4rem', height: '34px', minWidth: '200px' }}>
+                <FiSearch size={13} color={theme.navIdle} />
                 <input
                   autoFocus
                   value={searchVal}
                   onChange={(e) => setSearchVal(e.target.value)}
                   placeholder="Search…"
-                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.82rem', color: '#f1f5f9', width: '100%', fontFamily: 'inherit' }}
+                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.82rem', color: theme.text, width: '100%', fontFamily: 'inherit' }}
                 />
                 <button type="button" onClick={() => { setSearchOpen(false); setSearchVal(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', padding: 0 }}>
                   <FiX size={13} />
@@ -204,7 +232,7 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
             ) : (
               <button type="button" onClick={() => setSearchOpen(true)}
                 className="onav-iconbtn"
-                style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', transition: 'all 0.15s' }}
+                style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: 'none', background: 'transparent', color: theme.navIdle, cursor: 'pointer', transition: 'all 0.15s' }}
               >
                 <FiSearch size={15} />
               </button>
@@ -213,7 +241,7 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
             {/* Dark mode */}
             <button type="button" onClick={onToggleDark}
               className="onav-iconbtn"
-              style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', transition: 'all 0.15s' }}
+              style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: 'none', background: 'transparent', color: theme.navIdle, cursor: 'pointer', transition: 'all 0.15s' }}
             >
               {darkMode ? <FiSun size={15} /> : <FiMoon size={15} />}
             </button>
@@ -222,7 +250,7 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
             <div ref={notifRef} style={{ position: 'relative' }}>
               <button type="button" onClick={() => { setNotifOpen((p) => !p); setProfileOpen(false); }}
                 className="onav-iconbtn"
-                style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: 'none', background: notifOpen ? 'rgba(255,255,255,0.08)' : 'transparent', color: notifOpen ? '#e2e8f0' : '#94a3b8', cursor: 'pointer', transition: 'all 0.15s', position: 'relative' }}
+                style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: 'none', background: notifOpen ? theme.hover : 'transparent', color: notifOpen ? theme.text : theme.navIdle, cursor: 'pointer', transition: 'all 0.15s', position: 'relative' }}
               >
                 <FiBell size={15} />
                 {unreadCount > 0 && (
@@ -232,16 +260,16 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
 
               {notifOpen && (
                 <div style={{ ...dropdownStyle, width: '340px', animation: 'navDropIn 180ms ease both' }}>
-                  <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
+                  <div style={{ padding: '0.75rem 1rem', borderBottom: `1px solid ${theme.border}`, background: theme.hover }}>
                     <p style={{ margin: 0, fontWeight: 600, fontSize: '0.85rem' }}>{user?.full_name || 'User'}</p>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8' }}>{user?.email}</p>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: theme.navIdle }}>{user?.email}</p>
                   </div>
-                  <div style={{ padding: '0.875rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
+                  <div style={{ padding: '0.875rem 1rem', borderBottom: `1px solid ${theme.borderSoft}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: theme.hover }}>
                     <div>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fffbeb' }}>Notifications</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text }}>Notifications</span>
                       {unreadCount > 0 && <span style={{ marginLeft: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: '#1c1917', background: '#f59e0b', borderRadius: '6px', padding: '1px 5px', verticalAlign: 'middle' }}>{unreadCount}</span>}
                     </div>
-                    <button type="button" onClick={() => { setNotifOpen(false); navigate('/notifications'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: '#f59e0b', fontWeight: 600, fontFamily: 'inherit' }}>
+                    <button type="button" onClick={() => { setNotifOpen(false); navigate('/notifications'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: theme.accent, fontWeight: 600, fontFamily: 'inherit' }}>
                       View all
                     </button>
                   </div>
@@ -283,19 +311,19 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
                   name={user?.full_name || 'User'} 
                   size="sm" 
                 />
-                <span className="onav-profile-name" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                <span className="onav-profile-name" style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, whiteSpace: 'nowrap' }}>
                   {user?.full_name || user?.email || 'Account'}
                 </span>
               </button>
 
               {profileOpen && (
                 <div style={{ ...dropdownStyle, width: '220px', animation: 'navDropIn 180ms ease both' }}>
-                  <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
+                  <div style={{ padding: '0.75rem 1rem', borderBottom: `1px solid ${theme.border}`, background: theme.hover }}>
                     <p style={{ margin: 0, fontWeight: 600, fontSize: '0.85rem' }}>{user?.full_name || 'User'}</p>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8' }}>{user?.email}</p>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: theme.navIdle }}>{user?.email}</p>
                   </div>
                   <div style={{ padding: '0.4rem' }}>
-                    <Link to="/owner/profile" onClick={() => setProfileOpen(false)} style={{ display: 'block', padding: '0.5rem 0.75rem', fontSize: '0.82rem', color: '#cbd5e1', textDecoration: 'none', borderRadius: '6px' }} onMouseEnter={(e) => { e.target.style.background = 'rgba(255,255,255,0.05)'; e.target.style.color = '#fff' }} onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = '#cbd5e1' }}>Profile Settings</Link>
+                    <Link to="/owner/profile" onClick={() => setProfileOpen(false)} style={{ display: 'block', padding: '0.5rem 0.75rem', fontSize: '0.82rem', color: theme.textSoft, textDecoration: 'none', borderRadius: '6px' }} onMouseEnter={(e) => { e.target.style.background = theme.hover; e.target.style.color = theme.text }} onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = theme.textSoft }}>Profile Settings</Link>
                     <button onClick={() => { logout(); navigate('/login'); }} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', fontSize: '0.82rem', color: '#fca5a5', background: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', marginTop: '2px' }} onMouseEnter={(e) => { e.target.style.background = 'rgba(239,68,68,0.1)' }} onMouseLeave={(e) => { e.target.style.background = 'transparent' }}>
                       <FiLogOut size={14} /> Sign Out
                     </button>
@@ -326,10 +354,10 @@ const OwnerNavbar = ({ darkMode, onToggleDark, scrolledOverride }) => {
             onClick={() => setMobileMenuOpen(false)} 
           />
           {/* Sidebar */}
-          <div style={{ position: 'relative', marginLeft: 'auto', width: '280px', maxWidth: '80%', height: '100%', background: 'rgba(28, 25, 23, 0.95)', borderLeft: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'col', padding: '1.5rem', animation: 'navDropIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+          <div style={{ position: 'relative', marginLeft: 'auto', width: '280px', maxWidth: '80%', height: '100%', background: theme.surfaceAlt, borderLeft: `1px solid ${theme.border}`, display: 'flex', flexDirection: 'col', padding: '1.5rem', animation: 'navDropIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
             <div className="flex flex-col w-full h-full">
               <div className="flex justify-between items-center mb-8">
-                <span className="font-black text-white text-lg tracking-tight">Menu</span>
+                <span className="font-black text-lg tracking-tight" style={{ color: theme.text }}>Menu</span>
                 <button onClick={() => setMobileMenuOpen(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
                   <FiX size={24} />
                 </button>
